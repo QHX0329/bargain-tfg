@@ -55,7 +55,7 @@ AURA actúa como un **orquestador inteligente de la cesta de la compra** mediant
 
 ```bash
 # Clonar repositorio
-git clone https://github.com/[USUARIO]/aura-tfg.git
+git clone https://github.com/QHX0329/aura-tfg.git
 cd aura-tfg
 
 # Copiar variables de entorno
@@ -128,8 +128,8 @@ Este proyecto está bajo la licencia MIT. Ver [LICENSE](LICENSE) para más detal
 
 ## 👤 Autor
 
-- **[NOMBRE DEL ALUMNO]** — Estudiante de Ingeniería Informática, Universidad de Sevilla
-- Tutor: **[NOMBRE DEL TUTOR]**
+- **Nicolás Parrilla Geniz** — Estudiante de Ingeniería Informática, Universidad de Sevilla
+- Tutor: **Juan Vicente Gutiérrez Santacreu**
 
 ---
 

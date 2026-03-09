@@ -6,9 +6,9 @@
 
 **Tipo:** Trabajo Fin de Grado — Grado en Ingeniería Informática (Ingeniería del Software), Universidad de Sevilla.
 
-**Autor:** [NOMBRE DEL ALUMNO]
-**Tutor:** [NOMBRE DEL TUTOR]
-**Departamento:** [DEPARTAMENTO]
+**Autor:** Nicolás Parrilla Geniz
+**Tutor:** Juan Vicente Gutiérrez Santacreu
+**Departamento:** Matemática Aplicada I
 
 ---
 

@@ -2,7 +2,7 @@
 
 ## Resumen Ejecutivo
 
-El proyecto AURA se planifica con una duración estimada de **20 semanas** (5 meses), con una dedicación media de 15 horas semanales, totalizando aproximadamente **300 horas de trabajo**. El desarrollo se organiza en 6 fases principales que se solapan parcialmente para optimizar el tiempo.
+El proyecto BargAIn se planifica con una duración estimada de **20 semanas** (5 meses), con una dedicación media de 15 horas semanales, totalizando aproximadamente **300 horas de trabajo**. El desarrollo se organiza en 6 fases principales que se solapan parcialmente para optimizar el tiempo.
 
 ---
 
@@ -200,7 +200,7 @@ Basado en el *Informe final de la consulta preliminar del mercado de perfiles pr
 | Pruebas y Deploy | 25 | Tester de calidad | 23,77 | 594,25 |
 | **TOTAL** | **300** | | | **8.690,25** |
 
-El coste total estimado del proyecto AURA asciende a **8.690,25 € (sin IVA)**.
+El coste total estimado del proyecto BargAIn asciende a **8.690,25 € (sin IVA)**.
 
 ### Costes de infraestructura (estimación anual)
 

@@ -1,6 +1,6 @@
-# Proyecto AURA
+# Proyecto BargAIn
 
-**Nombre completo:** AURA — Asistente Unificado de Rutas y Ahorro
+**Nombre completo:** BargAIn
 **Tipo:** Trabajo Fin de Grado (TFG) — Grado en Ingeniería Informática, Ingeniería del Software
 **Estado:** Activo (en desarrollo)
 **Fecha:** Curso 2025-2026
@@ -11,7 +11,7 @@ Aplicación web/móvil de compra inteligente que optimiza la cesta de la compra 
 ## Repositorio
 - **Rama principal:** main (producción)
 - **Rama activa:** develop (integración)
-- **Directorio raíz:** aura-tfg/
+- **Directorio raíz:** bargain-tfg/
 
 ## Stack tecnológico
 

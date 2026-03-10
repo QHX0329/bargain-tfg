@@ -9,8 +9,8 @@ SECRET_KEY = "test-secret-key-not-for-production"
 DATABASES = {
     "default": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "NAME": "aura_test",
-        "USER": "aura_test",
+        "NAME": "bargain_test",
+        "USER": "bargain_test",
         "PASSWORD": "test_password",
         "HOST": "localhost",
         "PORT": "5432",

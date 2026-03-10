@@ -5,9 +5,9 @@
 
 ---
 
-Soy Nicolás Parrilla Geniz, estudiante de 4º de Ingeniería Informática (Ing. del Software) en la Universidad de Sevilla. Estoy desarrollando mi TFG: AURA (Asistente Unificado de Rutas y Ahorro), una app que optimiza la compra diaria cruzando precio, distancia y tiempo entre supermercados.
+Soy Nicolás Parrilla Geniz, estudiante de 4º de Ingeniería Informática (Ing. del Software) en la Universidad de Sevilla. Estoy desarrollando mi TFG: BargAIn, una app que optimiza la compra diaria cruzando precio, distancia y tiempo entre supermercados.
 
-Stack: Django 5 + PostGIS + DRF (backend), React Native + Expo (frontend), Celery + Redis, Scrapy (scraping), Claude API (asistente), Tesseract (OCR), OR-Tools (rutas). Repo: github.com/QHX0329/aura-tfg.
+Stack: Django 5 + PostGIS + DRF (backend), React Native + Expo (frontend), Celery + Redis, Scrapy (scraping), Claude API (asistente), Tesseract (OCR), OR-Tools (rutas). Repo: github.com/QHX0329/bargain-tfg.
 
 Preferencias de respuesta:
 - Responde en español. Código en inglés, docstrings en español.

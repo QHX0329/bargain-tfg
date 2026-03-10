@@ -1,4 +1,4 @@
-"""Configuración de Celery para el proyecto AURA."""
+"""Configuración de Celery para el proyecto BargAIn."""
 
 import os
 
@@ -6,7 +6,7 @@ from celery import Celery
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.dev")
 
-app = Celery("aura")
+app = Celery("bargain")
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 

@@ -1,9 +1,9 @@
 #!/bin/bash
 # Script para crear issues de Fase 1 y 2 en GitHub
 # Requiere: gh cli (https://cli.github.com/)
-# Uso: cd aura-tfg && bash .github/issues-batch/create-issues.sh
+# Uso: cd bargain-tfg && bash .github/issues-batch/create-issues.sh
 
-REPO="QHX0329/aura-tfg"
+REPO="QHX0329/bargain-tfg"
 
 echo "🏗️ Creando milestone Fase 1..."
 gh api repos/$REPO/milestones -f title="F1 — Análisis y Diseño" -f description="Semanas 1-3 | 45 horas | Requisitos, diseño, diagramas" -f due_on="2026-03-29T23:59:59Z"
@@ -70,7 +70,7 @@ gh issue create --repo $REPO --milestone "F1 — Análisis y Diseño" \
   --title "📄 Especificación de actores del sistema" \
   --label "tipo:documentacion,prioridad:critica,fase:F1,semana:S1" \
   --body "## Descripción
-Definir los actores del sistema AURA: Consumidor, Comercio/PYME, Admin, Sistema (Scraper).
+Definir los actores del sistema BargAIn: Consumidor, Comercio/PYME, Admin, Sistema (Scraper).
 
 ## Tareas
 - [ ] Definir permisos por actor
@@ -210,7 +210,7 @@ gh issue create --repo $REPO --milestone "F2 — Infraestructura Base" \
 Subir scaffold a GitHub, configurar protecciones y verificar CI.
 
 ## Tareas
-- [ ] Crear repo github.com/QHX0329/aura-tfg
+- [ ] Crear repo github.com/QHX0329/bargain-tfg
 - [ ] Push scaffold inicial
 - [ ] Crear ramas main + develop
 - [ ] Branch protection rules en main

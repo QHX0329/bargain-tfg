@@ -1,5 +1,5 @@
 """
-Configuración base de Django para el proyecto AURA.
+Configuración base de Django para el proyecto BargAIn.
 Configuraciones comunes a todos los entornos.
 """
 
@@ -93,7 +93,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
     "default": dj_database_url.config(
-        default="postgis://aura_user:aura_password@localhost:5432/aura_db",
+        default="postgis://bargain_user:bargain_password@localhost:5432/bargain_db",
         engine="django.contrib.gis.db.backends.postgis",
     )
 }
@@ -184,7 +184,7 @@ CELERY_TIMEZONE = TIME_ZONE
 # ── DRF Spectacular (OpenAPI) ────────────────────────
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "AURA API",
+    "TITLE": "BargAIn API",
     "DESCRIPTION": "API del Asistente Unificado de Rutas y Ahorro",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,

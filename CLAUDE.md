@@ -1,8 +1,8 @@
-# CLAUDE.md — Instrucciones del Proyecto AURA
+# CLAUDE.md — Instrucciones del Proyecto BargAIn
 
 ## 🎯 Resumen del Proyecto
 
-**AURA** (Asistente Unificado de Rutas y Ahorro) es una aplicación web/móvil de compra inteligente que optimiza la cesta de la compra del usuario cruzando **precio**, **distancia** y **tiempo** entre múltiples supermercados y comercios locales.
+**BargAIn** es una aplicación web/móvil de compra inteligente que optimiza la cesta de la compra del usuario cruzando **precio**, **distancia** y **tiempo** entre múltiples supermercados y comercios locales.
 
 **Tipo:** Trabajo Fin de Grado — Grado en Ingeniería Informática (Ingeniería del Software), Universidad de Sevilla.
 
@@ -44,7 +44,7 @@
 ## 📁 Estructura del Repositorio
 
 ```
-aura-tfg/
+bargain-tfg/
 ├── CLAUDE.md                    # Este archivo
 ├── README.md                    # Presentación del proyecto
 ├── LICENSE                      # MIT License
@@ -135,7 +135,7 @@ aura-tfg/
 │
 ├── scraping/                    # Proyecto Scrapy independiente
 │   ├── scrapy.cfg
-│   └── aura_scraping/
+│   └── bargain_scraping/
 │       ├── spiders/
 │       │   ├── mercadona.py
 │       │   ├── carrefour.py

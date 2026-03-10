@@ -36,9 +36,9 @@ jobs:
       postgres:
         image: postgis/postgis:16-3.4
         env:
-          POSTGRES_USER: aura_test
+          POSTGRES_USER: bargain_test
           POSTGRES_PASSWORD: test_password
-          POSTGRES_DB: aura_test
+          POSTGRES_DB: bargain_test
         ports:
           - 5432:5432
         options: >-
@@ -73,7 +73,7 @@ jobs:
           cd backend
           python manage.py migrate --noinput
         env:
-          DATABASE_URL: postgis://aura_test:test_password@localhost:5432/aura_test
+          DATABASE_URL: postgis://bargain_test:test_password@localhost:5432/bargain_test
           REDIS_URL: redis://localhost:6379/0
 
       - name: Run tests with coverage
@@ -81,7 +81,7 @@ jobs:
           cd backend
           pytest --cov=apps --cov-report=xml --cov-fail-under=80 -v
         env:
-          DATABASE_URL: postgis://aura_test:test_password@localhost:5432/aura_test
+          DATABASE_URL: postgis://bargain_test:test_password@localhost:5432/bargain_test
           REDIS_URL: redis://localhost:6379/0
 
       - name: Upload coverage

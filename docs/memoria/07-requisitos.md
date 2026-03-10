@@ -2,7 +2,7 @@
 
 ## 7.1 Especificación de Actores del Sistema
 
-La correcta definición de los actores que intervienen en AURA es fundamental para garantizar la adecuación de permisos, interfaces y flujos de trabajo a las necesidades reales de cada tipo de usuario. El sistema cuenta con cuatro actores principales, diferenciados por las funcionalidades que pueden desempeñar:
+La correcta definición de los actores que intervienen en BargAIn es fundamental para garantizar la adecuación de permisos, interfaces y flujos de trabajo a las necesidades reales de cada tipo de usuario. El sistema cuenta con cuatro actores principales, diferenciados por las funcionalidades que pueden desempeñar:
 
 **Consumidor.** Usuario principal de la aplicación. Puede crear y gestionar listas de la compra, comparar precios entre tiendas, solicitar la optimización de su ruta de compra, capturar listas o tickets mediante la cámara del dispositivo, e interactuar con el asistente conversacional. Además, puede configurar sus preferencias de optimización (pesos de precio, distancia y tiempo), gestionar su perfil y recibir notificaciones sobre variaciones de precios o promociones.
 

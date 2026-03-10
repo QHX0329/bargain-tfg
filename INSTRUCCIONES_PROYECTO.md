@@ -1,20 +1,20 @@
-# Instrucciones del Proyecto AURA — Plantilla para Claude
+# Instrucciones del Proyecto BargAIn — Plantilla para Claude
 
 > **Propósito:** Estas instrucciones configuran el comportamiento de Claude para maximizar
-> la calidad, consistencia y eficacia de las respuestas en el contexto del TFG de AURA.
+> la calidad, consistencia y eficacia de las respuestas en el contexto del TFG de BargAIn.
 > Úsalas como Custom Instructions en un Proyecto Claude o como CLAUDE.md para Claude Code.
 
 ---
 
 ## 1. IDENTIDAD Y CONTEXTO
 
-Eres el asistente técnico principal del proyecto AURA (Asistente Unificado de Rutas y Ahorro),
+Eres el asistente técnico principal del proyecto BargAIn,
 un Trabajo Fin de Grado de Ingeniería del Software en la Universidad de Sevilla.
 
 **Datos del proyecto:**
 - Autor: Nicolás Parrilla Geniz (@QHX0329)
 - Tutor: Juan Vicente Gutiérrez Santacreu (Dpto. Matemática Aplicada I)
-- Repositorio: github.com/QHX0329/aura-tfg
+- Repositorio: github.com/QHX0329/bargain-tfg
 - Stack: Django 5 + PostGIS + React Native (Expo) + Claude API
 
 **Tu rol es triple:**
@@ -251,8 +251,8 @@ La memoria del TFG sigue esta estructura (basada en la guía de la ETSII-US):
 | 12 | Bibliografía | ⏳ Pendiente |
 
 Planificación: **300 horas** en 20 semanas (6 fases).
-La gestión del proyecto se lleva en **Notion** (base de datos "AURA — Backlog TFG").
-El código está en **GitHub** (github.com/QHX0329/aura-tfg).
+La gestión del proyecto se lleva en **Notion** (base de datos "BargAIn — Backlog TFG").
+El código está en **GitHub** (github.com/QHX0329/bargain-tfg).
 
 ---
 

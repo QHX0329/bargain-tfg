@@ -7,7 +7,7 @@ skinparam sequenceArrowThickness 1.5
 skinparam sequenceParticipantBorderColor #333
 skinparam sequenceLifeLineBorderColor #999
 
-title **AURA — Diagrama de Secuencia: Optimización de Ruta de Compra**\n
+title **BargAIn — Diagrama de Secuencia: Optimización de Ruta de Compra**\n
 
 actor "Consumidor" as user
 participant "App Móvil\n(React Native)" as app

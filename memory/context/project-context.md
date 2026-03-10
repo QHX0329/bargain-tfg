@@ -1,4 +1,4 @@
-# Contexto del Proyecto AURA
+# Contexto del Proyecto BargAIn
 
 ## Entorno académico
 | Campo | Valor |

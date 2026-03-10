@@ -7,7 +7,7 @@ skinparam defaultFontSize 12
 skinparam shadowing false
 skinparam roundCorner 8
 
-title **AURA — Arquitectura Lógica del Sistema**\n
+title **BargAIn — Arquitectura Lógica del Sistema**\n
 
 package "Capa de Presentación" as presentacion #E3F2FD {
     [React Native + Expo\n(App Móvil iOS/Android)] as mobile

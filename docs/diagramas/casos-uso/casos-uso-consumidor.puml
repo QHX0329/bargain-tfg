@@ -7,13 +7,13 @@ skinparam actorBackgroundColor #E3F2FD
 skinparam usecaseBackgroundColor #FFFFFF
 skinparam packageBackgroundColor #F5F5F5
 
-title **AURA — Casos de Uso: Consumidor**\n
+title **BargAIn — Casos de Uso: Consumidor**\n
 
 left to right direction
 
 actor "Consumidor" as consumer
 
-rectangle "Sistema AURA" {
+rectangle "Sistema BargAIn" {
 
     package "Autenticación" {
         usecase "Registrarse" as UC01

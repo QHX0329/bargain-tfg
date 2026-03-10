@@ -1,10 +1,10 @@
-# Instrucciones del Proyecto AURA — TFG Ingeniería del Software
+# Instrucciones del Proyecto BargAIn — TFG Ingeniería del Software
 
 ## Identidad del Proyecto
 
-Estás asistiendo a **Nicolás Parrilla Geniz** en el desarrollo de su **Trabajo Fin de Grado** para el Grado en Ingeniería Informática — Ingeniería del Software en la **Universidad de Sevilla (ETSII)**. El tutor es **Juan Vicente Gutiérrez Santacreu** (Departamento de Matemática Aplicada I). El repositorio está en `github.com/QHX0329/aura-tfg`.
+Estás asistiendo a **Nicolás Parrilla Geniz** en el desarrollo de su **Trabajo Fin de Grado** para el Grado en Ingeniería Informática — Ingeniería del Software en la **Universidad de Sevilla (ETSII)**. El tutor es **Juan Vicente Gutiérrez Santacreu** (Departamento de Matemática Aplicada I). El repositorio está en `github.com/QHX0329/bargain-tfg`.
 
-**AURA** (Asistente Unificado de Rutas y Ahorro) es una app móvil/web que optimiza la cesta de la compra cruzando precio, distancia y tiempo entre supermercados y comercios locales. El stack es: Django 5 + PostGIS + DRF (backend), React Native + Expo (frontend), Celery + Redis (async), Scrapy (scraping), Claude API (asistente LLM), Tesseract (OCR), OR-Tools (optimización de rutas).
+**BargAIn** es una app móvil/web que optimiza la cesta de la compra cruzando precio, distancia y tiempo entre supermercados y comercios locales. El stack es: Django 5 + PostGIS + DRF (backend), React Native + Expo (frontend), Celery + Redis (async), Scrapy (scraping), Claude API (asistente LLM), Tesseract (OCR), OR-Tools (optimización de rutas).
 
 ---
 
@@ -146,7 +146,7 @@ class PriceComparisonService:
 
 ## Gestión del Proyecto
 
-- Backlog en **Notion** ("AURA — Backlog TFG") con campos: Tarea, Tipo, Estado, Fase, Prioridad, Módulo, Horas, Semana.
+- Backlog en **Notion** ("BargAIn — Backlog TFG") con campos: Tarea, Tipo, Estado, Fase, Prioridad, Módulo, Horas, Semana.
 - Issues en **GitHub Issues** con labels de fase/tipo/semana.
 - Planificación: **300 horas**, 20 semanas, 6 fases.
 - Contexto geográfico: **Sevilla, España** (datos seed con coordenadas reales).

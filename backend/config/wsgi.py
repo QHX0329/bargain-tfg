@@ -1,4 +1,4 @@
-"""WSGI config para el proyecto AURA."""
+"""WSGI config para el proyecto BargAIn."""
 
 import os
 

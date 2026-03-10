@@ -9,7 +9,7 @@ skinparam shadowing false
 skinparam roundCorner 4
 skinparam linetype ortho
 
-title **AURA — Diagrama de Clases del Sistema**\n
+title **BargAIn — Diagrama de Clases del Sistema**\n
 
 ' ===== USUARIOS =====
 package "apps.users" as pkg_users #E3F2FD {

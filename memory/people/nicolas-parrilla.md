@@ -1,13 +1,13 @@
 # Nicolás Parrilla Geniz
 
 **También conocido como:** Nico, Nicolás
-**Rol:** Autor y desarrollador del TFG AURA
+**Rol:** Autor y desarrollador del TFG BargAIn
 **Universidad:** Universidad de Sevilla (ETSII-US)
 **Grado:** Ingeniería Informática — Ingeniería del Software
 **Email:** nicolasparrillageniz@gmail.com
 
 ## Contexto
-- Desarrolla el TFG AURA de forma individual
+- Desarrolla el TFG BargAIn de forma individual
 - Es el único desarrollador del proyecto
 - Trabaja con Claude como asistente de desarrollo
 

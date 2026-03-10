@@ -1,4 +1,4 @@
-# 🛒 AURA — Asistente Unificado de Rutas y Ahorro
+# 🛒 BargAIn — Asistente Unificado de Rutas y Ahorro
 
 > **"Compra inteligente, al mejor precio y en el menor tiempo."**
 
@@ -8,7 +8,7 @@
 
 ## 📋 Descripción
 
-AURA es una aplicación móvil y web que elimina la ineficiencia en la compra diaria. No solo indica dónde es más barato un producto, sino que calcula la **combinación óptima de supermercados** que ofrece la mejor relación **Precio–Distancia–Tiempo**.
+BargAIn es una aplicación móvil y web que elimina la ineficiencia en la compra diaria. No solo indica dónde es más barato un producto, sino que calcula la **combinación óptima de supermercados** que ofrece la mejor relación **Precio–Distancia–Tiempo**.
 
 Este proyecto es un **Trabajo Fin de Grado** del Grado en Ingeniería Informática — Ingeniería del Software, Universidad de Sevilla (ETSII).
 
@@ -22,7 +22,7 @@ El consumidor se enfrenta a tres barreras:
 
 ## 💡 La Solución
 
-AURA actúa como un **orquestador inteligente de la cesta de la compra** mediante cuatro módulos:
+BargAIn actúa como un **orquestador inteligente de la cesta de la compra** mediante cuatro módulos:
 
 | Módulo | Descripción |
 |--------|-------------|
@@ -55,8 +55,8 @@ AURA actúa como un **orquestador inteligente de la cesta de la compra** mediant
 
 ```bash
 # Clonar repositorio
-git clone https://github.com/QHX0329/aura-tfg.git
-cd aura-tfg
+git clone https://github.com/QHX0329/bargain-tfg.git
+cd bargain-tfg
 
 # Copiar variables de entorno
 cp .env.example .env
@@ -88,7 +88,7 @@ npx expo start
 ## 📁 Estructura del Proyecto
 
 ```
-aura-tfg/
+bargain-tfg/
 ├── backend/        # API Django + lógica de negocio
 ├── frontend/       # App React Native
 ├── scraping/       # Spiders de Scrapy
@@ -112,7 +112,7 @@ make test
 
 ## 🤝 Diferenciación del Mercado
 
-| Funcionalidad | Soysuper/OCU | Tiendeo | Apps Super | **AURA** |
+| Funcionalidad | Soysuper/OCU | Tiendeo | Apps Super | **BargAIn** |
 |---------------|:---:|:---:|:---:|:---:|
 | Comparación de Precios | ✅ | ⚠️ | ❌ | ✅ |
 | Cálculo de Ruta Óptima | ❌ | ❌ | ❌ | ✅ |

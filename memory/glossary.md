@@ -1,11 +1,11 @@
-# Glosario — Proyecto AURA
+# Glosario — Proyecto BargAIn
 
 Términos internos, siglas y abreviaturas del proyecto.
 
 ## Acrónimos del proyecto
 | Término | Significado | Contexto |
 |---------|-------------|---------|
-| AURA | Asistente Unificado de Rutas y Ahorro | Nombre del proyecto TFG |
+| BargAIn | Asistente Unificado de Rutas y Ahorro | Nombre del proyecto TFG |
 | TFG | Trabajo Fin de Grado | Documento académico final |
 | PDT | Precio-Distancia-Tiempo | Pesos del algoritmo de optimización |
 | DRF | Django REST Framework | Framework API backend |
@@ -16,7 +16,7 @@ Términos internos, siglas y abreviaturas del proyecto.
 | RI | Requisito de Información | Artefacto de requisitos |
 | RN | Regla de Negocio | Artefacto de requisitos |
 | ADR | Architecture Decision Record | Documento de decisión arquitectónica (docs/decisiones/) |
-| PYME | Pequeña y Mediana Empresa | Módulo business de AURA |
+| PYME | Pequeña y Mediana Empresa | Módulo business de BargAIn |
 
 ## Términos internos del proyecto
 | Término | Significado |
@@ -38,11 +38,11 @@ Términos internos, siglas y abreviaturas del proyecto.
 ## Supermercados con spider
 | Nombre | Spider |
 |--------|--------|
-| Mercadona | scraping/aura_scraping/spiders/mercadona.py |
-| Carrefour | scraping/aura_scraping/spiders/carrefour.py |
-| Lidl | scraping/aura_scraping/spiders/lidl.py |
-| DIA | scraping/aura_scraping/spiders/dia.py |
-| Alcampo | scraping/aura_scraping/spiders/alcampo.py |
+| Mercadona | scraping/bargain_scraping/spiders/mercadona.py |
+| Carrefour | scraping/bargain_scraping/spiders/carrefour.py |
+| Lidl | scraping/bargain_scraping/spiders/lidl.py |
+| DIA | scraping/bargain_scraping/spiders/dia.py |
+| Alcampo | scraping/bargain_scraping/spiders/alcampo.py |
 
 ## Apps Django (backend/apps/)
 | App | Responsabilidad |

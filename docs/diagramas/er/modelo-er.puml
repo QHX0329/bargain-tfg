@@ -6,7 +6,7 @@ skinparam shadowing false
 skinparam linetype ortho
 skinparam entityBackgroundColor #FFFFFF
 
-title **AURA — Modelo Entidad-Relación (PostgreSQL + PostGIS)**\n
+title **BargAIn — Modelo Entidad-Relación (PostgreSQL + PostGIS)**\n
 
 entity "**users_user**" as user {
     * id : BIGSERIAL <<PK>>

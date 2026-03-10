@@ -5,7 +5,7 @@ skinparam defaultFontSize 11
 skinparam shadowing false
 skinparam sequenceArrowThickness 1.5
 
-title **AURA — Diagrama de Secuencia: Procesamiento OCR de Lista / Ticket**\n
+title **BargAIn — Diagrama de Secuencia: Procesamiento OCR de Lista / Ticket**\n
 
 actor "Consumidor" as user
 participant "App Móvil\n(React Native)" as app

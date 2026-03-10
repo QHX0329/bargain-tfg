@@ -150,6 +150,7 @@ REST_FRAMEWORK = {
         "anon": "100/hour",
         "user": "1000/hour",
     },
+    "EXCEPTION_HANDLER": "apps.core.exceptions.bargain_exception_handler",
 }
 
 # ── JWT ──────────────────────────────────────────────

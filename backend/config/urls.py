@@ -6,6 +6,8 @@ from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
+    # Health check (sin autenticación, para Docker / load balancers)
+    path("api/health/", include("apps.core.urls")),
     # Admin
     path("admin/", admin.site.urls),
     # API v1

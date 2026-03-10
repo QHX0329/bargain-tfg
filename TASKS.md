@@ -8,7 +8,7 @@
 > **GitHub Repo:** https://github.com/QHX0329/bargain-tfg
 > **GitHub Issues:** https://github.com/QHX0329/bargain-tfg/issues
 >
-> Última sincronización: 2026-03-10 (Issues F3-F6 creados en GitHub #25-#93; F2-02 completada)
+> Última sincronización: 2026-03-10 (Issues F3-F6 creados en GitHub #25-#93; F2-02, F2-03 completadas)
 
 ---
 
@@ -37,8 +37,8 @@
 
 **Fase activa:** F1/F2 — Análisis y Diseño / Infraestructura
 **Semana estimada:** S3
-**Horas consumidas:** ~56 h / 300 h totales
-**Progreso global:** ████░░░░░░░░░░░░░░░░ 18%
+**Horas consumidas:** ~60 h / 300 h totales
+**Progreso global:** ████░░░░░░░░░░░░░░░░ 20%
 
 ---
 
@@ -75,7 +75,7 @@
 |----|-------|------|--------|-----------|--------|:---:|------------|
 | F2-01 | Inicialización repositorio GitHub + CI/CD | Infraestructura | Infraestructura | 🔴 Crítica | ✅ | 3 | `.github/workflows/`, `Makefile` |
 | F2-02 | Configuración Docker + Docker Compose | Infraestructura | Infraestructura | 🔴 Crítica | ✅ | 4 | `Dockerfile`, `docker-compose.*.yml` |
-| F2-03 | Setup proyecto Django + settings multi-entorno | Tarea técnica | Infraestructura | 🔴 Crítica | ⬜ | 4 | `backend/config/` |
+| F2-03 | Setup proyecto Django + settings multi-entorno | Tarea técnica | Infraestructura | 🔴 Crítica | ✅ | 4 | `backend/config/` |
 | F2-04 | Configuración PostgreSQL + PostGIS | Tarea técnica | Infraestructura | 🔴 Crítica | ⬜ | 3 | Migraciones iniciales |
 | F2-05 | Setup React Native + Expo + navegación base | Tarea técnica | Infraestructura | 🔴 Crítica | ⬜ | 5 | `frontend/` scaffolding |
 | F2-06 | Configuración Celery + Redis | Tarea técnica | Infraestructura | 🟠 Alta | ⬜ | 2 | `backend/config/celery.py` |

@@ -4,7 +4,21 @@
       "mcp__claude_ai_Notion__notion-search",
       "mcp__claude_ai_Notion__notion-fetch",
       "mcp__claude_ai_Notion__notion-update-page",
+      "mcp__claude_ai_Notion__notion-create-pages",
       "Bash(gh issue:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import sys,json; d=json.load(sys.stdin); fp=d.get('tool_input',{}).get('file_path',''); sys.stdout.write('NOTION_SYNC_REQUIRED: TASKS.md fue modificado. Busca la tarea cambiada con notion-search y actualiza su Estado/Horas en Notion con notion-update-page antes de continuar.\\n') if 'TASKS.md' in str(fp) else None\""
+          }
+        ]
+      }
     ]
   }
 }

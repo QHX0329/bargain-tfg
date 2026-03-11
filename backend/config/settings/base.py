@@ -99,9 +99,19 @@ DATABASES = {
     )
 }
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-GDAL_LIBRARY_PATH = r'C:\OSGeo4W\bin\gdal311.dll'
-GEOS_LIBRARY_PATH = r'C:\OSGeo4W\bin\geos_c.dll'
+if os.name == 'nt':
+    OSGEO4W_ROOT = r"C:\OSGeo4W"
+    os.environ['PATH'] = OSGEO4W_ROOT + r'\bin;' + os.environ['PATH']
+    
+    # Python 3.8+ in Windows requires explicit dll_directory addition
+    if hasattr(os, 'add_dll_directory'):
+        try:
+            os.add_dll_directory(os.path.join(OSGEO4W_ROOT, "bin"))
+        except (OSError, FileNotFoundError):
+            pass
+    
+    GDAL_LIBRARY_PATH = os.path.join(OSGEO4W_ROOT, "bin", "gdal312.dll")
+    GEOS_LIBRARY_PATH = os.path.join(OSGEO4W_ROOT, "bin", "geos_c.dll")
 
 # ── Auth ─────────────────────────────────────────────
 

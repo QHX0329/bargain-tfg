@@ -77,7 +77,7 @@
 | F2-02 | Configuración Docker + Docker Compose | Infraestructura | Infraestructura | 🔴 Crítica | ✅ | 4 | `Dockerfile`, `docker-compose.*.yml` |
 | F2-03 | Setup proyecto Django + settings multi-entorno | Tarea técnica | Infraestructura | 🔴 Crítica | ✅ | 4 | `backend/config/` |
 | F2-04 | Configuración PostgreSQL + PostGIS | Tarea técnica | Infraestructura | 🔴 Crítica | ✅ | 3 | Migraciones iniciales |
-| F2-05 | Setup React Native + Expo + navegación base | Tarea técnica | Infraestructura | 🔴 Crítica | ⬜ | 5 | `frontend/` scaffolding |
+| F2-05 | Setup React Native + Expo + navegación base | Tarea técnica | Infraestructura | 🔴 Crítica | ✅ | 5 | `frontend/` scaffolding |
 | F2-06 | Configuración Celery + Redis | Tarea técnica | Infraestructura | 🟠 Alta | ⬜ | 2 | `backend/config/celery.py` |
 | F2-07 | Setup linters (Ruff, ESLint, Prettier) | Infraestructura | Infraestructura | 🟡 Media | ⬜ | 2 | Config files |
 | F2-08 | Configuración Sentry + logging estructurado | Infraestructura | Infraestructura | 🟡 Media | ⬜ | 2 | `backend/config/settings/` |

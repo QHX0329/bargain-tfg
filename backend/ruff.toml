@@ -1,0 +1,41 @@
+# Ruff — configuración de linting y formateo para BargAIn backend
+# Documentación: https://docs.astral.sh/ruff/
+
+line-length = 99
+target-version = "py312"
+
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "DJ",  # flake8-django
+    "N",   # pep8-naming
+    "SIM", # flake8-simplify
+    "TID", # flake8-tidy-imports
+]
+ignore = [
+    "E501",   # line-length — gestionado por formatter
+    "B008",   # function calls in default args (común en DRF)
+    "DJ001",  # avoid-nullable-model-fields — es intencional en varios modelos
+]
+
+[lint.per-file-ignores]
+"*/settings/*.py" = ["F405", "F403", "N802"]  # wildcard imports en settings
+"*/migrations/*.py" = ["E501", "N806"]         # migraciones autogeneradas
+"*/tests/*.py" = ["N802", "S101"]              # asserts y nombres en tests
+"conftest.py" = ["S101"]
+
+[lint.isort]
+known-first-party = ["apps", "config"]
+known-third-party = ["django", "rest_framework", "celery"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

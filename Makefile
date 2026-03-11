@@ -1,4 +1,4 @@
-.PHONY: help setup dev stop test lint migrate seed scrape docs build clean
+.PHONY: help setup dev stop test lint migrate seed scrape docs build build-dev logs logs-backend deploy-staging clean
 
 help: ## Mostrar esta ayuda
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -77,10 +77,24 @@ scrape-mercadona: ## Ejecutar spider de Mercadona
 docs: ## Generar documentación de la API
 	cd backend && python manage.py spectacular --file ../docs/api/openapi.yml
 
-# ── Build ────────────────────────────────────────────
+# ── Build & Deploy ───────────────────────────────────
 
 build: ## Build de producción
 	docker-compose build
+
+build-dev: ## Build de desarrollo
+	docker-compose -f docker-compose.dev.yml build
+
+logs: ## Ver logs de todos los servicios (desarrollo)
+	docker-compose -f docker-compose.dev.yml logs -f
+
+logs-backend: ## Ver logs del backend (desarrollo)
+	docker-compose -f docker-compose.dev.yml logs -f backend
+
+deploy-staging: ## Deploy a staging (Render)
+	@echo "🚀 Desplegando a staging..."
+	docker-compose build
+	@echo "⚠️  Configura las variables de entorno en Render y empuja la imagen."
 
 clean: ## Limpiar archivos temporales y caché
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true

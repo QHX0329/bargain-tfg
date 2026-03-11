@@ -8,7 +8,7 @@
 > **GitHub Repo:** https://github.com/QHX0329/bargain-tfg
 > **GitHub Issues:** https://github.com/QHX0329/bargain-tfg/issues
 >
-> Última sincronización: 2026-03-11 (Notion: F1-14, F2-02, F2-03, F2-04 → Completada; GitHub: issues #19, #21 cerrados)
+> Última sincronización: 2026-03-11 (Notion: F1-14, F2-02, F2-03, F2-04 → Completada; GitHub: issues #19, #21 cerrados; F2-05 migrado a modelo híbrido)
 
 ---
 
@@ -77,7 +77,7 @@
 | F2-02 | Configuración Docker + Docker Compose | Infraestructura | Infraestructura | 🔴 Crítica | ✅ | 4 | `Dockerfile`, `docker-compose.*.yml` |
 | F2-03 | Setup proyecto Django + settings multi-entorno | Tarea técnica | Infraestructura | 🔴 Crítica | ✅ | 4 | `backend/config/` |
 | F2-04 | Configuración PostgreSQL + PostGIS | Tarea técnica | Infraestructura | 🔴 Crítica | ✅ | 3 | Migraciones iniciales |
-| F2-05 | Setup React Native + Expo + navegación base | Tarea técnica | Infraestructura | 🔴 Crítica | ✅ | 5 | `frontend/` scaffolding |
+| F2-05 | Setup React Native + Expo + navegación base (Híbrido) | Tarea técnica | Infraestructura | 🔴 Crítica | ✅ | 5 | Nativo en host |
 | F2-06 | Configuración Celery + Redis | Tarea técnica | Infraestructura | 🟠 Alta | ⬜ | 2 | `backend/config/celery.py` |
 | F2-07 | Setup linters (Ruff, ESLint, Prettier) | Infraestructura | Infraestructura | 🟡 Media | ⬜ | 2 | Config files |
 | F2-08 | Configuración Sentry + logging estructurado | Infraestructura | Infraestructura | 🟡 Media | ⬜ | 2 | `backend/config/settings/` |

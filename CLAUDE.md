@@ -426,7 +426,8 @@ en `docs/memoria/`. La memoria sigue la estructura de TFG de la ETSII-US:
 
 ```makefile
 make setup          # Instalar dependencias y configurar entorno
-make dev            # Levantar entorno de desarrollo completo
+make dev            # Levantar backend (Docker)
+make frontend       # Levantar frontend (Nativo: npx expo start --web)
 make test           # Ejecutar todos los tests
 make lint           # Lint backend + frontend
 make migrate        # Aplicar migraciones Django

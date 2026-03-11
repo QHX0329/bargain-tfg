@@ -16,10 +16,16 @@ setup: ## Instalar dependencias y configurar entorno completo
 	cd backend && python manage.py migrate
 	@echo "✅ Entorno listo. Ejecuta 'make dev' para iniciar."
 
-dev: ## Levantar entorno de desarrollo completo
+dev: ## Levantar backend (Docker)
 	docker-compose -f docker-compose.dev.yml up -d
-	@echo "🚀 Backend:  http://localhost:8000"
-	@echo "🌐 Frontend: http://localhost:8081"
+	@echo "🚀 Backend listo: http://localhost:8000"
+	@echo "💡 Ejecuta 'make frontend' en otra terminal para el frontend."
+
+frontend: ## Levantar frontend nativo (Expo)
+	cd frontend && npx expo start --web
+
+frontend-install: ## Instalar dependencias frontend nativas
+	cd frontend && npm install
 
 stop: ## Detener todos los servicios
 	docker-compose -f docker-compose.dev.yml down

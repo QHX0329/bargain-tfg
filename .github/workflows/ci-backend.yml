@@ -68,6 +68,9 @@ jobs:
           cd backend
           pip install -r requirements/dev.txt
 
+      - name: Install GDAL
+        run: sudo apt-get update && sudo apt-get install -y gdal-bin libgdal-dev
+
       - name: Run migrations
         run: |
           cd backend

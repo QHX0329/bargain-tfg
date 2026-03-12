@@ -30,8 +30,8 @@ jobs:
       - name: Lint
         run: |
           cd frontend
-          npx eslint src/ --ext .ts,.tsx
-          npx prettier --check "src/**/*.{ts,tsx,js,jsx}"
+          npm run lint
+          npm run format
 
       - name: Type check
         run: |

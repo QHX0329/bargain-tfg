@@ -7,6 +7,8 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+from celery.schedules import crontab
+
 import dj_database_url
 
 # ── Paths ────────────────────────────────────────────
@@ -47,6 +49,7 @@ LOCAL_APPS = [
     "apps.products",
     "apps.stores",
     "apps.prices",
+    "apps.scraping",
     "apps.shopping_lists",
     "apps.optimizer",
     "apps.ocr",
@@ -72,10 +75,13 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "config.urls"
 
+TEMPLATE_DIR = BASE_DIR / "templates"
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        # Evita errores del autoreloader si el directorio no existe en contenedores.
+        "DIRS": [TEMPLATE_DIR] if TEMPLATE_DIR.exists() else [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -194,6 +200,23 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+CELERY_BEAT_SCHEDULE = {
+    "expire-stale-prices-hourly": {
+        "task": "apps.prices.tasks.expire_stale_prices",
+        "schedule": crontab(minute=0, hour="*"),
+    },
+    "scrape-mercadona-daily": {
+        "task": "apps.scraping.tasks.run_spider",
+        "schedule": crontab(minute=0, hour=6),
+        "args": ("mercadona",),
+    },
+    "scrape-carrefour-daily": {
+        "task": "apps.scraping.tasks.run_spider",
+        "schedule": crontab(minute=30, hour=6),
+        "args": ("carrefour",),
+    },
+}
 
 # ── DRF Spectacular (OpenAPI) ────────────────────────
 

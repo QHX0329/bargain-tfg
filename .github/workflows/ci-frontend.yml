@@ -41,7 +41,7 @@ jobs:
       - name: Run tests
         run: |
           cd frontend
-          npx jest --coverage --ci
+          npm run test -- --coverage --ci
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4

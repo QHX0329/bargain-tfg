@@ -1,4 +1,4 @@
-"""Configuración de Celery para el proyecto BargAIn."""
+﻿"""Configuracion de Celery para el proyecto BargAIn."""
 
 import os
 
@@ -13,5 +13,5 @@ app.autodiscover_tasks()
 
 @app.task(bind=True, ignore_result=True)
 def debug_task(self):
-    """Tarea de depuración para verificar que Celery funciona."""
+    """Tarea de depuracion para verificar que Celery funciona."""
     print(f"Request: {self.request!r}")

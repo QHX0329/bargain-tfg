@@ -108,8 +108,6 @@ DATABASES = {
 if os.name == "nt":
     OSGEO4W_ROOT = r"C:\OSGeo4W"
     os.environ["PATH"] = OSGEO4W_ROOT + r"\bin;" + os.environ["PATH"]
-
-    # Python 3.8+ in Windows requires explicit dll_directory addition
     if hasattr(os, "add_dll_directory"):
         with contextlib.suppress(OSError, FileNotFoundError):
             os.add_dll_directory(os.path.join(OSGEO4W_ROOT, "bin"))

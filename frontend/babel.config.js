@@ -11,6 +11,8 @@ module.exports = function (api) {
           },
         },
       ],
+      // react-native-reanimated/plugin DEBE ir siempre al final
+      "react-native-reanimated/plugin",
     ],
   };
 };

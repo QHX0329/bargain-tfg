@@ -1,4 +1,4 @@
-.PHONY: help setup dev stop test test-backend test-backend-cov test-frontend lint lint-backend lint-backend-fix lint-frontend migrate makemigrations seed createsuperuser scrape scrape-mercadona docs build build-dev logs logs-backend logs-frontend deploy-staging clean frontend frontend-install
+.PHONY: help setup dev stop test test-backend test-backend-cov test-backend-host test-backend-cov-host test-backend-docker test-backend-cov-docker test-frontend lint lint-backend lint-backend-fix lint-frontend migrate makemigrations seed createsuperuser scrape scrape-mercadona docs build build-dev logs logs-backend logs-frontend deploy-staging clean frontend frontend-install
 
 help: ## Mostrar esta ayuda
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -34,11 +34,25 @@ stop: ## Detener todos los servicios
 
 test: test-backend test-frontend ## Ejecutar todos los tests
 
-test-backend: ## Ejecutar tests del backend
+test-backend: ## Ejecutar tests backend en Docker (recomendado en Windows)
+	docker-compose -f docker-compose.dev.yml up -d postgres redis backend
+	docker-compose -f docker-compose.dev.yml exec backend pytest -v --tb=short
+
+test-backend-cov: ## Tests backend con cobertura en Docker
+	docker-compose -f docker-compose.dev.yml up -d postgres redis backend
+	docker-compose -f docker-compose.dev.yml exec backend pytest --cov=apps --cov-report=html --cov-report=term -v
+
+test-backend-host: ## Ejecutar tests backend en host (requiere GIS local bien configurado)
 	cd backend && pytest -v --tb=short
 
-test-backend-cov: ## Tests backend con cobertura
+test-backend-cov-host: ## Tests backend con cobertura en host
 	cd backend && pytest --cov=apps --cov-report=html --cov-report=term -v
+
+test-backend-docker: ## Ejecutar tests backend dentro del contenedor backend
+	docker-compose -f docker-compose.dev.yml exec backend pytest -v --tb=short
+
+test-backend-cov-docker: ## Tests backend con cobertura dentro del contenedor backend
+	docker-compose -f docker-compose.dev.yml exec backend pytest --cov=apps --cov-report=html --cov-report=term -v
 
 test-frontend: ## Ejecutar tests del frontend
 	cd frontend && npx jest --coverage

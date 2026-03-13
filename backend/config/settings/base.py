@@ -3,7 +3,6 @@ Configuración base de Django para el proyecto BargAIn.
 Configuraciones comunes a todos los entornos.
 """
 
-import contextlib
 import os
 from datetime import timedelta
 from pathlib import Path
@@ -106,15 +105,14 @@ DATABASES = {
     )
 }
 
-if os.name == "nt":
-    OSGEO4W_ROOT = r"C:\OSGeo4W"
-    os.environ["PATH"] = OSGEO4W_ROOT + r"\bin;" + os.environ["PATH"]
-    if hasattr(os, "add_dll_directory"):
-        with contextlib.suppress(OSError, FileNotFoundError):
-            os.add_dll_directory(os.path.join(OSGEO4W_ROOT, "bin"))
+configured_gdal = os.environ.get("GDAL_LIBRARY_PATH")
+configured_geos = os.environ.get("GEOS_LIBRARY_PATH")
 
-    GDAL_LIBRARY_PATH = os.path.join(OSGEO4W_ROOT, "bin", "gdal312.dll")
-    GEOS_LIBRARY_PATH = os.path.join(OSGEO4W_ROOT, "bin", "geos_c.dll")
+if configured_gdal and Path(configured_gdal).exists():
+    GDAL_LIBRARY_PATH = configured_gdal
+
+if configured_geos and Path(configured_geos).exists():
+    GEOS_LIBRARY_PATH = configured_geos
 
 # ── Auth ─────────────────────────────────────────────
 

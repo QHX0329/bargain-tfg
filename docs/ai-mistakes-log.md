@@ -63,6 +63,38 @@
 
 ---
 
+### [2026-03-13] — ERR-003 — Codex (GPT-5.3-Codex)
+
+**Contexto:** Implementación de F2-09 (seed de datos) y validación de tests backend en Windows.
+
+**Error cometido:** Se invirtió tiempo intentando estabilizar la carga local de GDAL/GEOS en host para `pytest`, cuando el flujo del proyecto ejecuta backend en Docker (modelo híbrido ADR-002).
+
+**Causa raíz:** No priorizar desde el inicio el contexto de ejecución real de `make test-backend` en un entorno Windows con GIS.
+
+**Solución aplicada:** Se cambió `make test-backend` y `make test-backend-cov` para ejecutar tests dentro del contenedor `backend` (con GDAL ya instalado) y se dejaron variantes host opcionales (`test-backend-host`, `test-backend-cov-host`).
+
+**Prevención:** En Windows y en el modelo híbrido del proyecto, ejecutar tests/lint backend en Docker por defecto. Solo usar host si se requiere explícitamente y con GIS local validado.
+
+**Archivos afectados:** `Makefile`, `backend/config/settings/base.py`
+
+---
+
+### [2026-03-13] — ERR-004 — Codex (GPT-5.3-Codex)
+
+**Contexto:** Ajuste de `base.py` para simplificar configuración de GDAL/GEOS al mover tests backend a Docker.
+
+**Error cometido:** Se aplicaron `GDAL_LIBRARY_PATH`/`GEOS_LIBRARY_PATH` desde `.env` sin validar existencia de la ruta en el runtime actual, propagando una ruta Windows (`C:\OSGeo4W\...`) al contenedor Linux.
+
+**Causa raíz:** No considerar que `.env` se comparte entre host y contenedores en `docker-compose`, con paths incompatibles por sistema operativo.
+
+**Solución aplicada:** En `backend/config/settings/base.py` ahora solo se asignan `GDAL_LIBRARY_PATH` y `GEOS_LIBRARY_PATH` cuando la ruta existe (`Path(...).exists()`). En Docker, Django vuelve a usar `libgdal.so.*` del sistema.
+
+**Prevención:** Cuando una variable de entorno contenga rutas de filesystem, validar su existencia antes de aplicarla en settings comunes host+contenedor.
+
+**Archivos afectados:** `backend/config/settings/base.py`
+
+---
+
 ## Patrones de error recurrentes
 
 > Esta sección se actualiza automáticamente cuando un mismo tipo de error ocurre más de una vez.
@@ -78,6 +110,10 @@
 **REGLA-01 (de ERR-001):** Antes de escribir en cualquier archivo de documentación, leerlo completamente. Si contiene contenido sustancial (>10 líneas útiles), no sobreescribir sin confirmación explícita del usuario.
 
 **REGLA-02 (de ERR-002):** Los wireframes, mockups y diagramas de interfaz de usuario **nunca** se entregan en formato ASCII. El formato obligatorio es HTML+CSS+JS autocontenido (renderizable en GitHub), PNG/SVG generado programáticamente, o PlantUML `@startsalt` solo para borradores de muy baja fidelidad. Ante ambigüedad en el formato pedido, preguntar antes de implementar.
+
+**REGLA-03 (de ERR-003):** En entornos Windows del proyecto BargAIn (modelo híbrido ADR-002), ejecutar backend tests en Docker por defecto (`make test-backend`). Evitar depurar GDAL/GEOS en host salvo petición explícita.
+
+**REGLA-04 (de ERR-004):** En settings compartidos entre host y Docker, no asumir que rutas de `.env` son portables entre sistemas. Aplicar rutas solo si existen en el runtime actual.
 
 ---
 

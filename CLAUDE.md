@@ -310,6 +310,32 @@ cd frontend && npx prettier --check "src/**/*.{ts,tsx}"
 
 ---
 
+## 🤖 Plantillas reutilizables para Claude
+
+Para reutilizar los mismos flujos de trabajo fuera de Copilot, usar:
+
+- `docs/ai-prompts/start-task.md`
+- `docs/ai-prompts/close-task.md`
+- `docs/ai-prompts/review-task.md`
+- `docs/ai-prompts/sync-task.md`
+
+### Uso recomendado
+
+1. Abrir la plantilla correspondiente en `docs/ai-prompts/`
+2. Sustituir placeholders `<...>` con el ID y contexto real de la tarea
+3. Pegar el prompt completo en Claude
+
+### Equivalencia con prompts de Copilot
+
+- `docs/ai-prompts/start-task.md` ↔ `.github/prompts/start-task.prompt.md`
+- `docs/ai-prompts/close-task.md` ↔ `.github/prompts/close-task.prompt.md`
+- `docs/ai-prompts/review-task.md` ↔ `.github/prompts/review-task.prompt.md`
+- `docs/ai-prompts/sync-task.md` ↔ `.github/prompts/sync-task.prompt.md`
+
+Mantener ambos conjuntos sincronizados cuando cambie el flujo del proyecto.
+
+---
+
 ## 🗃️ Modelos de Datos Clave
 
 ### Product (Producto normalizado)

@@ -1,8 +1,19 @@
 {
+  "name": "bargain-tfg",
+  "private": true,
   "engines": {
     "node": ">=24.10.0"
   },
+  "scripts": {
+    "docs:images": "node scripts/export-doc-images.mjs",
+    "docs:images:setup": "npm install -D glob markdown-it playwright && npx playwright install chromium",
+    "docs:images:all": "npm run docs:images:setup && npm run docs:images"
+  },
   "devDependencies": {
+    "@mermaid-js/mermaid-cli": "^11.12.0",
+    "glob": "^13.0.6",
+    "markdown-it": "^14.1.1",
+    "playwright": "^1.58.2"
   },
   "dependencies": {
     "expo": "^55.0.6"

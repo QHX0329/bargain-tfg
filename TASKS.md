@@ -8,7 +8,7 @@
 > **GitHub Repo:** https://github.com/QHX0329/bargain-tfg
 > **GitHub Issues:** https://github.com/QHX0329/bargain-tfg/issues
 >
-> Última sincronización: 2026-03-13 (F2-09 completada; seed de usuarios implementado; Notion pendiente por auth)
+> Última sincronización: 2026-03-14 (F2-10 completada; sección de herramientas documentada; Notion pendiente por auth)
 
 ---
 
@@ -82,9 +82,9 @@
 | F2-07 | Setup linters (Ruff, ESLint, Prettier) | Infraestructura | Infraestructura | 🟡 Media | ✅ | 2 | 2 | Config files |
 | F2-08 | Configuración Sentry + logging estructurado | Infraestructura | Infraestructura | 🟡 Media | ✅ | 2 | 2 | `backend/config/settings/` |
 | F2-09 | Seed de datos de prueba (fixtures) | Tarea técnica | Infraestructura | 🟡 Media | ✅ | 3 | `backend/apps/core/management/commands/seed_data.py` |
-| F2-10 | Documentación de herramientas usadas | Documentación | Documentación | 🟡 Media | ⬜ | 2 | `docs/memoria/05-herramientas.md` |
+| F2-10 | Documentación de herramientas usadas | Documentación | Documentación | 🟡 Media | ✅ | 2 | `docs/memoria/05-herramientas.md` |
 
-**Subtotal F2:** 28 h completadas / 30 h estimadas (F2-09 completada el 2026-03-13)
+**Subtotal F2:** 30 h completadas / 30 h estimadas (F2-10 completada el 2026-03-14)
 
 ---
 

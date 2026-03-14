@@ -2,7 +2,8 @@
   <img src="./docs/assets/logo.png" alt="BargAIn Logo" width="400">
 </div>
 
--------------------------------------------------------------------
+---
+
 # **BarGAIN** — Compra inteligente, al mejor precio y en el menor tiempo.
 
 [![CI Backend](https://img.shields.io/badge/CI-Backend-blue)]()
@@ -31,31 +32,32 @@ El consumidor se enfrenta a tres barreras:
 
 BargAIn actúa como un **orquestador inteligente de la cesta de la compra** mediante cuatro módulos:
 
-| Módulo | Descripción |
-|--------|-------------|
-| **Ingesta de Precios** | Web Scraping + Crowdsourcing para precios actualizados de grandes superficies y comercio local |
-| **Optimizador de Ruta** | Algoritmo IA que pondera precio, distancia y tiempo para calcular la ruta ideal |
-| **Visión Artificial** | OCR avanzado para leer listas escritas a mano o tickets anteriores |
-| **Asistente LLM** | Interfaz en lenguaje natural para consultas complejas de compra |
+| Módulo                  | Descripción                                                                                    |
+| ----------------------- | ---------------------------------------------------------------------------------------------- |
+| **Ingesta de Precios**  | Web Scraping + Crowdsourcing para precios actualizados de grandes superficies y comercio local |
+| **Optimizador de Ruta** | Algoritmo IA que pondera precio, distancia y tiempo para calcular la ruta ideal                |
+| **Visión Artificial**   | OCR avanzado para leer listas escritas a mano o tickets anteriores                             |
+| **Asistente LLM**       | Interfaz en lenguaje natural para consultas complejas de compra                                |
 
 ## 🏗️ Stack Tecnológico
 
-| Capa | Tecnología |
-|------|------------|
-| Backend | Django 5 + Django REST Framework |
-| Base de datos | PostgreSQL 16 + PostGIS |
-| Frontend | React Native (Expo) |
-| IA/ML | Claude API + Tesseract OCR + OR-Tools |
-| Scraping | Scrapy + Playwright |
-| Async | Celery + Redis |
-| CI/CD | GitHub Actions |
-| Infra | Docker + Render |
+| Capa          | Tecnología                            |
+| ------------- | ------------------------------------- |
+| Backend       | Django 5 + Django REST Framework      |
+| Base de datos | PostgreSQL 16 + PostGIS               |
+| Frontend      | React Native (Expo)                   |
+| IA/ML         | Claude API + Tesseract OCR + OR-Tools |
+| Scraping      | Scrapy + Playwright                   |
+| Async         | Celery + Redis                        |
+| CI/CD         | GitHub Actions                        |
+| Infra         | Docker + Render                       |
 
 ## 🚀 Inicio Rápido
 
 ### Requisitos previos
+
 - Docker y Docker Compose
-- Node.js 20+ y npm
+- Node.js >=24.10.0 y npm (frontend nativo en host)
 - Python 3.12+
 
 ### Instalación
@@ -119,15 +121,15 @@ make test
 
 ## 🤝 Diferenciación del Mercado
 
-| Funcionalidad | Soysuper/OCU | Tiendeo | Apps Super | **BargAIn** |
-|---------------|:---:|:---:|:---:|:---:|
-| Comparación de Precios | ✅ | ⚠️ | ❌ | ✅ |
-| Cálculo de Ruta Óptima | ❌ | ❌ | ❌ | ✅ |
-| Cruce Precio vs. Distancia | ❌ | ❌ | ❌ | ✅ |
-| OCR de Lista/Ticket | ❌ | ❌ | ⚠️ | ✅ |
-| Portal PYMES locales | ❌ | ❌ | ❌ | ✅ |
-| Asistente LLM | ❌ | ❌ | ⚠️ | ✅ |
-| Recálculo por Stock/Tráfico | ❌ | ❌ | ❌ | ✅ |
+| Funcionalidad               | Soysuper/OCU | Tiendeo | Apps Super | **BargAIn** |
+| --------------------------- | :----------: | :-----: | :--------: | :---------: |
+| Comparación de Precios      |      ✅      |   ⚠️    |     ❌     |     ✅      |
+| Cálculo de Ruta Óptima      |      ❌      |   ❌    |     ❌     |     ✅      |
+| Cruce Precio vs. Distancia  |      ❌      |   ❌    |     ❌     |     ✅      |
+| OCR de Lista/Ticket         |      ❌      |   ❌    |     ⚠️     |     ✅      |
+| Portal PYMES locales        |      ❌      |   ❌    |     ❌     |     ✅      |
+| Asistente LLM               |      ❌      |   ❌    |     ⚠️     |     ✅      |
+| Recálculo por Stock/Tráfico |      ❌      |   ❌    |     ❌     |     ✅      |
 
 ## 📄 Licencia
 
@@ -140,4 +142,4 @@ Este proyecto está bajo la licencia MIT. Ver [LICENSE](LICENSE) para más detal
 
 ---
 
-*Proyecto desarrollado como Trabajo Fin de Grado — Escuela Técnica Superior de Ingeniería Informática, Universidad de Sevilla, 2025-2026.*
+_Proyecto desarrollado como Trabajo Fin de Grado — Escuela Técnica Superior de Ingeniería Informática, Universidad de Sevilla, 2025-2026._

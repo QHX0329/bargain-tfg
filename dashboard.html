@@ -33,9 +33,14 @@
       height: 100vh;
       padding: 20px 24px;
       line-height: 1.5;
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: hidden;
       display: flex;
       flex-direction: column;
+    }
+
+    #tasksPanel {
+      overflow: hidden;
     }
 
     header {
@@ -129,11 +134,129 @@
 
     /* ===== TASKS STYLES ===== */
 
+    .task-stats-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+
+    .task-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .task-stat-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .task-stat-value {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .task-stat-label {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .task-charts-grid {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .task-chart-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .task-chart-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 8px;
+    }
+
+    .task-donut {
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      margin: 6px auto;
+      position: relative;
+      background: conic-gradient(var(--accent) 0deg, var(--accent) 0deg, var(--border) 0deg 360deg);
+    }
+
+    .task-donut::after {
+      content: '';
+      position: absolute;
+      inset: 16px;
+      border-radius: 50%;
+      background: var(--bg-secondary);
+    }
+
+    .task-donut-label {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--text-primary);
+      z-index: 1;
+    }
+
+    .task-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .task-bar-row {
+      display: grid;
+      grid-template-columns: 110px 1fr 42px;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .task-bar-track {
+      height: 8px;
+      background: var(--border-light);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .task-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 6px;
+    }
+
     .board {
       display: flex;
+      align-items: flex-start;
       gap: 24px;
       overflow-x: auto;
-      overflow-y: hidden;
+      overflow-y: auto;
       padding-bottom: 24px;
       flex: 1;
       min-height: 0;
@@ -833,6 +956,7 @@
       font-size: 13px;
       color: var(--text-secondary);
       line-height: 1.5;
+      line-clamp: 4;
       overflow: hidden;
       display: -webkit-box;
       -webkit-line-clamp: 4;
@@ -1143,6 +1267,76 @@
       min-height: 0;
     }
 
+    .memory-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+
+    .memory-layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 14px;
+      min-height: 0;
+      flex: 1;
+    }
+
+    .memory-sidebar {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: auto;
+      min-height: 0;
+      padding: 8px;
+    }
+
+    .memory-tree-folder-header,
+    .memory-tree-file {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .memory-tree-folder-header:hover,
+    .memory-tree-file:hover {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+
+    .memory-tree-file.active {
+      background: rgba(217, 119, 87, 0.14);
+      color: var(--text-primary);
+      border: 1px solid rgba(217, 119, 87, 0.35);
+    }
+
+    .memory-tree-children {
+      margin-left: 14px;
+      border-left: 1px dashed var(--border);
+      padding-left: 8px;
+    }
+
+    .memory-tree-caret {
+      width: 14px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    .memory-tree-icon {
+      width: 14px;
+      text-align: center;
+      flex-shrink: 0;
+      color: var(--text-muted);
+    }
+
     .memory-content-area::-webkit-scrollbar {
       width: 6px;
     }
@@ -1187,6 +1381,24 @@
       color: var(--text-muted);
       margin-top: 2px;
     }
+
+    @media (max-width: 1100px) {
+      .task-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .task-charts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .memory-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .memory-sidebar {
+        max-height: 220px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1214,6 +1426,8 @@
       </div>
     </div>
     <div class="buttons">
+      <button id="openDefaultTaskBtn">Open TASKS.md</button>
+      <button id="refreshTaskBtn">Refresh</button>
       <button id="openTaskBtn">Select File</button>
       <button id="openMemoryBtn" style="display: none;">Open Folder</button>
       <button id="saveBtn" class="primary" disabled style="display: none;">Save</button>
@@ -1222,6 +1436,7 @@
 
   <!-- TASKS TAB PANEL -->
   <div class="tab-panel active" id="tasksPanel">
+    <div id="taskStatsPanel" class="task-stats-panel" style="display: none;"></div>
     <div class="list-view" id="listView" style="display: none;"></div>
     <div class="board" id="board">
       <div class="empty-state" id="boardEmptyState" style="width: 100%;">
@@ -1234,14 +1449,22 @@
   <!-- MEMORY TAB PANEL -->
   <div class="tab-panel" id="memoryPanel">
     <div id="memoryEmptyState" class="empty-state">
-      <p style="margin-bottom: 24px; font-size: 18px; font-weight: 600; color: var(--text-primary);">Select your project folder</p>
-      <button id="openMemoryBtnLarge">Select Folder</button>
+      <p style="margin-bottom: 24px; font-size: 18px; font-weight: 600; color: var(--text-primary);">Load docs/memoria and docs/diagramas</p>
+      <button id="openMemoryBtnLarge">Open Project Folder</button>
     </div>
     <div id="memoryMainContent" style="display: none; flex-direction: column; min-height: 0; flex: 1;">
-      <div class="memory-tabs" id="memoryTabsContainer"></div>
-      <div class="memory-content-area">
-        <div id="memoryContentContainer"></div>
+      <div class="memory-toolbar">
+        <button id="refreshDocsBtn">Refresh Docs</button>
       </div>
+      <div class="memory-layout">
+        <aside class="memory-sidebar">
+          <div id="memoryTreeContainer"></div>
+        </aside>
+        <div class="memory-content-area">
+          <div id="memoryContentContainer"></div>
+        </div>
+      </div>
+      <div class="memory-tabs" id="memoryTabsContainer" style="display: none;"></div>
     </div>
   </div>
 
@@ -1265,6 +1488,7 @@
   <script>
     // ===== SHARED STATE =====
     let activeMainTab = 'tasks'; // 'tasks' or 'memory'
+    const IS_FILE_PROTOCOL = window.location.protocol === 'file:';
 
     const statusEl = document.getElementById('status');
     const filePathEl = document.getElementById('filePath');
@@ -1281,6 +1505,8 @@
     const tasksPanel = document.getElementById('tasksPanel');
     const memoryPanel = document.getElementById('memoryPanel');
     const taskViewToggle = document.getElementById('taskViewToggle');
+    const openDefaultTaskBtn = document.getElementById('openDefaultTaskBtn');
+    const refreshTaskBtn = document.getElementById('refreshTaskBtn');
     const openTaskBtn = document.getElementById('openTaskBtn');
     const openMemoryBtn = document.getElementById('openMemoryBtn');
     const saveBtn = document.getElementById('saveBtn');
@@ -1298,15 +1524,24 @@
       taskViewToggle.style.display = tab === 'tasks' ? 'flex' : 'none';
 
       // Show/hide appropriate buttons
+      openDefaultTaskBtn.style.display = tab === 'tasks' ? 'inline-flex' : 'none';
+      refreshTaskBtn.style.display = tab === 'tasks' ? 'inline-flex' : 'none';
       openTaskBtn.style.display = tab === 'tasks' ? 'inline-flex' : 'none';
       openMemoryBtn.style.display = tab === 'memory' ? 'inline-flex' : 'none';
+      refreshDocsBtn.style.display = tab === 'memory' ? 'inline-flex' : 'none';
       saveBtn.style.display = tab === 'tasks' ? 'inline-flex' : 'none';
 
       // Update file path display
       if (tab === 'tasks') {
-        filePathEl.textContent = taskFileHandle ? taskFileName : '';
+        filePathEl.textContent = taskFileName || '';
       } else {
-        filePathEl.textContent = memoryDirHandle ? memoryDirHandle.name : '';
+        if (memoryDirHandle) {
+          filePathEl.textContent = `${memoryDirHandle.name}/docs`;
+        } else if (Object.keys(memoryData.memoryDirs || {}).length > 0) {
+          filePathEl.textContent = 'docs (autoload)';
+        } else {
+          filePathEl.textContent = '';
+        }
       }
     }
 
@@ -1324,9 +1559,12 @@
     let hasChanges = false;
     let currentView = 'board';
     let quickAddSection = null;
+    let readOnlyTasks = false;
+    let taskLoadSource = null; // 'file' | 'default-url' | null
 
     const board = document.getElementById('board');
     const listView = document.getElementById('listView');
+    const taskStatsPanel = document.getElementById('taskStatsPanel');
     const listViewBtn = document.getElementById('listViewBtn');
     const boardViewBtn = document.getElementById('boardViewBtn');
 
@@ -1334,7 +1572,7 @@
       return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     }
 
-    function parseTaskMarkdown(content) {
+    function parseChecklistMarkdown(content) {
       const resultSections = [];
       const resultTasks = {};
       let currentSection = null;
@@ -1393,7 +1631,110 @@
         resultTasks[currentSectionId].push(currentTask);
       }
 
-      return { sections: resultSections, tasks: resultTasks };
+      return { sections: resultSections, tasks: resultTasks, readOnly: false };
+    }
+
+    function parseTasksTrackerMarkdown(content) {
+      const resultSections = [];
+      const resultTasks = {};
+      const lines = content.split('\n');
+
+      let currentSectionName = null;
+      let currentSectionId = null;
+      let headerIndexes = null;
+
+      const getCell = (cells, idx) => {
+        if (idx === null || idx === undefined || idx < 0 || idx >= cells.length) return '';
+        return cells[idx] || '';
+      };
+
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+
+        const phaseMatch = line.match(/^##\s+\*{0,2}(F\d+\s+[—–-]\s+.+?)(?:\s+·\s+.+)?\*{0,2}$/);
+        if (phaseMatch) {
+          currentSectionName = phaseMatch[1].trim();
+          currentSectionId = taskSectionId(currentSectionName);
+          headerIndexes = null;
+          if (!resultTasks[currentSectionId]) {
+            resultSections.push({ id: currentSectionId, name: currentSectionName });
+            resultTasks[currentSectionId] = [];
+          }
+          continue;
+        }
+
+        if (!line.startsWith('|')) continue;
+        if (/^\|[-\s:|]+\|$/.test(line)) continue;
+
+        if (!currentSectionId) {
+          currentSectionName = 'Backlog';
+          currentSectionId = taskSectionId(currentSectionName);
+          if (!resultTasks[currentSectionId]) {
+            resultSections.push({ id: currentSectionId, name: currentSectionName });
+            resultTasks[currentSectionId] = [];
+          }
+        }
+
+        const cells = line
+          .split('|')
+          .map(c => c.trim())
+          .filter(c => c.length > 0);
+
+        if (cells.length < 3) continue;
+
+        const headerRow = cells[0] === 'ID' && cells.includes('Tarea') && cells.includes('Estado');
+        if (headerRow) {
+          headerIndexes = {
+            id: cells.indexOf('ID'),
+            tarea: cells.indexOf('Tarea'),
+            estado: cells.indexOf('Estado'),
+            modulo: cells.indexOf('Módulo'),
+            prioridad: cells.indexOf('Prioridad'),
+            tipo: cells.indexOf('Tipo')
+          };
+          continue;
+        }
+
+        if (!headerIndexes) continue;
+
+        const id = getCell(cells, headerIndexes.id);
+        if (!/^F\d+-\d+$/i.test(id)) continue;
+
+        const title = getCell(cells, headerIndexes.tarea) || id;
+        const estado = getCell(cells, headerIndexes.estado);
+        const modulo = getCell(cells, headerIndexes.modulo);
+        const prioridad = getCell(cells, headerIndexes.prioridad);
+        const tipo = getCell(cells, headerIndexes.tipo);
+
+        const noteParts = [];
+        if (modulo) noteParts.push(`Modulo: ${modulo}`);
+        if (prioridad) noteParts.push(`Prioridad: ${prioridad}`);
+        if (tipo) noteParts.push(`Tipo: ${tipo}`);
+        if (estado) noteParts.push(`Estado: ${estado}`);
+
+        resultTasks[currentSectionId].push({
+          id: Date.now() + Math.random(),
+          title: `${id} - ${title}`,
+          note: noteParts.join(' | '),
+          checked: estado.includes('✅'),
+          subtasks: [],
+          section: currentSectionId
+        });
+      }
+
+      return { sections: resultSections, tasks: resultTasks, readOnly: true };
+    }
+
+    function parseTaskMarkdown(content) {
+      const isTasksTracker =
+        /\|\s*ID\s*\|.*\|\s*(Tarea|Task)\s*\|/i.test(content) ||
+        /^\|\s*F\d+-\d+\s*\|/im.test(content);
+
+      if (isTasksTracker) {
+        return parseTasksTrackerMarkdown(content);
+      }
+
+      return parseChecklistMarkdown(content);
     }
 
     function toMarkdown() {
@@ -1419,7 +1760,7 @@
     function createCard(task) {
       const card = document.createElement('div');
       card.className = 'task-card';
-      card.draggable = true;
+      card.draggable = !readOnlyTasks;
       card.dataset.id = task.id;
 
       let html = `
@@ -1454,16 +1795,19 @@
 
       card.innerHTML = html;
 
-      card.addEventListener('dragstart', (e) => {
-        card.classList.add('dragging');
-        e.dataTransfer.setData('text/plain', task.id);
-      });
+      if (!readOnlyTasks) {
+        card.addEventListener('dragstart', (e) => {
+          card.classList.add('dragging');
+          e.dataTransfer.setData('text/plain', task.id);
+        });
 
-      card.addEventListener('dragend', () => {
-        card.classList.remove('dragging');
-      });
+        card.addEventListener('dragend', () => {
+          card.classList.remove('dragging');
+        });
+      }
 
       card.addEventListener('click', (e) => {
+        if (readOnlyTasks) return;
         const action = e.target.dataset.action;
         if (action === 'toggle') {
           task.checked = !task.checked;
@@ -1648,14 +1992,14 @@
           <span class="count">${items.length}</span>
         </div>
         <div class="cards" data-column="${id}"></div>
-        <div class="add-card">
-          <button data-add="${id}">+ Add task</button>
-        </div>
+        ${readOnlyTasks ? '' : `<div class="add-card"><button data-add="${id}">+ Add task</button></div>`}
       `;
 
-      col.querySelector('.column-title').addEventListener('click', (e) => {
-        if (!col.dragging) { startEditingColumnTitle(e.target, id); }
-      });
+      if (!readOnlyTasks) {
+        col.querySelector('.column-title').addEventListener('click', (e) => {
+          if (!col.dragging) { startEditingColumnTitle(e.target, id); }
+        });
+      }
 
       const header = col.querySelector('.column-header');
       header.draggable = true;
@@ -1751,9 +2095,11 @@
         moveTask(taskId, id, dropIndex);
       });
 
-      col.querySelector(`[data-add="${id}"]`).addEventListener('click', () => {
-        addNewTask(id, col.querySelector('.cards'));
-      });
+      if (!readOnlyTasks) {
+        col.querySelector(`[data-add="${id}"]`).addEventListener('click', () => {
+          addNewTask(id, col.querySelector('.cards'));
+        });
+      }
 
       return col;
     }
@@ -1843,6 +2189,7 @@
     let isSaving = false;
 
     function markChanged() {
+      if (readOnlyTasks) return;
       hasChanges = true;
       saveBtn.disabled = false;
       if (saveTimeout) clearTimeout(saveTimeout);
@@ -1850,6 +2197,7 @@
     }
 
     async function autoSave() {
+      if (readOnlyTasks) return;
       if (!taskFileHandle || !hasChanges || isSaving) return;
       isSaving = true;
       try {
@@ -1878,6 +2226,7 @@
           const result = parseTaskMarkdown(content);
           sections = result.sections;
           tasks = result.tasks;
+          readOnlyTasks = !!result.readOnly;
           renderTasks();
           showStatus('Reloaded');
         }
@@ -1893,24 +2242,146 @@
       if (watchInterval) { clearInterval(watchInterval); watchInterval = null; }
     }
 
+    function applyLoadedTasks(content, sourceLabel, sourceType) {
+      const result = parseTaskMarkdown(content);
+      sections = result.sections;
+      tasks = result.tasks;
+      readOnlyTasks = !!result.readOnly;
+      taskLoadSource = sourceType;
+      if (sections.length === 0) {
+        sections = [{ id: 'general', name: 'General' }];
+        tasks = { general: [] };
+      }
+      hasChanges = false;
+      saveBtn.disabled = true;
+      switchTaskView('board');
+      taskFileName = sourceLabel;
+      filePathEl.textContent = sourceLabel;
+
+      const totalTasks = sections.reduce((sum, s) => sum + ((tasks[s.id] || []).length), 0);
+      if (readOnlyTasks) {
+        showStatus(`Loaded ${sourceLabel}: ${sections.length} fases, ${totalTasks} tareas`);
+      } else {
+        showStatus(`Loaded ${sourceLabel}: ${sections.length} secciones, ${totalTasks} tareas`);
+      }
+    }
+
+    function parseTaskMetaFromNote(task) {
+      const note = task.note || '';
+      const statusMatch = note.match(/Estado:\s*([^|]+)/i);
+      const priorityMatch = note.match(/Prioridad:\s*([^|]+)/i);
+      const status = statusMatch ? statusMatch[1].trim() : null;
+      const priority = priorityMatch ? priorityMatch[1].trim() : null;
+      return { status, priority };
+    }
+
+    function getTaskAnalytics() {
+      const allTasks = [];
+      sections.forEach(section => {
+        (tasks[section.id] || []).forEach(task => allTasks.push(task));
+      });
+
+      const total = allTasks.length;
+      const done = allTasks.filter(t => t.checked).length;
+      const open = total - done;
+      const progressPct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+      const statusLabels = {
+        '✅': 'Completada',
+        '🔄': 'En progreso',
+        '🔁': 'En revisión',
+        '⬜': 'Pendiente',
+        '❌': 'Bloqueada'
+      };
+
+      const statusCounts = {
+        'Completada': 0,
+        'En progreso': 0,
+        'En revisión': 0,
+        'Pendiente': 0,
+        'Bloqueada': 0
+      };
+
+      allTasks.forEach(task => {
+        const { status } = parseTaskMetaFromNote(task);
+        const mapped = statusLabels[status] || (task.checked ? 'Completada' : 'Pendiente');
+        statusCounts[mapped] = (statusCounts[mapped] || 0) + 1;
+      });
+
+      return {
+        total,
+        done,
+        open,
+        progressPct,
+        sections: sections.length,
+        statusCounts
+      };
+    }
+
+    function renderTaskStats() {
+      const a = getTaskAnalytics();
+      const doneDeg = Math.round((a.progressPct / 100) * 360);
+      const statusOrder = ['Completada', 'En progreso', 'En revisión', 'Pendiente', 'Bloqueada'];
+      const maxStatus = Math.max(1, ...statusOrder.map(s => a.statusCounts[s] || 0));
+
+      const rowsHtml = statusOrder.map(label => {
+        const value = a.statusCounts[label] || 0;
+        const width = Math.round((value / maxStatus) * 100);
+        return `
+          <div class="task-bar-row">
+            <span>${label}</span>
+            <span class="task-bar-track"><span class="task-bar-fill" style="width:${width}%;"></span></span>
+            <span>${value}</span>
+          </div>
+        `;
+      }).join('');
+
+      taskStatsPanel.innerHTML = `
+        <div class="task-stats-grid">
+          <div class="task-stat-card"><div class="task-stat-value">${a.total}</div><div class="task-stat-label">Total tareas</div></div>
+          <div class="task-stat-card"><div class="task-stat-value">${a.done}</div><div class="task-stat-label">Completadas</div></div>
+          <div class="task-stat-card"><div class="task-stat-value">${a.open}</div><div class="task-stat-label">Abiertas</div></div>
+          <div class="task-stat-card"><div class="task-stat-value">${a.sections}</div><div class="task-stat-label">Fases/Secciones</div></div>
+        </div>
+        <div class="task-charts-grid">
+          <div class="task-chart-card">
+            <div class="task-chart-title">Progreso global</div>
+            <div class="task-donut" style="background: conic-gradient(var(--accent) 0deg ${doneDeg}deg, var(--border) ${doneDeg}deg 360deg);">
+              <div class="task-donut-label">${a.progressPct}%</div>
+            </div>
+          </div>
+          <div class="task-chart-card">
+            <div class="task-chart-title">Distribucion por estado</div>
+            <div class="task-bars">${rowsHtml}</div>
+          </div>
+        </div>
+      `;
+
+      taskStatsPanel.style.display = 'block';
+    }
+
     function renderTasks() {
+      renderTaskStats();
       if (currentView === 'board') { renderBoard(); }
       else { renderList(); }
     }
 
     function renderBoard() {
       board.innerHTML = '';
+
       sections.forEach(section => {
         const sectionTasks = tasks[section.id] || [];
         board.appendChild(createColumn(section.id, section.name, sectionTasks));
       });
 
-      const addSectionBtn = document.createElement('div');
-      addSectionBtn.className = 'column';
-      addSectionBtn.style.cssText = 'background: transparent; border: 2px dashed var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; min-height: 120px;';
-      addSectionBtn.innerHTML = '<span style="color: var(--text-muted); font-size: 14px; font-weight: 500;">+ Add Section</span>';
-      addSectionBtn.addEventListener('click', () => startAddingSection(addSectionBtn));
-      board.appendChild(addSectionBtn);
+      if (!readOnlyTasks) {
+        const addSectionBtn = document.createElement('div');
+        addSectionBtn.className = 'column';
+        addSectionBtn.style.cssText = 'background: transparent; border: 2px dashed var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; min-height: 120px;';
+        addSectionBtn.innerHTML = '<span style="color: var(--text-muted); font-size: 14px; font-weight: 500;">+ Add Section</span>';
+        addSectionBtn.addEventListener('click', () => startAddingSection(addSectionBtn));
+        board.appendChild(addSectionBtn);
+      }
     }
 
     function renderList() {
@@ -1920,42 +2391,44 @@
         quickAddSection = sections[0].id;
       }
 
-      // Quick add at top
-      const quickAdd = document.createElement('div');
-      quickAdd.className = 'quick-add';
-      quickAdd.style.cssText = 'border-bottom: 2px solid var(--border); margin-bottom: 24px; padding-bottom: 16px;';
+      if (!readOnlyTasks) {
+        // Quick add at top
+        const quickAdd = document.createElement('div');
+        quickAdd.className = 'quick-add';
+        quickAdd.style.cssText = 'border-bottom: 2px solid var(--border); margin-bottom: 24px; padding-bottom: 16px;';
 
-      const sectionName = sections.find(s => s.id === quickAddSection)?.name || 'Select section';
-      quickAdd.innerHTML = `
-        <span class="checkbox" style="opacity: 0.3;"></span>
-        <input type="text" class="quick-add-input" placeholder="Add a task..." id="quickAddInput">
-        <span class="quick-add-section" id="quickAddSectionBtn">${sectionName}</span>
-      `;
-      listView.appendChild(quickAdd);
+        const sectionName = sections.find(s => s.id === quickAddSection)?.name || 'Select section';
+        quickAdd.innerHTML = `
+          <span class="checkbox" style="opacity: 0.3;"></span>
+          <input type="text" class="quick-add-input" placeholder="Add a task..." id="quickAddInput">
+          <span class="quick-add-section" id="quickAddSectionBtn">${sectionName}</span>
+        `;
+        listView.appendChild(quickAdd);
 
-      const quickInput = document.getElementById('quickAddInput');
-      const sectionBtn = document.getElementById('quickAddSectionBtn');
+        const quickInput = document.getElementById('quickAddInput');
+        const sectionBtn = document.getElementById('quickAddSectionBtn');
 
-      quickInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && quickInput.value.trim()) {
-          const title = quickInput.value.trim();
-          if (!tasks[quickAddSection]) tasks[quickAddSection] = [];
-          tasks[quickAddSection].unshift({
-            id: Date.now() + Math.random(),
-            title,
-            note: '',
-            checked: false,
-            subtasks: [],
-            section: quickAddSection
-          });
-          quickInput.value = '';
-          markChanged();
-          renderTasks();
-          setTimeout(() => document.getElementById('quickAddInput')?.focus(), 10);
-        }
-      });
+        quickInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' && quickInput.value.trim()) {
+            const title = quickInput.value.trim();
+            if (!tasks[quickAddSection]) tasks[quickAddSection] = [];
+            tasks[quickAddSection].unshift({
+              id: Date.now() + Math.random(),
+              title,
+              note: '',
+              checked: false,
+              subtasks: [],
+              section: quickAddSection
+            });
+            quickInput.value = '';
+            markChanged();
+            renderTasks();
+            setTimeout(() => document.getElementById('quickAddInput')?.focus(), 10);
+          }
+        });
 
-      sectionBtn.addEventListener('click', (e) => { showSectionPicker(e.target); });
+        sectionBtn.addEventListener('click', (e) => { showSectionPicker(e.target); });
+      }
 
       // Render each section
       sections.forEach(section => {
@@ -1971,9 +2444,11 @@
           <span class="count">${sectionTasks.length}</span>
         `;
 
-        header.querySelector('.section-title').addEventListener('click', (e) => {
-          startEditingListSectionTitle(e.target, section);
-        });
+        if (!readOnlyTasks) {
+          header.querySelector('.section-title').addEventListener('click', (e) => {
+            startEditingListSectionTitle(e.target, section);
+          });
+        }
 
         sectionEl.appendChild(header);
 
@@ -2039,11 +2514,13 @@
       });
 
       // Add Section button
-      const addSectionBtn = document.createElement('div');
-      addSectionBtn.className = 'list-add-section';
-      addSectionBtn.textContent = '+ Add Section';
-      addSectionBtn.addEventListener('click', () => { startAddingListSection(addSectionBtn); });
-      listView.appendChild(addSectionBtn);
+      if (!readOnlyTasks) {
+        const addSectionBtn = document.createElement('div');
+        addSectionBtn.className = 'list-add-section';
+        addSectionBtn.textContent = '+ Add Section';
+        addSectionBtn.addEventListener('click', () => { startAddingListSection(addSectionBtn); });
+        listView.appendChild(addSectionBtn);
+      }
     }
 
     function startEditingListSectionTitle(titleEl, section) {
@@ -2121,16 +2598,18 @@
     function createListItem(task, section) {
       const item = document.createElement('div');
       item.className = 'list-item';
-      item.draggable = true;
+      item.draggable = !readOnlyTasks;
       item.dataset.taskId = task.id;
 
       item.addEventListener('dragstart', (e) => {
+        if (readOnlyTasks) return;
         item.classList.add('dragging');
         e.dataTransfer.setData('text/plain', task.id);
         e.dataTransfer.effectAllowed = 'move';
       });
 
       item.addEventListener('dragend', () => {
+        if (readOnlyTasks) return;
         item.classList.remove('dragging');
         document.querySelectorAll('.list-drop-indicator').forEach(el => el.remove());
         document.querySelectorAll('.list-section.drag-over').forEach(el => el.classList.remove('drag-over'));
@@ -2139,6 +2618,7 @@
       const checkbox = document.createElement('span');
       checkbox.className = `checkbox ${task.checked ? 'checked' : ''}`;
       checkbox.addEventListener('click', (e) => {
+        if (readOnlyTasks) return;
         e.stopPropagation();
         task.checked = !task.checked;
         markChanged();
@@ -2152,6 +2632,7 @@
       title.className = `list-item-title ${task.checked ? 'checked' : ''}`;
       title.textContent = task.title;
       title.addEventListener('click', (e) => {
+        if (readOnlyTasks) return;
         e.stopPropagation();
         startEditingListItem(title, task);
       });
@@ -2162,6 +2643,7 @@
         note.className = 'list-item-note';
         note.textContent = task.note;
         note.addEventListener('click', (e) => {
+          if (readOnlyTasks) return;
           e.stopPropagation();
           startEditingListNote(note, task);
         });
@@ -2171,6 +2653,7 @@
         addNote.className = 'list-item-note add-note';
         addNote.textContent = '+ Add note';
         addNote.addEventListener('click', (e) => {
+          if (readOnlyTasks) return;
           e.stopPropagation();
           startEditingListNote(addNote, task);
         });
@@ -2188,6 +2671,7 @@
           const stCheckbox = document.createElement('span');
           stCheckbox.className = `checkbox ${st.checked ? 'checked' : ''}`;
           stCheckbox.addEventListener('click', (e) => {
+            if (readOnlyTasks) return;
             e.stopPropagation();
             st.checked = !st.checked;
             markChanged();
@@ -2201,6 +2685,7 @@
             stText.style.color = 'var(--text-muted)';
           }
           stText.addEventListener('click', (e) => {
+            if (readOnlyTasks) return;
             e.stopPropagation();
             startEditingListSubtask(stText, task, idx);
           });
@@ -2217,6 +2702,7 @@
       addSubtask.className = 'list-item-add-subtask';
       addSubtask.textContent = '+ Add subtask';
       addSubtask.addEventListener('click', (e) => {
+        if (readOnlyTasks) return;
         e.stopPropagation();
         startAddingListSubtask(addSubtask, task);
       });
@@ -2226,6 +2712,7 @@
       actions.className = 'list-item-actions';
       actions.innerHTML = '<button title="Delete task">&times;</button>';
       actions.querySelector('button').addEventListener('click', (e) => {
+        if (readOnlyTasks) return;
         e.stopPropagation();
         deleteTask(task);
       });
@@ -2441,24 +2928,66 @@
         const file = await taskFileHandle.getFile();
         const content = await file.text();
         lastModified = file.lastModified;
-        const result = parseTaskMarkdown(content);
-        sections = result.sections;
-        tasks = result.tasks;
-        switchTaskView('board');
+        applyLoadedTasks(content, file.name, 'file');
         startWatching();
-        taskFileName = file.name;
-        filePathEl.textContent = file.name;
-        showStatus('Loaded ' + file.name);
       } catch (e) {
         if (e.name !== 'AbortError') { showStatus('Error: ' + e.message); }
       }
     }
 
+    async function openDefaultTasksFile() {
+      try {
+        if (IS_FILE_PROTOCOL) {
+          showStatus('Auto-load disabled on file://. Use Open TASKS.md or serve via http.');
+          return;
+        }
+        stopWatching();
+        taskFileHandle = null;
+        const response = await fetch(`TASKS.md?t=${Date.now()}`, { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`Could not fetch TASKS.md (${response.status})`);
+        }
+        const content = await response.text();
+        applyLoadedTasks(content, 'TASKS.md (default)', 'default-url');
+      } catch (e) {
+        showStatus('Error: ' + e.message);
+      }
+    }
+
+    async function refreshTasks() {
+      try {
+        if (taskLoadSource === 'file' && taskFileHandle) {
+          const file = await taskFileHandle.getFile();
+          const content = await file.text();
+          lastModified = file.lastModified;
+          applyLoadedTasks(content, file.name, 'file');
+          startWatching();
+          showStatus('Refreshed');
+          return;
+        }
+
+        if (taskLoadSource === 'default-url') {
+          await openDefaultTasksFile();
+          return;
+        }
+
+        showStatus('No tasks source loaded yet');
+      } catch (e) {
+        showStatus('Error: ' + e.message);
+      }
+    }
+
+    openDefaultTaskBtn.addEventListener('click', openDefaultTasksFile);
+    refreshTaskBtn.addEventListener('click', refreshTasks);
     openTaskBtn.addEventListener('click', openTaskFile);
     document.getElementById('openBtnLarge')?.addEventListener('click', openTaskFile);
 
     saveBtn.addEventListener('click', async () => {
       if (!taskFileHandle) return;
+      if (readOnlyTasks) {
+        showStatus('TASKS.md loaded in read-only mode');
+        return;
+      }
       try {
         const writable = await taskFileHandle.createWritable();
         await writable.write(toMarkdown());
@@ -2478,6 +3007,9 @@
     // ============================================================
 
     let memoryDirHandle = null;
+    let memorySource = null; // 'folder' | 'repo'
+    let selectedMemoryPath = null;
+    const expandedMemoryFolders = new Set(['memoria', 'diagramas']);
     let memoryData = {
       claudeMd: null,
       memoryFiles: [],
@@ -2486,6 +3018,8 @@
 
     const memoryEmptyState = document.getElementById('memoryEmptyState');
     const memoryMainContent = document.getElementById('memoryMainContent');
+    const refreshDocsBtn = document.getElementById('refreshDocsBtn');
+    const memoryTreeContainer = document.getElementById('memoryTreeContainer');
     const memoryTabsContainer = document.getElementById('memoryTabsContainer');
     const memoryContentContainer = document.getElementById('memoryContentContainer');
     const modalOverlay = document.getElementById('modalOverlay');
@@ -2568,62 +3102,406 @@
         .join(' ');
     }
 
+    function isTextFile(name) {
+      const lower = name.toLowerCase();
+      return [
+        '.md', '.txt', '.html', '.svg', '.puml', '.mmd',
+        '.json', '.yml', '.yaml', '.csv', '.log'
+      ].some(ext => lower.endsWith(ext));
+    }
+
+    function ensureMemoryDir(key) {
+      if (!memoryData.memoryDirs[key]) {
+        memoryData.memoryDirs[key] = [];
+      }
+    }
+
+    function pushMemoryFile(dirKey, fileName, content, fileHandle = null, dirHandle = null, relativePath = null) {
+      ensureMemoryDir(dirKey);
+      memoryData.memoryDirs[dirKey].push({
+        name: fileName,
+        content,
+        fileHandle,
+        dirHandle,
+        relativePath,
+        parsed: parseMemoryMarkdown(content)
+      });
+    }
+
+    function buildMemoryTree() {
+      const root = { key: '', folders: {}, files: [] };
+      const dirKeys = Object.keys(memoryData.memoryDirs).sort((a, b) => a.localeCompare(b));
+
+      for (const dirKey of dirKeys) {
+        const parts = dirKey.split('/').filter(Boolean);
+        let node = root;
+        let currentKey = '';
+
+        for (const part of parts) {
+          currentKey = currentKey ? `${currentKey}/${part}` : part;
+          if (!node.folders[part]) {
+            node.folders[part] = { key: currentKey, name: part, folders: {}, files: [] };
+          }
+          node = node.folders[part];
+        }
+
+        const files = (memoryData.memoryDirs[dirKey] || []).slice().sort((a, b) => a.name.localeCompare(b.name));
+        for (const file of files) {
+          node.files.push({ ...file, dirKey, treePath: `${dirKey}/${file.name}` });
+        }
+      }
+
+      return root;
+    }
+
+    function findMemoryFileByPath(path) {
+      const idx = path.lastIndexOf('/');
+      if (idx === -1) return null;
+      const dirKey = path.slice(0, idx);
+      const fileName = path.slice(idx + 1);
+      const files = memoryData.memoryDirs[dirKey] || [];
+      const file = files.find(f => f.name === fileName);
+      if (!file) return null;
+      return { dirKey, fileName, file };
+    }
+
+    function selectFirstMemoryFileIfNeeded() {
+      if (selectedMemoryPath) {
+        const found = findMemoryFileByPath(selectedMemoryPath);
+        if (found) return;
+      }
+
+      const dirKeys = Object.keys(memoryData.memoryDirs).sort((a, b) => a.localeCompare(b));
+      for (const dirKey of dirKeys) {
+        const files = (memoryData.memoryDirs[dirKey] || []).slice().sort((a, b) => a.name.localeCompare(b.name));
+        if (files.length > 0) {
+          selectedMemoryPath = `${dirKey}/${files[0].name}`;
+          return;
+        }
+      }
+
+      selectedMemoryPath = null;
+    }
+
+    function renderMemoryTreeNode(folderNode, depth = 0) {
+      const wrapper = document.createElement('div');
+      const folderHeader = document.createElement('div');
+      folderHeader.className = 'memory-tree-folder-header';
+      folderHeader.style.paddingLeft = `${8 + depth * 10}px`;
+      const isExpanded = expandedMemoryFolders.has(folderNode.key);
+      folderHeader.innerHTML = `
+        <span class="memory-tree-caret">${isExpanded ? '▼' : '▶'}</span>
+        <span class="memory-tree-icon">📁</span>
+        <span>${folderNode.name}</span>
+      `;
+
+      folderHeader.addEventListener('click', () => {
+        if (expandedMemoryFolders.has(folderNode.key)) {
+          expandedMemoryFolders.delete(folderNode.key);
+        } else {
+          expandedMemoryFolders.add(folderNode.key);
+        }
+        renderMemoryExplorer();
+      });
+
+      wrapper.appendChild(folderHeader);
+
+      if (!isExpanded) return wrapper;
+
+      const children = document.createElement('div');
+      children.className = 'memory-tree-children';
+
+      const subFolders = Object.values(folderNode.folders).sort((a, b) => a.name.localeCompare(b.name));
+      subFolders.forEach(sub => {
+        children.appendChild(renderMemoryTreeNode(sub, depth + 1));
+      });
+
+      const files = (folderNode.files || []).slice().sort((a, b) => a.name.localeCompare(b.name));
+      files.forEach(file => {
+        const row = document.createElement('div');
+        row.className = 'memory-tree-file';
+        if (selectedMemoryPath === file.treePath) row.classList.add('active');
+        row.style.paddingLeft = `${8 + (depth + 1) * 10}px`;
+        row.innerHTML = `<span class="memory-tree-caret"></span><span class="memory-tree-icon">📄</span><span>${file.name}</span>`;
+        row.addEventListener('click', () => {
+          selectedMemoryPath = file.treePath;
+          renderMemoryExplorer();
+        });
+        children.appendChild(row);
+      });
+
+      wrapper.appendChild(children);
+      return wrapper;
+    }
+
+    function renderSelectedMemoryFile() {
+      const selected = selectedMemoryPath ? findMemoryFileByPath(selectedMemoryPath) : null;
+      if (!selected) {
+        memoryContentContainer.innerHTML = '<div class="empty-state" style="padding: 40px;">No documents loaded.</div>';
+        return;
+      }
+
+      const { dirKey, fileName, file } = selected;
+      const canEdit = !!memoryDirHandle && !!file.fileHandle;
+      const lowerName = fileName.toLowerCase();
+      const isMarkdown = fileName.toLowerCase().endsWith('.md');
+      const isHtml = lowerName.endsWith('.html') || lowerName.endsWith('.htm');
+      const isImage = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'].some(ext => lowerName.endsWith(ext));
+      const title = `${dirKey}/${fileName}`;
+
+      let contentHtml = '';
+
+      if (isImage && file.relativePath && !IS_FILE_PROTOCOL) {
+        contentHtml = `
+          <div style="padding: 12px;">
+            <img src="${file.relativePath}?t=${Date.now()}" alt="${escapeHtml(fileName)}" style="max-width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--border);" />
+          </div>
+        `;
+      } else if (isHtml && file.relativePath && !IS_FILE_PROTOCOL) {
+        contentHtml = `
+          <iframe
+            src="${file.relativePath}?t=${Date.now()}"
+            style="width: 100%; min-height: 78vh; border: 1px solid var(--border); border-radius: 8px; background: white;"
+            loading="lazy"
+            referrerpolicy="no-referrer"
+            sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+          ></iframe>
+        `;
+      } else if (isMarkdown) {
+        contentHtml = `<div class="markdown-content">${renderMarkdownToHtml(file.content)}</div>`;
+      } else {
+        contentHtml = `<pre style="white-space: pre-wrap; font-size: 13px; color: var(--text-secondary);">${escapeHtml(file.content)}</pre>`;
+      }
+
+      memoryContentContainer.innerHTML = `
+        <div class="file-card">
+          <div class="file-card-header">
+            <span class="file-card-title">${escapeHtml(title)}</span>
+          </div>
+          <div class="file-card-content expanded">${contentHtml}</div>
+        </div>
+        ${canEdit ? `<button onclick="openFileModal('${dirKey}', '${fileName}')" style="margin-top: 10px;">Edit ${escapeHtml(fileName)}</button>` : ''}
+      `;
+    }
+
+    function renderMemoryExplorer() {
+      selectFirstMemoryFileIfNeeded();
+      const tree = buildMemoryTree();
+      memoryTreeContainer.innerHTML = '';
+
+      const topFolders = Object.values(tree.folders).sort((a, b) => a.name.localeCompare(b.name));
+      if (topFolders.length === 0) {
+        memoryTreeContainer.innerHTML = '<div class="empty-state" style="padding: 24px 12px;">No docs loaded.</div>';
+        memoryContentContainer.innerHTML = '<div class="empty-state" style="padding: 40px;">Load docs to start browsing.</div>';
+        return;
+      }
+
+      topFolders.forEach(folder => {
+        memoryTreeContainer.appendChild(renderMemoryTreeNode(folder, 0));
+      });
+
+      renderSelectedMemoryFile();
+    }
+
+    async function collectDirectoryFilesRecursive(dirHandle, folderPrefix = '') {
+      const out = [];
+      for await (const entry of dirHandle.values()) {
+        if (entry.kind === 'file') {
+          out.push({
+            fileHandle: entry,
+            relativePath: folderPrefix ? `${folderPrefix}/${entry.name}` : entry.name
+          });
+        } else if (entry.kind === 'directory') {
+          const nestedPrefix = folderPrefix ? `${folderPrefix}/${entry.name}` : entry.name;
+          const nested = await collectDirectoryFilesRecursive(entry, nestedPrefix);
+          out.push(...nested);
+        }
+      }
+      return out;
+    }
+
+    async function loadMemoryFromFolderHandle(rootHandle) {
+      memoryDirHandle = rootHandle;
+      memorySource = 'folder';
+
+      memoryData = { claudeMd: null, memoryFiles: [], memoryDirs: {} };
+
+      // docs/memoria (flat)
+      try {
+        const docsDir = await memoryDirHandle.getDirectoryHandle('docs');
+        const memoriaDir = await docsDir.getDirectoryHandle('memoria');
+        for await (const entry of memoriaDir.values()) {
+          if (entry.kind !== 'file') continue;
+          const file = await entry.getFile();
+          let content = '';
+          if (isTextFile(entry.name)) {
+            content = await file.text();
+          } else {
+            content = `[Binary file] ${entry.name}`;
+          }
+          pushMemoryFile('memoria', entry.name, content, entry, memoriaDir, `docs/memoria/${entry.name}`);
+        }
+      } catch (e) { console.log('No docs/memoria found'); }
+
+      // docs/diagramas (recursive)
+      try {
+        const docsDir = await memoryDirHandle.getDirectoryHandle('docs');
+        const diagramasDir = await docsDir.getDirectoryHandle('diagramas');
+        const files = await collectDirectoryFilesRecursive(diagramasDir);
+        for (const item of files) {
+          const pathParts = item.relativePath.split('/');
+          const fileName = pathParts[pathParts.length - 1];
+          const subFolder = pathParts.length > 1 ? pathParts.slice(0, -1).join('/') : 'root';
+          const dirKey = `diagramas/${subFolder}`;
+          const fileObj = await item.fileHandle.getFile();
+          let content = '';
+          if (isTextFile(fileName)) {
+            content = await fileObj.text();
+          } else {
+            content = `[Binary file] ${item.relativePath}`;
+          }
+          pushMemoryFile(dirKey, fileName, content, item.fileHandle, diagramasDir, `docs/diagramas/${item.relativePath}`);
+        }
+      } catch (e) { console.log('No docs/diagramas found'); }
+
+      Object.keys(memoryData.memoryDirs).forEach(key => {
+        memoryData.memoryDirs[key].sort((a, b) => a.name.localeCompare(b.name));
+      });
+
+      renderMemory();
+      memoryEmptyState.style.display = 'none';
+      memoryMainContent.style.display = 'flex';
+      filePathEl.textContent = `${memoryDirHandle.name}/docs`;
+    }
+
     async function loadMemoryDirectory() {
       try {
-        memoryDirHandle = await window.showDirectoryPicker();
-
-        memoryData = { claudeMd: null, memoryFiles: [], memoryDirs: {} };
-
-        try {
-          const claudeFileHandle = await memoryDirHandle.getFileHandle('CLAUDE.md');
-          const file = await claudeFileHandle.getFile();
-          memoryData.claudeMd = { content: await file.text(), fileHandle: claudeFileHandle };
-        } catch (e) { console.log('No CLAUDE.md found'); }
-
-        try {
-          const memoryDir = await memoryDirHandle.getDirectoryHandle('memory');
-          for await (const entry of memoryDir.values()) {
-            if (entry.kind === 'file' && entry.name.endsWith('.md')) {
-              const file = await entry.getFile();
-              memoryData.memoryFiles.push({
-                name: entry.name,
-                content: await file.text(),
-                fileHandle: entry
-              });
-            } else if (entry.kind === 'directory') {
-              memoryData.memoryDirs[entry.name] = [];
-              const subDirHandle = entry;
-              for await (const subEntry of subDirHandle.values()) {
-                if (subEntry.kind === 'file' && subEntry.name.endsWith('.md')) {
-                  const file = await subEntry.getFile();
-                  const content = await file.text();
-                  memoryData.memoryDirs[entry.name].push({
-                    name: subEntry.name,
-                    content: content,
-                    fileHandle: subEntry,
-                    dirHandle: subDirHandle,
-                    parsed: parseMemoryMarkdown(content)
-                  });
-                }
-              }
-            }
-          }
-        } catch (e) { console.log('No memory/ directory found'); }
-
-        renderMemory();
-        memoryEmptyState.style.display = 'none';
-        memoryMainContent.style.display = 'flex';
-        filePathEl.textContent = memoryDirHandle.name;
-        showStatus('Loaded memory from ' + memoryDirHandle.name);
+        const picked = await window.showDirectoryPicker();
+        await loadMemoryFromFolderHandle(picked);
+        showStatus('Loaded docs from ' + picked.name);
 
       } catch (e) {
         if (e.name !== 'AbortError') { showStatus('Error: ' + e.message); }
       }
     }
 
+    async function fetchTextIfExists(path) {
+      try {
+        if (IS_FILE_PROTOCOL) return null;
+        const response = await fetch(`${path}?t=${Date.now()}`, { cache: 'no-store' });
+        if (!response.ok) return null;
+        return await response.text();
+      } catch {
+        return null;
+      }
+    }
+
+    async function loadMemoryFromRepo() {
+      memoryData = { claudeMd: null, memoryFiles: [], memoryDirs: {} };
+      memoryDirHandle = null;
+      memorySource = 'repo';
+
+      const knownMemoriaFiles = [
+        'docs/memoria/01-introduccion.md',
+        'docs/memoria/02-objetivos.md',
+        'docs/memoria/03-antecedentes.md',
+        'docs/memoria/04-comparativa.md',
+        'docs/memoria/05-herramientas.md',
+        'docs/memoria/06-planificacion.md',
+        'docs/memoria/07-requisitos.md',
+        'docs/memoria/08-diseno-implementacion.md',
+        'docs/memoria/09-manual-usuario.md',
+        'docs/memoria/10-pruebas.md',
+        'docs/memoria/11-conclusiones.md',
+        'docs/memoria/12-bibliografia.md'
+      ];
+
+      const knownDiagramFiles = [
+        'docs/diagramas/arquitectura/arquitectura-capas.puml',
+        'docs/diagramas/arquitectura/arquitectura-capas.png',
+        'docs/diagramas/casos-uso/casos-uso-consumidor.puml',
+        'docs/diagramas/casos-uso/casos-uso-consumidor.png',
+        'docs/diagramas/casos-uso/casos-uso-comercio-admin.puml',
+        'docs/diagramas/casos-uso/casos-uso-comercio-admin.png',
+        'docs/diagramas/clases/modelo-clases.puml',
+        'docs/diagramas/clases/modelo-clases.png',
+        'docs/diagramas/er/modelo-er.puml',
+        'docs/diagramas/er/modelo-er.png',
+        'docs/diagramas/secuencia/secuencia-optimizacion.puml',
+        'docs/diagramas/secuencia/secuencia-optimizacion.png',
+        'docs/diagramas/secuencia/secuencia-ocr.puml',
+        'docs/diagramas/secuencia/secuencia-ocr.png',
+        'docs/diagramas/ui-mockups/README.md',
+        'docs/diagramas/ui-mockups/index.html',
+        'docs/diagramas/ui-mockups/assets/01-login.png',
+        'docs/diagramas/ui-mockups/assets/02-registro.png',
+        'docs/diagramas/ui-mockups/assets/03-dashboard.png',
+        'docs/diagramas/ui-mockups/assets/04-mi-lista.png',
+        'docs/diagramas/ui-mockups/assets/05-explorar.png',
+        'docs/diagramas/ui-mockups/assets/06-optimizador.png',
+        'docs/diagramas/ui-mockups/assets/07-perfil.png',
+        'docs/diagramas/ui-mockups/assets/08-ocr-captura.png',
+        'docs/diagramas/ui-mockups/assets/09-ocr-revision.png',
+        'docs/diagramas/ui-mockups/assets/10-asistente.png'
+      ];
+
+      for (const relPath of knownMemoriaFiles) {
+        const content = await fetchTextIfExists(relPath);
+        if (!content) continue;
+        const fileName = relPath.split('/').pop();
+        pushMemoryFile('memoria', fileName, content, null, null);
+      }
+
+      for (const relPath of knownDiagramFiles) {
+        const content = await fetchTextIfExists(relPath);
+        if (!content) continue;
+        const parts = relPath.split('/');
+        const fileName = parts[parts.length - 1];
+        const folder = parts[2] || 'root';
+        pushMemoryFile(`diagramas/${folder}`, fileName, content, null, null, relPath);
+      }
+
+      Object.keys(memoryData.memoryDirs).forEach(key => {
+        memoryData.memoryDirs[key].sort((a, b) => a.name.localeCompare(b.name));
+      });
+
+      const hasMemory =
+        !!memoryData.claudeMd ||
+        memoryData.memoryFiles.length > 0 ||
+        Object.keys(memoryData.memoryDirs).length > 0;
+
+      if (!hasMemory) return;
+
+      renderMemory();
+      memoryEmptyState.style.display = 'none';
+      memoryMainContent.style.display = 'flex';
+      if (activeMainTab === 'memory') {
+        filePathEl.textContent = 'docs (autoload)';
+      }
+    }
+
     function renderMemory() {
-      renderMemoryTabs();
-      renderMemoryContent();
+      renderMemoryExplorer();
+    }
+
+    async function refreshDocs() {
+      try {
+        if (memorySource === 'folder' && memoryDirHandle) {
+          await loadMemoryFromFolderHandle(memoryDirHandle);
+          showStatus('Docs refreshed');
+          return;
+        }
+
+        if (memorySource === 'repo') {
+          await loadMemoryFromRepo();
+          showStatus('Docs refreshed');
+          return;
+        }
+
+        await loadMemoryDirectory();
+      } catch (e) {
+        showStatus('Error: ' + e.message);
+      }
     }
 
     function renderMemoryTabs() {
@@ -2663,6 +3541,11 @@
 
       memoryTabsContainer.innerHTML = html;
 
+      if (!memoryTabsContainer.querySelector('.memory-tab.active')) {
+        const first = memoryTabsContainer.querySelector('.memory-tab');
+        if (first) first.classList.add('active');
+      }
+
       memoryTabsContainer.querySelectorAll('.memory-tab').forEach(tab => {
         tab.addEventListener('click', () => {
           memoryTabsContainer.querySelectorAll('.memory-tab').forEach(t => t.classList.remove('active'));
@@ -2690,6 +3573,7 @@
 
     function renderMemoryOverview() {
       if (!memoryData.claudeMd) return;
+      const canEdit = !!memoryDirHandle && !!memoryData.claudeMd.fileHandle;
 
       let statsHtml = '<div class="stats">';
       for (const [dirName, files] of Object.entries(memoryData.memoryDirs)) {
@@ -2729,13 +3613,14 @@
           </div>
           <div class="file-card-content expanded markdown-content">${claudeContent}</div>
         </div>
-        <button onclick="openEditModal('CLAUDE.md', 'claudeMd')" style="margin-top: 10px;">Edit CLAUDE.md</button>
+        ${canEdit ? `<button onclick="openEditModal('CLAUDE.md', 'claudeMd')" style="margin-top: 10px;">Edit CLAUDE.md</button>` : ''}
       `;
     }
 
     function renderMemoryFile(fileName) {
       const file = memoryData.memoryFiles.find(f => f.name === fileName);
       if (!file) return;
+      const canEdit = !!memoryDirHandle && !!file.fileHandle;
 
       const content = renderMarkdownToHtml(file.content);
 
@@ -2746,7 +3631,7 @@
           </div>
           <div class="file-card-content expanded markdown-content">${content}</div>
         </div>
-        <button onclick="openEditModal('${fileName}', 'memoryFile')" style="margin-top: 10px;">Edit ${fileName}</button>
+        ${canEdit ? `<button onclick="openEditModal('${fileName}', 'memoryFile')" style="margin-top: 10px;">Edit ${fileName}</button>` : ''}
       `;
     }
 
@@ -2805,11 +3690,14 @@
         `;
       }
 
-      html += `
-        <div class="add-btn" onclick="openNewFileModal('${dirName}')">
-          + Add to ${dirName}
-        </div>
-      </div>`;
+      if (memoryDirHandle) {
+        html += `
+          <div class="add-btn" onclick="openNewFileModal('${dirName}')">
+            + Add to ${dirName}
+          </div>
+        `;
+      }
+      html += `</div>`;
 
       memoryContentContainer.innerHTML = html;
     }
@@ -3009,6 +3897,10 @@
 
       try {
         if (type === 'claudeMd') {
+          if (!memoryData.claudeMd.fileHandle) {
+            showStatus('Read-only memory mode');
+            return;
+          }
           memoryData.claudeMd.content = content;
           const writable = await memoryData.claudeMd.fileHandle.createWritable();
           await writable.write(content);
@@ -3019,6 +3911,10 @@
           const fileName = modalOverlay.dataset.fileName;
           const file = memoryData.memoryFiles.find(f => f.name === fileName);
           if (file) {
+            if (!file.fileHandle) {
+              showStatus('Read-only memory mode');
+              return;
+            }
             file.content = content;
             const writable = await file.fileHandle.createWritable();
             await writable.write(content);
@@ -3032,6 +3928,10 @@
           const files = memoryData.memoryDirs[dirName];
           const file = files.find(f => f.name === fileName);
           if (file) {
+            if (!file.fileHandle) {
+              showStatus('Read-only memory mode');
+              return;
+            }
             file.content = content;
             file.parsed = parseMemoryMarkdown(content);
             const writable = await file.fileHandle.createWritable();
@@ -3041,6 +3941,10 @@
           }
 
         } else if (type === 'newDirFile') {
+          if (!memoryDirHandle) {
+            showStatus('Read-only memory mode');
+            return;
+          }
           const dirName = modalOverlay.dataset.dirName;
           let fileName = document.getElementById('newFileName').value.trim();
           if (!fileName) { showStatus('Please enter a filename'); return; }
@@ -3076,6 +3980,7 @@
     // Memory event listeners
     openMemoryBtn.addEventListener('click', loadMemoryDirectory);
     document.getElementById('openMemoryBtnLarge').addEventListener('click', loadMemoryDirectory);
+    refreshDocsBtn.addEventListener('click', refreshDocs);
     document.getElementById('modalClose').addEventListener('click', closeModal);
     document.getElementById('modalCancel').addEventListener('click', closeModal);
     document.getElementById('modalSave').addEventListener('click', saveModal);
@@ -3093,6 +3998,15 @@
     window.openNewFileModal = openNewFileModal;
     window.openEditModal = openEditModal;
     window.filterMemoryDirectory = filterMemoryDirectory;
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      if (IS_FILE_PROTOCOL) {
+        showStatus('Running on file://. Auto-load requires http/https.');
+        return;
+      }
+      await openDefaultTasksFile();
+      await loadMemoryFromRepo();
+    });
   </script>
 </body>
 </html>

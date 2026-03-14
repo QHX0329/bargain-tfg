@@ -37,8 +37,8 @@
 
 **Fase activa:** F3 — Desarrollo Core Backend
 **Semana estimada:** S5
-**Horas consumidas:** ~78 h / 300 h totales
-**Progreso global:** █████▒░░░░░░░░░░░░░░ 26%
+**Horas consumidas:** ~85 h / 300 h totales
+**Progreso global:** ██████░░░░░░░░░░░░░░ 28%
 
 ---
 

@@ -17,13 +17,19 @@
  * <PriceTag currentPrice={4.99} size="lg" />
  */
 
-import React from 'react';
-import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
-import { colors, fontFamilies, fontSize, borderRadius, spacing } from '@/theme';
+import React from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
+import { colors, fontFamilies, fontSize, borderRadius, spacing } from "@/theme";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
-export type PriceTagSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type PriceTagSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 export interface PriceTagProps {
   /** Precio actual en euros */
@@ -109,7 +115,10 @@ const sizeConfig: Record<PriceTagSize, SizeConfig> = {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const formatPrice = (value: number): string =>
-  value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  value.toLocaleString("es-ES", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
 const calcDiscount = (current: number, previous: number): number =>
   Math.round(((previous - current) / previous) * 100);
@@ -121,19 +130,24 @@ export const PriceTag: React.FC<PriceTagProps> = ({
   previousPrice,
   discountPercent,
   hideBadge = false,
-  size = 'md',
+  size = "md",
   style,
 }) => {
   const cfg = sizeConfig[size];
   const hasOffer = previousPrice !== undefined && previousPrice > currentPrice;
 
   const discount =
-    discountPercent ?? (hasOffer ? calcDiscount(currentPrice, previousPrice!) : undefined);
+    discountPercent ??
+    (hasOffer ? calcDiscount(currentPrice, previousPrice!) : undefined);
 
-  const showBadge = !hideBadge && hasOffer && discount !== undefined && discount > 0;
+  const showBadge =
+    !hideBadge && hasOffer && discount !== undefined && discount > 0;
 
   return (
-    <View style={[styles.container, style]} accessibilityLabel={`Precio: ${formatPrice(currentPrice)} euros`}>
+    <View
+      style={[styles.container, style]}
+      accessibilityLabel={`Precio: ${formatPrice(currentPrice)} euros`}
+    >
       {/* Precio anterior + badge — fila superior */}
       {(hasOffer || showBadge) && (
         <View style={[styles.topRow, { gap: cfg.gap }]}>
@@ -165,9 +179,7 @@ export const PriceTag: React.FC<PriceTagProps> = ({
               ]}
               accessibilityLabel={`${discount}% de descuento`}
             >
-              <Text
-                style={[styles.badgeText, { fontSize: cfg.badgeFontSize }]}
-              >
+              <Text style={[styles.badgeText, { fontSize: cfg.badgeFontSize }]}>
                 -{discount}%
               </Text>
             </View>
@@ -215,16 +227,16 @@ export const PriceTag: React.FC<PriceTagProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 1,
   },
   previousPrice: {
     color: colors.textMuted,
-    textDecorationLine: 'line-through',
+    textDecorationLine: "line-through",
   },
   badge: {
     backgroundColor: colors.accentTint,
@@ -237,8 +249,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0,
   },
   currentRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
   },
   currency: {
     marginRight: 1,

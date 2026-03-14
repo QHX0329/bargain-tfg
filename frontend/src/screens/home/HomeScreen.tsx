@@ -31,7 +31,7 @@
  * Animaciones: entrada con FadeInDown staggered (Reanimated 2).
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -39,15 +39,18 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+} from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import Animated, {
   FadeInDown,
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-} from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
 import {
   colors,
   spacing,
@@ -56,15 +59,20 @@ import {
   fontFamilies,
   fontSize,
   sizes,
-} from '@/theme';
-import { SearchBar } from '@/components/ui/SearchBar';
-import type { ShoppingList, Store, StoreChain, WeeklySavings } from '@/types/domain';
+} from "@/theme";
+import { SearchBar } from "@/components/ui/SearchBar";
+import type {
+  ShoppingList,
+  Store,
+  StoreChain,
+  WeeklySavings,
+} from "@/types/domain";
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 // TODO: reemplazar con llamadas a la API cuando backend esté listo (F3)
 
-const MOCK_USER_NAME = 'Ana';
-const MOCK_LOCATION = 'Triana · Sevilla';
+const MOCK_USER_NAME = "Ana";
+const MOCK_LOCATION = "Triana · Sevilla";
 
 const MOCK_SAVINGS: WeeklySavings = {
   thisWeek: 12.4,
@@ -75,77 +83,109 @@ const MOCK_SAVINGS: WeeklySavings = {
 };
 
 const MOCK_ACTIVE_LIST: ShoppingList = {
-  id: 'list-1',
-  name: 'Compra semanal',
+  id: "list-1",
+  name: "Compra semanal",
   items: [
     {
-      id: 'i1',
+      id: "i1",
       product: {
-        id: 'p1', name: 'Leche semidesnatada', normalizedName: 'leche semidesnatada',
-        category: 'lácteos', unit: 'l', unitQuantity: 1,
+        id: "p1",
+        name: "Leche semidesnatada",
+        normalizedName: "leche semidesnatada",
+        category: "lácteos",
+        unit: "l",
+        unitQuantity: 1,
       },
       quantity: 2,
       isChecked: false,
     },
     {
-      id: 'i2',
+      id: "i2",
       product: {
-        id: 'p2', name: 'Pan integral', normalizedName: 'pan integral',
-        category: 'panadería', unit: 'ud', unitQuantity: 1,
+        id: "p2",
+        name: "Pan integral",
+        normalizedName: "pan integral",
+        category: "panadería",
+        unit: "ud",
+        unitQuantity: 1,
       },
       quantity: 1,
       isChecked: true,
     },
     {
-      id: 'i3',
+      id: "i3",
       product: {
-        id: 'p3', name: 'Tomates rama', normalizedName: 'tomates rama',
-        category: 'verduras', unit: 'kg', unitQuantity: 1,
+        id: "p3",
+        name: "Tomates rama",
+        normalizedName: "tomates rama",
+        category: "verduras",
+        unit: "kg",
+        unitQuantity: 1,
       },
       quantity: 1,
       isChecked: false,
     },
     {
-      id: 'i4',
+      id: "i4",
       product: {
-        id: 'p4', name: 'Aceite de oliva virgen extra', normalizedName: 'aove',
-        category: 'aceites', unit: 'l', unitQuantity: 1,
+        id: "p4",
+        name: "Aceite de oliva virgen extra",
+        normalizedName: "aove",
+        category: "aceites",
+        unit: "l",
+        unitQuantity: 1,
       },
       quantity: 1,
       isChecked: false,
     },
     {
-      id: 'i5',
+      id: "i5",
       product: {
-        id: 'p5', name: 'Yogur griego natural', normalizedName: 'yogur griego',
-        category: 'lácteos', unit: 'ud', unitQuantity: 4,
+        id: "p5",
+        name: "Yogur griego natural",
+        normalizedName: "yogur griego",
+        category: "lácteos",
+        unit: "ud",
+        unitQuantity: 4,
       },
       quantity: 4,
       isChecked: true,
     },
     {
-      id: 'i6',
+      id: "i6",
       product: {
-        id: 'p6', name: 'Arroz redondo', normalizedName: 'arroz redondo',
-        category: 'cereales', unit: 'kg', unitQuantity: 1,
+        id: "p6",
+        name: "Arroz redondo",
+        normalizedName: "arroz redondo",
+        category: "cereales",
+        unit: "kg",
+        unitQuantity: 1,
       },
       quantity: 1,
       isChecked: false,
     },
     {
-      id: 'i7',
+      id: "i7",
       product: {
-        id: 'p7', name: 'Huevos camperos L', normalizedName: 'huevos camperos',
-        category: 'huevos', unit: 'pack', unitQuantity: 12,
+        id: "p7",
+        name: "Huevos camperos L",
+        normalizedName: "huevos camperos",
+        category: "huevos",
+        unit: "pack",
+        unitQuantity: 12,
       },
       quantity: 1,
       isChecked: false,
     },
     {
-      id: 'i8',
+      id: "i8",
       product: {
-        id: 'p8', name: 'Pasta espagueti', normalizedName: 'pasta espagueti',
-        category: 'pasta', unit: 'g', unitQuantity: 500,
+        id: "p8",
+        name: "Pasta espagueti",
+        normalizedName: "pasta espagueti",
+        category: "pasta",
+        unit: "g",
+        unitQuantity: 500,
       },
       quantity: 2,
       isChecked: false,
@@ -160,31 +200,50 @@ const MOCK_ACTIVE_LIST: ShoppingList = {
 
 const MOCK_NEARBY: Store[] = [
   {
-    id: 's1', name: 'Mercadona Triana', chain: 'mercadona',
-    address: 'C/ Pagés del Corro, 90', distanceKm: 0.3,
-    estimatedMinutes: 5, isOpen: true,
+    id: "s1",
+    name: "Mercadona Triana",
+    chain: "mercadona",
+    address: "C/ Pagés del Corro, 90",
+    distanceKm: 0.3,
+    estimatedMinutes: 5,
+    isOpen: true,
   },
   {
-    id: 's2', name: 'Lidl Macarena', chain: 'lidl',
-    address: 'Ronda de Capuchinos, 1', distanceKm: 0.8,
-    estimatedMinutes: 12, isOpen: true,
+    id: "s2",
+    name: "Lidl Macarena",
+    chain: "lidl",
+    address: "Ronda de Capuchinos, 1",
+    distanceKm: 0.8,
+    estimatedMinutes: 12,
+    isOpen: true,
   },
   {
-    id: 's3', name: 'Aldi San Bernardo', chain: 'aldi',
-    address: 'Av. Dr. Fedriani, 37', distanceKm: 1.2,
-    estimatedMinutes: 18, isOpen: false,
+    id: "s3",
+    name: "Aldi San Bernardo",
+    chain: "aldi",
+    address: "Av. Dr. Fedriani, 37",
+    distanceKm: 1.2,
+    estimatedMinutes: 18,
+    isOpen: false,
   },
   {
-    id: 's4', name: 'Carrefour Express', chain: 'carrefour',
-    address: 'C/ Sierpes, 12', distanceKm: 1.8,
-    estimatedMinutes: 22, isOpen: true,
+    id: "s4",
+    name: "Carrefour Express",
+    chain: "carrefour",
+    address: "C/ Sierpes, 12",
+    distanceKm: 1.8,
+    estimatedMinutes: 22,
+    isOpen: true,
   },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const fmt = (n: number): string =>
-  n.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  n.toLocaleString("es-ES", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
 const CHAIN_COLORS: Record<StoreChain, string> = {
   mercadona: colors.chains.mercadona,
@@ -197,17 +256,22 @@ const CHAIN_COLORS: Record<StoreChain, string> = {
 };
 
 const CHAIN_INITIALS: Record<StoreChain, string> = {
-  mercadona: 'M', lidl: 'L', aldi: 'A', carrefour: 'C',
-  dia: 'D', alcampo: 'Al', local: '◎',
+  mercadona: "M",
+  lidl: "L",
+  aldi: "A",
+  carrefour: "C",
+  dia: "D",
+  alcampo: "Al",
+  local: "◎",
 };
 
 // ─── Sub-componentes ──────────────────────────────────────────────────────────
 
 const getGreeting = (): string => {
   const h = new Date().getHours();
-  if (h < 13) return 'Buenos días';
-  if (h < 21) return 'Buenas tardes';
-  return 'Buenas noches';
+  if (h < 13) return "Buenos días";
+  if (h < 21) return "Buenas tardes";
+  return "Buenas noches";
 };
 
 // ── Tarjeta hero de ahorro semanal ────────────────────────────────────────────
@@ -225,7 +289,10 @@ const SavingsHero: React.FC<SavingsHeroProps> = ({ savings }) => {
       {/* Patrón de azulejos abstracto, decorativo */}
       <View style={[heroStyles.tilePattern, heroStyles.pointerNone]}>
         {[0, 1, 2, 3, 4, 5].map((i) => (
-          <View key={i} style={[heroStyles.tile, { opacity: 0.06 + i * 0.02 }]} />
+          <View
+            key={i}
+            style={[heroStyles.tile, { opacity: 0.06 + i * 0.02 }]}
+          />
         ))}
       </View>
 
@@ -234,9 +301,14 @@ const SavingsHero: React.FC<SavingsHeroProps> = ({ savings }) => {
       <View style={heroStyles.amountRow}>
         <Text style={heroStyles.currency}>€</Text>
         <Text style={heroStyles.amount}>{fmt(savings.thisWeek)}</Text>
-        <View style={[heroStyles.deltaBadge, !improved && heroStyles.deltaBadgeNeutral]}>
+        <View
+          style={[
+            heroStyles.deltaBadge,
+            !improved && heroStyles.deltaBadgeNeutral,
+          ]}
+        >
           <Text style={heroStyles.deltaText}>
-            {improved ? '↑' : '↓'} {Math.abs(savings.improvementPercent)}%
+            {improved ? "↑" : "↓"} {Math.abs(savings.improvementPercent)}%
           </Text>
         </View>
       </View>
@@ -246,11 +318,17 @@ const SavingsHero: React.FC<SavingsHeroProps> = ({ savings }) => {
       </Text>
 
       <View style={heroStyles.progressTrack}>
-        <View style={[heroStyles.progressFill, { width: `${Math.round(progress * 100)}%` }]} />
+        <View
+          style={[
+            heroStyles.progressFill,
+            { width: `${Math.round(progress * 100)}%` },
+          ]}
+        />
       </View>
 
       <Text style={heroStyles.totalText}>
-        Total ahorrado: €{fmt(savings.totalSavedAllTime)} · {savings.optimizationsCount} rutas
+        Total ahorrado: €{fmt(savings.totalSavedAllTime)} ·{" "}
+        {savings.optimizationsCount} rutas
       </Text>
     </View>
   );
@@ -267,9 +345,14 @@ interface QuickAction {
   onPress: () => void;
 }
 
-const QuickActionTile: React.FC<{ action: QuickAction; delay: number }> = ({ action, delay }) => {
+const QuickActionTile: React.FC<{ action: QuickAction; delay: number }> = ({
+  action,
+  delay,
+}) => {
   const scale = useSharedValue(1);
-  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   return (
     <Animated.View
@@ -277,17 +360,32 @@ const QuickActionTile: React.FC<{ action: QuickAction; delay: number }> = ({ act
       style={[quickStyles.tileWrap, animStyle]}
     >
       <Pressable
-        onPressIn={() => { scale.value = withSpring(0.95, { damping: 12, stiffness: 300 }); }}
-        onPressOut={() => { scale.value = withSpring(1, { damping: 12, stiffness: 300 }); }}
+        onPressIn={() => {
+          scale.value = withSpring(0.95, { damping: 12, stiffness: 300 });
+        }}
+        onPressOut={() => {
+          scale.value = withSpring(1, { damping: 12, stiffness: 300 });
+        }}
         onPress={action.onPress}
         style={[quickStyles.tile, { backgroundColor: action.bg }]}
         accessibilityRole="button"
         accessibilityLabel={action.label}
       >
-        <View style={[quickStyles.iconCircle, { backgroundColor: action.color + '20' }]}>
-          <Ionicons name={action.iconName as any} size={18} color={action.color} />
+        <View
+          style={[
+            quickStyles.iconCircle,
+            { backgroundColor: action.color + "20" },
+          ]}
+        >
+          <Ionicons
+            name={action.iconName as any}
+            size={18}
+            color={action.color}
+          />
         </View>
-        <Text style={[quickStyles.label, { color: action.color }]}>{action.label}</Text>
+        <Text style={[quickStyles.label, { color: action.color }]}>
+          {action.label}
+        </Text>
       </Pressable>
     </Animated.View>
   );
@@ -304,7 +402,9 @@ const ActiveListCard: React.FC<{ list: ShoppingList; onPress: () => void }> = ({
   const remaining = list.items.length - 4;
   const progressPercent = Math.round((checkedCount / list.items.length) * 100);
   const savings =
-    list.totalOptimized !== undefined ? list.totalEstimated - list.totalOptimized : 0;
+    list.totalOptimized !== undefined
+      ? list.totalEstimated - list.totalOptimized
+      : 0;
 
   return (
     <TouchableOpacity
@@ -318,11 +418,14 @@ const ActiveListCard: React.FC<{ list: ShoppingList; onPress: () => void }> = ({
         <View style={listCardStyles.headerLeft}>
           <Text style={listCardStyles.listName}>{list.name}</Text>
           <Text style={listCardStyles.listMeta}>
-            {list.items.length} ítems · {checkedCount}/{list.items.length} completados
+            {list.items.length} ítems · {checkedCount}/{list.items.length}{" "}
+            completados
           </Text>
         </View>
         <View style={listCardStyles.headerRight}>
-          <Text style={listCardStyles.totalPrice}>€{fmt(list.totalEstimated)}</Text>
+          <Text style={listCardStyles.totalPrice}>
+            €{fmt(list.totalEstimated)}
+          </Text>
           {savings > 0.01 && (
             <Text style={listCardStyles.savedBadge}>-€{fmt(savings)}</Text>
           )}
@@ -330,14 +433,22 @@ const ActiveListCard: React.FC<{ list: ShoppingList; onPress: () => void }> = ({
       </View>
 
       <View style={listCardStyles.progressTrack}>
-        <View style={[listCardStyles.progressFill, { width: `${progressPercent}%` }]} />
+        <View
+          style={[
+            listCardStyles.progressFill,
+            { width: `${progressPercent}%` },
+          ]}
+        />
       </View>
 
       <View style={listCardStyles.itemsRow}>
         {previewItems.map((item) => (
           <View
             key={item.id}
-            style={[listCardStyles.itemChip, item.isChecked && listCardStyles.itemChipDone]}
+            style={[
+              listCardStyles.itemChip,
+              item.isChecked && listCardStyles.itemChipDone,
+            ]}
           >
             <Text
               style={[
@@ -346,7 +457,8 @@ const ActiveListCard: React.FC<{ list: ShoppingList; onPress: () => void }> = ({
               ]}
               numberOfLines={1}
             >
-              {item.isChecked ? '✓ ' : ''}{item.product.name.split(' ')[0]}
+              {item.isChecked ? "✓ " : ""}
+              {item.product.name.split(" ")[0]}
             </Text>
           </View>
         ))}
@@ -381,17 +493,26 @@ const NearbyStoreCard: React.FC<{ store: Store; onPress: () => void }> = ({
       accessibilityRole="button"
       accessibilityLabel={`${store.name}, a ${store.distanceKm} kilómetros`}
     >
-      <View style={[nearbyStyles.logo, { backgroundColor: chainColor + '18' }]}>
-        <Text style={[nearbyStyles.logoText, { color: chainColor }]}>{initial}</Text>
+      <View style={[nearbyStyles.logo, { backgroundColor: chainColor + "18" }]}>
+        <Text style={[nearbyStyles.logoText, { color: chainColor }]}>
+          {initial}
+        </Text>
       </View>
-      <Text style={nearbyStyles.storeName} numberOfLines={2}>{store.name}</Text>
+      <Text style={nearbyStyles.storeName} numberOfLines={2}>
+        {store.name}
+      </Text>
       <Text style={nearbyStyles.distanceText}>
         {store.distanceKm < 1
           ? `${Math.round(store.distanceKm * 1000)} m`
           : `${store.distanceKm.toFixed(1)} km`}
       </Text>
       <Text style={nearbyStyles.timeText}>≈ {store.estimatedMinutes} min</Text>
-      <View style={[nearbyStyles.statusDot, !store.isOpen && nearbyStyles.statusDotClosed]} />
+      <View
+        style={[
+          nearbyStyles.statusDot,
+          !store.isOpen && nearbyStyles.statusDotClosed,
+        ]}
+      />
     </TouchableOpacity>
   );
 };
@@ -399,55 +520,55 @@ const NearbyStoreCard: React.FC<{ store: Store; onPress: () => void }> = ({
 // ─── Pantalla principal ───────────────────────────────────────────────────────
 
 export const HomeScreen: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const insets = useSafeAreaInsets();
 
   const handleListPress = useCallback(() => {
     // TODO: router.push('/(tabs)/lists/' + MOCK_ACTIVE_LIST.id)
-    console.log('Navigate to list:', MOCK_ACTIVE_LIST.id);
+    console.log("Navigate to list:", MOCK_ACTIVE_LIST.id);
   }, []);
 
   const handleStorePress = useCallback((storeId: string) => {
-    console.log('Navigate to store:', storeId);
+    console.log("Navigate to store:", storeId);
   }, []);
 
   const QUICK_ACTIONS: QuickAction[] = [
     {
-      id: 'new-list',
-      label: 'Nueva lista',
-      iconName: 'add',
+      id: "new-list",
+      label: "Nueva lista",
+      iconName: "add",
       color: colors.secondary,
       bg: colors.secondaryTint,
-      onPress: () => console.log('Nueva lista'),
+      onPress: () => console.log("Nueva lista"),
     },
     {
-      id: 'search',
-      label: 'Buscar',
-      iconName: 'search',
+      id: "search",
+      label: "Buscar",
+      iconName: "search",
       color: colors.primary,
       bg: colors.primaryTint,
-      onPress: () => console.log('Buscar'),
+      onPress: () => console.log("Buscar"),
     },
     {
-      id: 'scan',
-      label: 'Escanear',
-      iconName: 'scan',
+      id: "scan",
+      label: "Escanear",
+      iconName: "scan",
       color: colors.accentDark,
       bg: colors.accentTint,
-      onPress: () => console.log('Escanear'),
+      onPress: () => console.log("Escanear"),
     },
     {
-      id: 'route',
-      label: 'Mi ruta',
-      iconName: 'navigate',
+      id: "route",
+      label: "Mi ruta",
+      iconName: "navigate",
       color: colors.info,
       bg: colors.infoBg,
-      onPress: () => console.log('Mi ruta'),
+      onPress: () => console.log("Mi ruta"),
     },
   ];
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[
@@ -490,7 +611,7 @@ export const HomeScreen: React.FC = () => {
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholder="Leche, pan, aceite de oliva…"
-            onFilterPress={() => console.log('Filtros')}
+            onFilterPress={() => console.log("Filtros")}
           />
         </Animated.View>
 
@@ -507,7 +628,11 @@ export const HomeScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>Acciones rápidas</Text>
           <View style={quickStyles.grid}>
             {QUICK_ACTIONS.map((action, i) => (
-              <QuickActionTile key={action.id} action={action} delay={200 + i * 40} />
+              <QuickActionTile
+                key={action.id}
+                action={action}
+                delay={200 + i * 40}
+              />
             ))}
           </View>
         </Animated.View>
@@ -580,9 +705,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
   },
@@ -597,14 +722,14 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontFamily: fontFamilies.display,
-    fontSize: fontSize['3xl'],
+    fontSize: fontSize["3xl"],
     color: colors.text,
-    lineHeight: Math.round(fontSize['3xl'] * 1.15),
+    lineHeight: Math.round(fontSize["3xl"] * 1.15),
     letterSpacing: -0.5,
   },
   locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
     marginTop: 2,
   },
@@ -628,9 +753,9 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     backgroundColor: colors.primaryTint,
     borderWidth: 2,
-    borderColor: colors.primary + '30',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: colors.primary + "30",
+    alignItems: "center",
+    justifyContent: "center",
   },
   avatarText: {
     fontFamily: fontFamilies.bodySemiBold,
@@ -644,9 +769,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: spacing.sm,
   },
   sectionTitle: {
@@ -673,20 +798,20 @@ const heroStyles = StyleSheet.create({
     padding: spacing.md,
     paddingTop: spacing.lg,
     marginBottom: spacing.md,
-    overflow: 'hidden',
-    position: 'relative',
+    overflow: "hidden",
+    position: "relative",
   },
   tilePattern: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     right: 0,
     bottom: 0,
     width: 120,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
   },
   pointerNone: {
-    pointerEvents: 'none',
+    pointerEvents: "none",
   },
   tile: {
     width: 40,
@@ -698,28 +823,28 @@ const heroStyles = StyleSheet.create({
   label: {
     fontFamily: fontFamilies.bodySemiBold,
     fontSize: fontSize.xs,
-    color: 'rgba(255,255,255,0.7)',
+    color: "rgba(255,255,255,0.7)",
     letterSpacing: 1.2,
     marginBottom: spacing.xs,
   },
   amountRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
     gap: spacing.sm,
     marginBottom: 4,
   },
   currency: {
     fontFamily: fontFamilies.monoMedium,
     fontSize: fontSize.xl,
-    color: 'rgba(255,255,255,0.8)',
-    lineHeight: Math.round(fontSize['4xl'] * 1.1),
+    color: "rgba(255,255,255,0.8)",
+    lineHeight: Math.round(fontSize["4xl"] * 1.1),
     paddingBottom: 4,
   },
   amount: {
     fontFamily: fontFamilies.monoMedium,
-    fontSize: fontSize['4xl'],
+    fontSize: fontSize["4xl"],
     color: colors.white,
-    lineHeight: Math.round(fontSize['4xl'] * 1.0),
+    lineHeight: Math.round(fontSize["4xl"] * 1.0),
     letterSpacing: -1,
   },
   deltaBadge: {
@@ -730,7 +855,7 @@ const heroStyles = StyleSheet.create({
     marginBottom: 6,
   },
   deltaBadgeNeutral: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: "rgba(255,255,255,0.2)",
   },
   deltaText: {
     fontFamily: fontFamilies.bodySemiBold,
@@ -740,25 +865,25 @@ const heroStyles = StyleSheet.create({
   compareText: {
     fontFamily: fontFamilies.body,
     fontSize: fontSize.sm,
-    color: 'rgba(255,255,255,0.7)',
+    color: "rgba(255,255,255,0.7)",
     marginBottom: spacing.sm,
   },
   progressTrack: {
     height: 4,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: "rgba(255,255,255,0.25)",
     borderRadius: borderRadius.pill,
     marginBottom: spacing.sm,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   progressFill: {
-    height: '100%',
+    height: "100%",
     backgroundColor: colors.accent,
     borderRadius: borderRadius.pill,
   },
   totalText: {
     fontFamily: fontFamilies.body,
     fontSize: fontSize.xs,
-    color: 'rgba(255,255,255,0.55)',
+    color: "rgba(255,255,255,0.55)",
   },
 });
 
@@ -766,18 +891,18 @@ const heroStyles = StyleSheet.create({
 
 const quickStyles = StyleSheet.create({
   grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.sm,
   },
   tileWrap: {
-    width: '47.5%',
+    width: "47.5%",
   },
   tile: {
     borderRadius: borderRadius.lg,
     padding: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
@@ -786,8 +911,8 @@ const quickStyles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   icon: {
     fontSize: 18,
@@ -811,9 +936,9 @@ const listCardStyles = StyleSheet.create({
     borderColor: colors.border,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
     marginBottom: spacing.sm,
   },
   headerLeft: { flex: 1 },
@@ -829,7 +954,7 @@ const listCardStyles = StyleSheet.create({
     color: colors.textMuted,
     marginTop: 2,
   },
-  headerRight: { alignItems: 'flex-end' },
+  headerRight: { alignItems: "flex-end" },
   totalPrice: {
     fontFamily: fontFamilies.monoMedium,
     fontSize: fontSize.lg,
@@ -846,16 +971,16 @@ const listCardStyles = StyleSheet.create({
     backgroundColor: colors.border,
     borderRadius: borderRadius.pill,
     marginBottom: spacing.sm,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   progressFill: {
-    height: '100%',
+    height: "100%",
     backgroundColor: colors.secondary,
     borderRadius: borderRadius.pill,
   },
   itemsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 6,
     marginBottom: spacing.sm,
   },
@@ -869,7 +994,7 @@ const listCardStyles = StyleSheet.create({
   },
   itemChipDone: {
     backgroundColor: colors.successBg,
-    borderColor: colors.success + '40',
+    borderColor: colors.success + "40",
   },
   itemChipText: {
     fontFamily: fontFamilies.body,
@@ -878,7 +1003,7 @@ const listCardStyles = StyleSheet.create({
   },
   itemChipTextDone: {
     color: colors.success,
-    textDecorationLine: 'line-through',
+    textDecorationLine: "line-through",
   },
   moreChip: {
     backgroundColor: colors.primaryTint,
@@ -886,7 +1011,7 @@ const listCardStyles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.primary + '30',
+    borderColor: colors.primary + "30",
   },
   moreChipText: {
     fontFamily: fontFamilies.bodySemiBold,
@@ -897,7 +1022,7 @@ const listCardStyles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.divider,
     paddingTop: spacing.sm,
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
   },
   ctaText: {
     fontFamily: fontFamilies.bodySemiBold,
@@ -925,14 +1050,14 @@ const nearbyStyles = StyleSheet.create({
     width: 130,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
-    position: 'relative',
+    position: "relative",
   },
   logo: {
     width: 44,
     height: 44,
     borderRadius: borderRadius.md,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: spacing.xs,
   },
   logoText: {
@@ -959,7 +1084,7 @@ const nearbyStyles = StyleSheet.create({
     lineHeight: 15,
   },
   statusDot: {
-    position: 'absolute',
+    position: "absolute",
     top: spacing.sm,
     right: spacing.sm,
     width: 8,

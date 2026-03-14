@@ -6,7 +6,7 @@
  * densidades de pantalla estándar (1x, 2x, 3x).
  */
 
-import { Platform } from 'react-native';
+import { Platform } from "react-native";
 
 // ─── Espaciado (8pt grid) ────────────────────────────────────────────────────
 
@@ -51,13 +51,13 @@ export const borderRadius = {
 // elevation en Android). Se proveen ambas formas.
 
 const hexToRgba = (hex: string, opacity: number): string => {
-  const sanitized = hex.replace('#', '').trim();
+  const sanitized = hex.replace("#", "").trim();
   const expanded =
     sanitized.length === 3
       ? sanitized
-          .split('')
+          .split("")
           .map((char) => char + char)
-          .join('')
+          .join("")
       : sanitized;
 
   if (expanded.length !== 6) return `rgba(0,0,0,${opacity})`;
@@ -110,39 +110,39 @@ export const shadows = {
    * card — sombra cálida de cards con tinte naranja BargAIn.
    * 0 2px 12px rgba(232,84,26, 0.08)
    */
-  card: _buildShadow('#E8541A', 0, 2, 6, 0.08, 2),
+  card: _buildShadow("#E8541A", 0, 2, 6, 0.08, 2),
 
   /**
    * elevated — sombra profunda para modals, bottom sheets, elements flotantes.
    * 0 8px 32px rgba(26,26,24, 0.12)
    */
-  elevated: _buildShadow('#1A1A18', 0, 8, 16, 0.12, 8),
+  elevated: _buildShadow("#1A1A18", 0, 8, 16, 0.12, 8),
 
   /**
    * button — sombra para botones primarios en estado rest.
    * 0 4px 16px rgba(232,84,26, 0.28)
    */
-  button: _buildShadow('#E8541A', 0, 4, 8, 0.28, 4),
+  button: _buildShadow("#E8541A", 0, 4, 8, 0.28, 4),
 
   /**
    * tabBar — sombra superior de la barra de navegación.
    */
-  tabBar: _buildShadow('#1A1A18', 0, -2, 12, 0.06, 12),
+  tabBar: _buildShadow("#1A1A18", 0, -2, 12, 0.06, 12),
 
   /**
    * none — sin sombra (valor neutro útil para resets condicionales).
    */
   none: Platform.select({
     ios: {
-      shadowColor: 'transparent',
+      shadowColor: "transparent",
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0,
       shadowRadius: 0,
     },
     android: { elevation: 0 },
-    web: { boxShadow: 'none' },
+    web: { boxShadow: "none" },
     default: {
-      shadowColor: 'transparent',
+      shadowColor: "transparent",
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0,
       shadowRadius: 0,

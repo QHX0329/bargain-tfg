@@ -17,7 +17,7 @@
  *   - Soporte accesibilidad completo.
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -27,19 +27,26 @@ import {
   type GestureResponderEvent,
   type StyleProp,
   type ViewStyle,
-} from 'react-native';
+} from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   runOnJS,
-} from 'react-native-reanimated';
-import { colors, textStyles, spacing, borderRadius, shadows, sizes } from '@/theme';
+} from "react-native-reanimated";
+import {
+  colors,
+  textStyles,
+  spacing,
+  borderRadius,
+  shadows,
+  sizes,
+} from "@/theme";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
-export type ButtonSize = 'sm' | 'md' | 'lg';
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+export type ButtonSize = "sm" | "md" | "lg";
 
 export interface BargainButtonProps {
   /** Texto del botón */
@@ -85,7 +92,7 @@ const variantMap: Record<ButtonVariant, VariantConfig> = {
     backgroundPressed: colors.primaryDark,
     backgroundDisabled: colors.primaryLight,
     text: colors.white,
-    textDisabled: 'rgba(255,255,255,0.6)',
+    textDisabled: "rgba(255,255,255,0.6)",
     borderColor: undefined,
     borderWidth: 0,
     shadow: shadows.button,
@@ -95,7 +102,7 @@ const variantMap: Record<ButtonVariant, VariantConfig> = {
     backgroundPressed: colors.secondaryDark,
     backgroundDisabled: colors.secondaryLight,
     text: colors.white,
-    textDisabled: 'rgba(255,255,255,0.6)',
+    textDisabled: "rgba(255,255,255,0.6)",
     borderColor: undefined,
     borderWidth: 0,
     shadow: shadows.card,
@@ -112,10 +119,10 @@ const variantMap: Record<ButtonVariant, VariantConfig> = {
   },
   danger: {
     background: colors.error,
-    backgroundPressed: '#8B1A1A',
-    backgroundDisabled: '#E07070',
+    backgroundPressed: "#8B1A1A",
+    backgroundDisabled: "#E07070",
     text: colors.white,
-    textDisabled: 'rgba(255,255,255,0.6)',
+    textDisabled: "rgba(255,255,255,0.6)",
     borderColor: undefined,
     borderWidth: 0,
     shadow: shadows.card,
@@ -130,7 +137,7 @@ interface SizeConfig {
   textStyle: object;
   iconSize: number;
   iconGap: number;
-  spinnerSize: 'small' | 'large';
+  spinnerSize: "small" | "large";
 }
 
 const sizeMap: Record<ButtonSize, SizeConfig> = {
@@ -140,7 +147,7 @@ const sizeMap: Record<ButtonSize, SizeConfig> = {
     textStyle: textStyles.buttonSmall,
     iconSize: 16,
     iconGap: spacing.xs,
-    spinnerSize: 'small',
+    spinnerSize: "small",
   },
   md: {
     height: sizes.buttonHeight.md,
@@ -148,7 +155,7 @@ const sizeMap: Record<ButtonSize, SizeConfig> = {
     textStyle: textStyles.button,
     iconSize: 20,
     iconGap: spacing.sm,
-    spinnerSize: 'small',
+    spinnerSize: "small",
   },
   lg: {
     height: sizes.buttonHeight.lg,
@@ -156,7 +163,7 @@ const sizeMap: Record<ButtonSize, SizeConfig> = {
     textStyle: { ...textStyles.button, fontSize: 17 },
     iconSize: 22,
     iconGap: spacing.sm,
-    spinnerSize: 'small',
+    spinnerSize: "small",
   },
 };
 
@@ -176,8 +183,8 @@ const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 export const BargainButton: React.FC<BargainButtonProps> = ({
   label,
   onPress,
-  variant = 'primary',
-  size = 'md',
+  variant = "primary",
+  size = "md",
   loading = false,
   disabled = false,
   iconLeft,
@@ -225,12 +232,14 @@ export const BargainButton: React.FC<BargainButtonProps> = ({
       : variantConfig.background,
     borderColor: variantConfig.borderColor,
     borderWidth: variantConfig.borderWidth,
-    alignSelf: fullWidth ? 'stretch' : 'flex-start',
+    alignSelf: fullWidth ? "stretch" : "flex-start",
     ...(isDisabled ? shadows.none : variantConfig.shadow),
   };
 
-  const textColor = isDisabled ? variantConfig.textDisabled : variantConfig.text;
-  const spinnerColor = variant === 'ghost' ? colors.primary : colors.white;
+  const textColor = isDisabled
+    ? variantConfig.textDisabled
+    : variantConfig.text;
+  const spinnerColor = variant === "ghost" ? colors.primary : colors.white;
 
   return (
     <Animated.View style={[animatedStyle, fullWidth && styles.fullWidth]}>
@@ -281,14 +290,14 @@ export const BargainButton: React.FC<BargainButtonProps> = ({
 
 const styles = StyleSheet.create({
   base: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     borderRadius: borderRadius.md,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   fullWidth: {
-    alignSelf: 'stretch',
+    alignSelf: "stretch",
   },
 });
 

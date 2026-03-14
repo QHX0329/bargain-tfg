@@ -66,13 +66,17 @@ export const RegisterScreen: React.FC = () => {
             <Text style={[styles.title, isCompact && styles.titleCompact]}>
               Crea tu cuenta
             </Text>
-            <Text style={[styles.subtitle, isCompact && styles.subtitleCompact]}>
+            <Text
+              style={[styles.subtitle, isCompact && styles.subtitleCompact]}
+            >
               Únete a BargAIn y empieza a ahorrar
             </Text>
           </View>
 
           <View style={[styles.form, isCompact && styles.formCompact]}>
-            <View style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}>
+            <View
+              style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}
+            >
               <Text style={styles.label}>Nombre</Text>
               <TextInput
                 style={[styles.input, isCompact && styles.inputCompact]}
@@ -84,7 +88,9 @@ export const RegisterScreen: React.FC = () => {
               />
             </View>
 
-            <View style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}>
+            <View
+              style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}
+            >
               <Text style={styles.label}>Email</Text>
               <TextInput
                 style={[styles.input, isCompact && styles.inputCompact]}
@@ -98,7 +104,9 @@ export const RegisterScreen: React.FC = () => {
               />
             </View>
 
-            <View style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}>
+            <View
+              style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}
+            >
               <Text style={styles.label}>Contraseña</Text>
               <TextInput
                 style={[styles.input, isCompact && styles.inputCompact]}
@@ -111,7 +119,10 @@ export const RegisterScreen: React.FC = () => {
             </View>
 
             <TouchableOpacity
-              style={[styles.registerButton, isCompact && styles.registerButtonCompact]}
+              style={[
+                styles.registerButton,
+                isCompact && styles.registerButtonCompact,
+              ]}
               onPress={handleRegister}
             >
               <Text style={styles.registerButtonText}>Crear cuenta</Text>

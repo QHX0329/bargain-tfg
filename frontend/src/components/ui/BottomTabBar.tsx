@@ -22,23 +22,30 @@
  * />
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 import {
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
   type GestureResponderEvent,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   interpolate,
   Extrapolation,
-} from 'react-native-reanimated';
-import { colors, textStyles, spacing, borderRadius, sizes, shadows } from '@/theme';
+} from "react-native-reanimated";
+import {
+  colors,
+  textStyles,
+  spacing,
+  borderRadius,
+  sizes,
+  shadows,
+} from "@/theme";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -129,9 +136,12 @@ const TabItem: React.FC<TabItemProps> = ({ tab, isActive, onPress }) => {
         </Animated.View>
 
         {tab.badgeCount !== undefined && tab.badgeCount > 0 && (
-          <View style={styles.badge} accessibilityLabel={`${tab.badgeCount} notificaciones`}>
+          <View
+            style={styles.badge}
+            accessibilityLabel={`${tab.badgeCount} notificaciones`}
+          >
             <Text style={styles.badgeText}>
-              {tab.badgeCount > 99 ? '99+' : String(tab.badgeCount)}
+              {tab.badgeCount > 99 ? "99+" : String(tab.badgeCount)}
             </Text>
           </View>
         )}
@@ -162,7 +172,10 @@ interface SlidingIndicatorProps {
   tabCount: number;
 }
 
-const SlidingIndicator: React.FC<SlidingIndicatorProps> = ({ activeIndex, tabCount }) => {
+const SlidingIndicator: React.FC<SlidingIndicatorProps> = ({
+  activeIndex,
+  tabCount,
+}) => {
   const tabWidth = useSharedValue(0);
   const translateX = useSharedValue(0);
 
@@ -246,29 +259,29 @@ const styles = StyleSheet.create({
     opacity: 0.15,
   },
   tabRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     height: sizes.tabBarHeight,
-    alignItems: 'center',
+    alignItems: "center",
   },
   tabItem: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: spacing.xs,
     gap: 2,
   },
   iconWrapper: {
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
   },
   label: {
-    textAlign: 'center',
+    textAlign: "center",
     color: colors.primary,
     letterSpacing: 0.2,
   },
   badge: {
-    position: 'absolute',
+    position: "absolute",
     top: -4,
     right: -6,
     minWidth: sizes.notificationDot + 8,
@@ -276,8 +289,8 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.pill,
     backgroundColor: colors.error,
     paddingHorizontal: 3,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1.5,
     borderColor: colors.surface,
   },
@@ -288,18 +301,18 @@ const styles = StyleSheet.create({
     lineHeight: 11,
   },
   indicatorTrack: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     height: 3,
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   pointerNone: {
-    pointerEvents: 'none',
+    pointerEvents: "none",
   },
   indicator: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     width: INDICATOR_WIDTH,
     height: 3,

@@ -28,16 +28,27 @@ export const ProfileScreen: React.FC = () => {
       </View>
 
       <View style={styles.content}>
-        <View style={[styles.avatarContainer, isCompact && styles.avatarContainerCompact]}>
+        <View
+          style={[
+            styles.avatarContainer,
+            isCompact && styles.avatarContainerCompact,
+          ]}
+        >
           <View style={[styles.avatar, isCompact && styles.avatarCompact]}>
-            <Ionicons name="person" size={isCompact ? 28 : 36} color={colors.primary} />
+            <Ionicons
+              name="person"
+              size={isCompact ? 28 : 36}
+              color={colors.primary}
+            />
           </View>
           <Text style={styles.userName}>Usuario</Text>
           <Text style={styles.userEmail}>usuario@ejemplo.com</Text>
         </View>
 
         <View style={styles.menuSection}>
-          <TouchableOpacity style={[styles.menuItem, isCompact && styles.menuItemCompact]}>
+          <TouchableOpacity
+            style={[styles.menuItem, isCompact && styles.menuItemCompact]}
+          >
             <Ionicons
               name="settings-outline"
               size={isCompact ? 18 : 20}
@@ -53,7 +64,9 @@ export const ProfileScreen: React.FC = () => {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.menuItem, isCompact && styles.menuItemCompact]}>
+          <TouchableOpacity
+            style={[styles.menuItem, isCompact && styles.menuItemCompact]}
+          >
             <Ionicons
               name="options-outline"
               size={isCompact ? 18 : 20}
@@ -69,7 +82,9 @@ export const ProfileScreen: React.FC = () => {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.menuItem, isCompact && styles.menuItemCompact]}>
+          <TouchableOpacity
+            style={[styles.menuItem, isCompact && styles.menuItemCompact]}
+          >
             <Ionicons
               name="stats-chart-outline"
               size={isCompact ? 18 : 20}
@@ -85,7 +100,9 @@ export const ProfileScreen: React.FC = () => {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.menuItem, isCompact && styles.menuItemCompact]}>
+          <TouchableOpacity
+            style={[styles.menuItem, isCompact && styles.menuItemCompact]}
+          >
             <Ionicons
               name="help-circle-outline"
               size={isCompact ? 18 : 20}

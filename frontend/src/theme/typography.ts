@@ -34,15 +34,15 @@
 
 export const fontFamilies = {
   /** Fraunces - headings, hero text, display */
-  display: 'Fraunces_600SemiBold',
+  display: "Fraunces_600SemiBold",
   /** Source Sans 3 - todos los textos de interfaz */
-  body: 'SourceSans3_400Regular',
-  bodyMedium: 'SourceSans3_500Medium',
-  bodySemiBold: 'SourceSans3_600SemiBold',
-  bodyBold: 'SourceSans3_700Bold',
+  body: "SourceSans3_400Regular",
+  bodyMedium: "SourceSans3_500Medium",
+  bodySemiBold: "SourceSans3_600SemiBold",
+  bodyBold: "SourceSans3_700Bold",
   /** IBM Plex Mono - cantidades monetarias unicamente */
-  mono: 'IBMPlexMono_400Regular',
-  monoMedium: 'IBMPlexMono_500Medium',
+  mono: "IBMPlexMono_400Regular",
+  monoMedium: "IBMPlexMono_500Medium",
 } as const;
 
 // ─── Escala de tamanos (movil 360px) ─────────────────────────────────────────
@@ -59,22 +59,22 @@ export const fontSize = {
   /** 20px - subtitulos de seccion */
   xl: 20,
   /** 24px - titulos de pantalla */
-  '2xl': 24,
+  "2xl": 24,
   /** 30px - titulos grandes */
-  '3xl': 30,
+  "3xl": 30,
   /** 38px - display, numero de ahorro destacado */
-  '4xl': 38,
+  "4xl": 38,
   /** 48px - hero display (onboarding, cifras clave) */
-  '5xl': 48,
+  "5xl": 48,
 } as const;
 
 // ─── Pesos ────────────────────────────────────────────────────────────────────
 
 export const fontWeight = {
-  regular: '400' as const,
-  medium: '500' as const,
-  semibold: '600' as const,
-  bold: '700' as const,
+  regular: "400" as const,
+  medium: "500" as const,
+  semibold: "600" as const,
+  bold: "700" as const,
 } as const;
 
 // ─── Alturas de línea ─────────────────────────────────────────────────────────
@@ -116,28 +116,28 @@ export const textStyles = {
   // Display - Fraunces, pantalla completa / hero
   heroDisplay: {
     fontFamily: fontFamilies.display,
-    fontSize: fontSize['5xl'],
-    lineHeight: Math.round(fontSize['5xl'] * lineHeight.tight),
+    fontSize: fontSize["5xl"],
+    lineHeight: Math.round(fontSize["5xl"] * lineHeight.tight),
     letterSpacing: letterSpacing.tight,
   },
   displayLarge: {
     fontFamily: fontFamilies.display,
-    fontSize: fontSize['4xl'],
-    lineHeight: Math.round(fontSize['4xl'] * lineHeight.tight),
+    fontSize: fontSize["4xl"],
+    lineHeight: Math.round(fontSize["4xl"] * lineHeight.tight),
     letterSpacing: letterSpacing.tight,
   },
 
   // Headings - Fraunces
   heading1: {
     fontFamily: fontFamilies.display,
-    fontSize: fontSize['3xl'],
-    lineHeight: Math.round(fontSize['3xl'] * lineHeight.snug),
+    fontSize: fontSize["3xl"],
+    lineHeight: Math.round(fontSize["3xl"] * lineHeight.snug),
     letterSpacing: letterSpacing.tight,
   },
   heading2: {
     fontFamily: fontFamilies.display,
-    fontSize: fontSize['2xl'],
-    lineHeight: Math.round(fontSize['2xl'] * lineHeight.snug),
+    fontSize: fontSize["2xl"],
+    lineHeight: Math.round(fontSize["2xl"] * lineHeight.snug),
     letterSpacing: letterSpacing.tight,
   },
   // Sub-headings - Source Sans 3 (sans da mas densidad de info)
@@ -214,8 +214,8 @@ export const textStyles = {
   // Precio - IBM Plex Mono, exclusivo para cantidades monetarias
   priceLarge: {
     fontFamily: fontFamilies.monoMedium,
-    fontSize: fontSize['3xl'],
-    lineHeight: Math.round(fontSize['3xl'] * lineHeight.tight),
+    fontSize: fontSize["3xl"],
+    lineHeight: Math.round(fontSize["3xl"] * lineHeight.tight),
     letterSpacing: letterSpacing.tight,
   },
   price: {

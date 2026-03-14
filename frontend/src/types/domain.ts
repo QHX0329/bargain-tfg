@@ -9,13 +9,13 @@
 // ─── Cadenas de supermercado ──────────────────────────────────────────────────
 
 export type StoreChain =
-  | 'mercadona'
-  | 'lidl'
-  | 'aldi'
-  | 'carrefour'
-  | 'dia'
-  | 'alcampo'
-  | 'local';
+  | "mercadona"
+  | "lidl"
+  | "aldi"
+  | "carrefour"
+  | "dia"
+  | "alcampo"
+  | "local";
 
 // ─── Tienda ───────────────────────────────────────────────────────────────────
 
@@ -33,7 +33,7 @@ export interface Store {
 
 // ─── Producto ─────────────────────────────────────────────────────────────────
 
-export type ProductUnit = 'kg' | 'g' | 'l' | 'ml' | 'ud' | 'pack';
+export type ProductUnit = "kg" | "g" | "l" | "ml" | "ud" | "pack";
 
 export interface Product {
   id: string;
@@ -49,7 +49,7 @@ export interface Product {
 
 // ─── Precio ───────────────────────────────────────────────────────────────────
 
-export type PriceSource = 'scraping' | 'crowdsourcing' | 'api' | 'manual';
+export type PriceSource = "scraping" | "crowdsourcing" | "api" | "manual";
 
 export interface Price {
   id: string;
@@ -114,7 +114,7 @@ export interface ShoppingList {
 
 // ─── Resultado de optimización ────────────────────────────────────────────────
 
-export type OptimizationMode = 'price' | 'time' | 'balanced';
+export type OptimizationMode = "price" | "time" | "balanced";
 
 export interface RouteStop {
   order: number;

@@ -11,12 +11,20 @@
 // ─── Objeto `theme` consolidado ──────────────────────────────────────────────
 // Útil cuando se necesita pasar el tema completo a un provider o función helper.
 
-import { colors } from './colors';
-import { typography, fontFamilies, fontSize, fontWeight, lineHeight, letterSpacing, textStyles } from './typography';
-import { spacing, borderRadius, shadows, sizes } from './spacing';
+import { colors } from "./colors";
+import {
+  typography,
+  fontFamilies,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  letterSpacing,
+  textStyles,
+} from "./typography";
+import { spacing, borderRadius, shadows, sizes } from "./spacing";
 
-export { colors } from './colors';
-export type { Colors } from './colors';
+export { colors } from "./colors";
+export type { Colors } from "./colors";
 
 export {
   typography,
@@ -26,11 +34,11 @@ export {
   lineHeight,
   letterSpacing,
   textStyles,
-} from './typography';
-export type { Typography } from './typography';
+} from "./typography";
+export type { Typography } from "./typography";
 
-export { spacing, borderRadius, shadows, sizes } from './spacing';
-export type { Spacing, BorderRadius, Shadows, Sizes } from './spacing';
+export { spacing, borderRadius, shadows, sizes } from "./spacing";
+export type { Spacing, BorderRadius, Shadows, Sizes } from "./spacing";
 
 export const theme = {
   colors,

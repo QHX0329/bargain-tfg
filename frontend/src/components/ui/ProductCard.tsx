@@ -24,7 +24,7 @@
  * Animación: spring de escala 0.97 al press-in/out (Reanimated 2).
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback } from "react";
 import {
   Image,
   StyleSheet,
@@ -34,19 +34,26 @@ import {
   type ImageSourcePropType,
   type StyleProp,
   type ViewStyle,
-} from 'react-native';
+} from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-} from 'react-native-reanimated';
-import { colors, textStyles, spacing, borderRadius, shadows, fontFamilies } from '@/theme';
-import { PriceTag } from './PriceTag';
-import type { ProductPriceSummary, StoreChain } from '@/types/domain';
+} from "react-native-reanimated";
+import {
+  colors,
+  textStyles,
+  spacing,
+  borderRadius,
+  shadows,
+  fontFamilies,
+} from "@/theme";
+import { PriceTag } from "./PriceTag";
+import type { ProductPriceSummary, StoreChain } from "@/types/domain";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
-export type ProductCardVariant = 'vertical' | 'horizontal';
+export type ProductCardVariant = "vertical" | "horizontal";
 
 export interface ProductCardProps {
   /** Datos del producto con precios precargados */
@@ -76,13 +83,13 @@ const CHAIN_COLORS: Record<StoreChain, string> = {
 };
 
 const CHAIN_LABELS: Record<StoreChain, string> = {
-  mercadona: 'Mercadona',
-  lidl: 'Lidl',
-  aldi: 'Aldi',
-  carrefour: 'Carrefour',
-  dia: 'Dia',
-  alcampo: 'Alcampo',
-  local: 'Local',
+  mercadona: "Mercadona",
+  lidl: "Lidl",
+  aldi: "Aldi",
+  carrefour: "Carrefour",
+  dia: "Dia",
+  alcampo: "Alcampo",
+  local: "Local",
 };
 
 // ─── Sub-componente: Chip de tienda ───────────────────────────────────────────
@@ -92,10 +99,13 @@ interface StoreChipSmallProps {
   distanceKm: number;
 }
 
-const StoreChipSmall: React.FC<StoreChipSmallProps> = ({ chain, distanceKm }) => {
+const StoreChipSmall: React.FC<StoreChipSmallProps> = ({
+  chain,
+  distanceKm,
+}) => {
   const chainColor = CHAIN_COLORS[chain];
   return (
-    <View style={[styles.storeChip, { borderColor: chainColor + '40' }]}>
+    <View style={[styles.storeChip, { borderColor: chainColor + "40" }]}>
       <View style={[styles.storeChipDot, { backgroundColor: chainColor }]} />
       <Text style={styles.storeChipText} numberOfLines={1}>
         {CHAIN_LABELS[chain]}
@@ -112,9 +122,17 @@ interface SavingsBadgeProps {
 }
 
 const SavingsBadge: React.FC<SavingsBadgeProps> = ({ amount }) => (
-  <View style={styles.savingsBadge} accessibilityLabel={`Ahorras ${amount.toFixed(2)} euros`}>
+  <View
+    style={styles.savingsBadge}
+    accessibilityLabel={`Ahorras ${amount.toFixed(2)} euros`}
+  >
     <Text style={styles.savingsBadgeText}>
-      ↓ {amount.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+      ↓{" "}
+      {amount.toLocaleString("es-ES", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}{" "}
+      €
     </Text>
   </View>
 );
@@ -126,11 +144,26 @@ const PRESS_SCALE = 0.97;
 
 // ─── Variante Vertical ────────────────────────────────────────────────────────
 
-const VerticalCard: React.FC<ProductCardProps> = ({ data, onPress, onSave, isSaved, style }) => {
-  const { product, bestPrice, previousPrice, discountPercent, bestStore, savingsVsMax } = data;
+const VerticalCard: React.FC<ProductCardProps> = ({
+  data,
+  onPress,
+  onSave,
+  isSaved,
+  style,
+}) => {
+  const {
+    product,
+    bestPrice,
+    previousPrice,
+    discountPercent,
+    bestStore,
+    savingsVsMax,
+  } = data;
 
   const scale = useSharedValue(1);
-  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   const handlePressIn = useCallback(() => {
     scale.value = withSpring(PRESS_SCALE, SPRING);
@@ -141,7 +174,7 @@ const VerticalCard: React.FC<ProductCardProps> = ({ data, onPress, onSave, isSav
 
   const imageSource: ImageSourcePropType = product.imageUrl
     ? { uri: product.imageUrl }
-    : require('@/assets/placeholder-product.png');
+    : require("@/assets/placeholder-product.png");
 
   return (
     <Animated.View style={[animStyle, style]}>
@@ -178,9 +211,11 @@ const VerticalCard: React.FC<ProductCardProps> = ({ data, onPress, onSave, isSav
               style={styles.saveButton}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               accessibilityRole="button"
-              accessibilityLabel={isSaved ? 'Eliminar de guardados' : 'Guardar producto'}
+              accessibilityLabel={
+                isSaved ? "Eliminar de guardados" : "Guardar producto"
+              }
             >
-              <Text style={styles.saveIcon}>{isSaved ? '♥' : '♡'}</Text>
+              <Text style={styles.saveIcon}>{isSaved ? "♥" : "♡"}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -210,7 +245,10 @@ const VerticalCard: React.FC<ProductCardProps> = ({ data, onPress, onSave, isSav
 
           {/* Pie: tienda + ahorro */}
           <View style={styles.cardFooter}>
-            <StoreChipSmall chain={bestStore.chain} distanceKm={bestStore.distanceKm} />
+            <StoreChipSmall
+              chain={bestStore.chain}
+              distanceKm={bestStore.distanceKm}
+            />
             {savingsVsMax && savingsVsMax > 0.01 && (
               <SavingsBadge amount={savingsVsMax} />
             )}
@@ -223,11 +261,27 @@ const VerticalCard: React.FC<ProductCardProps> = ({ data, onPress, onSave, isSav
 
 // ─── Variante Horizontal ──────────────────────────────────────────────────────
 
-const HorizontalCard: React.FC<ProductCardProps> = ({ data, onPress, onSave, isSaved, style }) => {
-  const { product, bestPrice, previousPrice, discountPercent, bestStore, savingsVsMax, storeCount } = data;
+const HorizontalCard: React.FC<ProductCardProps> = ({
+  data,
+  onPress,
+  onSave,
+  isSaved,
+  style,
+}) => {
+  const {
+    product,
+    bestPrice,
+    previousPrice,
+    discountPercent,
+    bestStore,
+    savingsVsMax,
+    storeCount,
+  } = data;
 
   const scale = useSharedValue(1);
-  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   const handlePressIn = useCallback(() => {
     scale.value = withSpring(PRESS_SCALE, SPRING);
@@ -238,7 +292,7 @@ const HorizontalCard: React.FC<ProductCardProps> = ({ data, onPress, onSave, isS
 
   const imageSource: ImageSourcePropType = product.imageUrl
     ? { uri: product.imageUrl }
-    : require('@/assets/placeholder-product.png');
+    : require("@/assets/placeholder-product.png");
 
   return (
     <Animated.View style={[animStyle, style]}>
@@ -286,7 +340,10 @@ const HorizontalCard: React.FC<ProductCardProps> = ({ data, onPress, onSave, isS
               discountPercent={discountPercent}
               size="sm"
             />
-            <StoreChipSmall chain={bestStore.chain} distanceKm={bestStore.distanceKm} />
+            <StoreChipSmall
+              chain={bestStore.chain}
+              distanceKm={bestStore.distanceKm}
+            />
           </View>
 
           {savingsVsMax && savingsVsMax > 0.01 && (
@@ -301,10 +358,12 @@ const HorizontalCard: React.FC<ProductCardProps> = ({ data, onPress, onSave, isS
             style={styles.saveSide}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             accessibilityRole="button"
-            accessibilityLabel={isSaved ? 'Eliminar de guardados' : 'Guardar producto'}
+            accessibilityLabel={
+              isSaved ? "Eliminar de guardados" : "Guardar producto"
+            }
           >
             <Text style={[styles.saveIcon, isSaved && { color: colors.error }]}>
-              {isSaved ? '♥' : '♡'}
+              {isSaved ? "♥" : "♡"}
             </Text>
           </TouchableOpacity>
         )}
@@ -316,8 +375,9 @@ const HorizontalCard: React.FC<ProductCardProps> = ({ data, onPress, onSave, isS
 // ─── Componente exportado (despacho por variante) ─────────────────────────────
 
 export const ProductCard: React.FC<ProductCardProps> = (props) => {
-  const { variant = 'vertical', ...rest } = props;
-  if (variant === 'horizontal') return <HorizontalCard variant="horizontal" {...rest} />;
+  const { variant = "vertical", ...rest } = props;
+  if (variant === "horizontal")
+    return <HorizontalCard variant="horizontal" {...rest} />;
   return <VerticalCard variant="vertical" {...rest} />;
 };
 
@@ -328,18 +388,18 @@ const styles = StyleSheet.create({
   verticalContainer: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
-    overflow: 'hidden',
+    overflow: "hidden",
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
   },
   verticalImageWrap: {
     height: 140,
     backgroundColor: colors.surfaceVariant,
-    position: 'relative',
+    position: "relative",
   },
   verticalImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   verticalContent: {
     padding: spacing.sm,
@@ -354,22 +414,22 @@ const styles = StyleSheet.create({
   horizontalContainer: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    overflow: 'hidden',
+    flexDirection: "row",
+    alignItems: "center",
+    overflow: "hidden",
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
     minHeight: 88,
   },
   horizontalImageWrap: {
     width: 88,
-    alignSelf: 'stretch',
+    alignSelf: "stretch",
     backgroundColor: colors.surfaceVariant,
-    position: 'relative',
+    position: "relative",
   },
   horizontalImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   horizontalContent: {
     flex: 1,
@@ -378,11 +438,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   horizontalBottom: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginTop: 2,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
     gap: spacing.xs,
   },
 
@@ -399,18 +459,18 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
   cardFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginTop: 4,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
     gap: 4,
   },
 
   // ── Store chip pequeño ─────────────────────────────────────────────────────
   storeChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
     borderRadius: borderRadius.pill,
     paddingHorizontal: 6,
@@ -441,7 +501,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderWidth: 1,
-    borderColor: colors.success + '40',
+    borderColor: colors.success + "40",
   },
   savingsBadgeText: {
     fontFamily: fontFamilies.bodySemiBold,
@@ -451,7 +511,7 @@ const styles = StyleSheet.create({
 
   // ── Offer badge (sobre imagen) ────────────────────────────────────────────
   offerBadgeOnImage: {
-    position: 'absolute',
+    position: "absolute",
     top: spacing.xs,
     left: spacing.xs,
     backgroundColor: colors.accent,
@@ -467,21 +527,21 @@ const styles = StyleSheet.create({
 
   // ── Save button ────────────────────────────────────────────────────────────
   saveButton: {
-    position: 'absolute',
+    position: "absolute",
     top: spacing.xs,
     right: spacing.xs,
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(253,246,236,0.88)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(253,246,236,0.88)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   saveSide: {
     paddingHorizontal: spacing.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'stretch',
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "stretch",
   },
   saveIcon: {
     fontSize: 18,

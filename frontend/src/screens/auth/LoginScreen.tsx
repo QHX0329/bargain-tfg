@@ -66,7 +66,9 @@ export const LoginScreen: React.FC = () => {
           </View>
 
           <View style={[styles.form, isCompact && styles.formCompact]}>
-            <View style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}>
+            <View
+              style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}
+            >
               <Text style={styles.label}>Email</Text>
               <TextInput
                 style={[styles.input, isCompact && styles.inputCompact]}
@@ -80,7 +82,9 @@ export const LoginScreen: React.FC = () => {
               />
             </View>
 
-            <View style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}>
+            <View
+              style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}
+            >
               <Text style={styles.label}>Contraseña</Text>
               <TextInput
                 style={[styles.input, isCompact && styles.inputCompact]}
@@ -93,14 +97,20 @@ export const LoginScreen: React.FC = () => {
             </View>
 
             <TouchableOpacity
-              style={[styles.loginButton, isCompact && styles.loginButtonCompact]}
+              style={[
+                styles.loginButton,
+                isCompact && styles.loginButtonCompact,
+              ]}
               onPress={handleLogin}
             >
               <Text style={styles.loginButtonText}>Iniciar sesión</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.registerLink, isCompact && styles.registerLinkCompact]}
+              style={[
+                styles.registerLink,
+                isCompact && styles.registerLinkCompact,
+              ]}
               onPress={() => navigation.navigate("Register")}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >

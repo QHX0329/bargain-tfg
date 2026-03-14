@@ -20,7 +20,7 @@
  * />
  */
 
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -30,7 +30,7 @@ import {
   type TextInputProps,
   type StyleProp,
   type ViewStyle,
-} from 'react-native';
+} from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -38,9 +38,16 @@ import Animated, {
   interpolateColor,
   FadeIn,
   FadeOut,
-} from 'react-native-reanimated';
-import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, borderRadius, fontFamilies, fontSize, sizes } from '@/theme';
+} from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
+import {
+  colors,
+  spacing,
+  borderRadius,
+  fontFamilies,
+  fontSize,
+  sizes,
+} from "@/theme";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -66,7 +73,10 @@ export interface SearchBarProps {
   /** Estilo adicional del contenedor exterior */
   style?: StyleProp<ViewStyle>;
   /** Props adicionales para el TextInput */
-  inputProps?: Omit<TextInputProps, 'value' | 'onChangeText' | 'placeholder' | 'editable'>;
+  inputProps?: Omit<
+    TextInputProps,
+    "value" | "onChangeText" | "placeholder" | "editable"
+  >;
 }
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
@@ -90,7 +100,7 @@ const ClearIcon: React.FC<{ color: string }> = ({ color }) => (
 export const SearchBar: React.FC<SearchBarProps> = ({
   value,
   onChangeText,
-  placeholder = 'Busca productos, tiendas…',
+  placeholder = "Busca productos, tiendas…",
   onSubmit,
   onFilterPress,
   activeFilterCount = 0,
@@ -130,7 +140,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   }, [focusProgress]);
 
   const handleClear = useCallback(() => {
-    onChangeText('');
+    onChangeText("");
     inputRef.current?.focus();
   }, [onChangeText]);
 
@@ -190,7 +200,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         )}
 
         {showClear && (
-          <Animated.View entering={FadeIn.duration(150)} exiting={FadeOut.duration(150)}>
+          <Animated.View
+            entering={FadeIn.duration(150)}
+            exiting={FadeOut.duration(150)}
+          >
             <TouchableOpacity
               onPress={handleClear}
               style={styles.clearButton}
@@ -212,10 +225,12 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             accessibilityLabel={
               hasActiveFilters
                 ? `Filtros: ${activeFilterCount} activos`
-                : 'Abrir filtros'
+                : "Abrir filtros"
             }
           >
-            <FilterIcon color={hasActiveFilters ? colors.primary : colors.textMuted} />
+            <FilterIcon
+              color={hasActiveFilters ? colors.primary : colors.textMuted}
+            />
             {hasActiveFilters && (
               <View
                 style={styles.filterBadge}
@@ -238,15 +253,15 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
 const styles = StyleSheet.create({
   outerContainer: {
-    alignSelf: 'stretch',
+    alignSelf: "stretch",
   },
   disabled: {
     opacity: 0.5,
   },
   container: {
     height: sizes.searchBarHeight,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderRadius: borderRadius.lg,
     borderWidth: 1.5,
     paddingHorizontal: spacing.sm,
@@ -254,15 +269,15 @@ const styles = StyleSheet.create({
   },
   leftIcon: {
     width: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   pointerNone: {
-    pointerEvents: 'none',
+    pointerEvents: "none",
   },
   input: {
     flex: 1,
-    height: '100%',
+    height: "100%",
     fontFamily: fontFamilies.body,
     fontSize: fontSize.md,
     color: colors.text,
@@ -277,26 +292,26 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 14,
     backgroundColor: colors.surfaceVariant,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   filterButton: {
     width: 40,
     height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
   },
   filterBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: 2,
     right: 2,
     width: 14,
     height: 14,
     borderRadius: 7,
     backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   filterBadgeText: {
     fontFamily: fontFamilies.bodySemiBold,

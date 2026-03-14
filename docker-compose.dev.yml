@@ -34,7 +34,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile.dev
     container_name: bargain-backend
-    command: python manage.py runserver 0.0.0.0:8000
+    command: python manage.py runserver 0.0.0.0:8000 --noreload
     volumes:
       - ./backend:/app
     ports:

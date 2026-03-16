@@ -32,11 +32,11 @@
 
 ### Prices
 
-- [ ] **PRICE-01**: Sistema muestra comparación de precios de un producto en tiendas del radio (RF-015)
-- [ ] **PRICE-02**: Sistema calcula coste total de la lista en cada tienda individual (RF-016)
-- [ ] **PRICE-03**: Usuario puede consultar histórico de precios de un producto en gráfico temporal (RF-017)
-- [ ] **PRICE-04**: Usuario puede definir alerta de precio objetivo; sistema notifica cuando se alcanza (RF-018)
-- [ ] **PRICE-05**: Usuario puede reportar precio de un producto en una tienda (crowdsourcing, caduca 24h) (RF-019)
+- [x] **PRICE-01**: Sistema muestra comparación de precios de un producto en tiendas del radio (RF-015)
+- [x] **PRICE-02**: Sistema calcula coste total de la lista en cada tienda individual (RF-016)
+- [x] **PRICE-03**: Usuario puede consultar histórico de precios de un producto en gráfico temporal (RF-017)
+- [x] **PRICE-04**: Usuario puede definir alerta de precio objetivo; sistema notifica cuando se alcanza (RF-018)
+- [x] **PRICE-05**: Usuario puede reportar precio de un producto en una tienda (crowdsourcing, caduca 24h) (RF-019)
 
 ### Shopping Lists
 

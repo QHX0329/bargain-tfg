@@ -64,9 +64,9 @@
 
 ### Business Portal (PYMEs)
 
-- [ ] **BIZ-01**: Comercio puede registrar perfil de negocio (datos fiscales, vinculación tienda), sujeto a verificación admin (RF-032)
-- [ ] **BIZ-02**: Comercio puede actualizar precios manualmente sin caducidad automática (RF-033)
-- [ ] **BIZ-03**: Comercio puede crear/editar/desactivar promociones con fechas y descuentos (RF-034)
+- [x] **BIZ-01**: Comercio puede registrar perfil de negocio (datos fiscales, vinculación tienda), sujeto a verificación admin (RF-032)
+- [x] **BIZ-02**: Comercio puede actualizar precios manualmente sin caducidad automática (RF-033)
+- [x] **BIZ-03**: Comercio puede crear/editar/desactivar promociones con fechas y descuentos (RF-034)
 
 ### Notifications
 

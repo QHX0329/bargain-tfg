@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-17T15:36:21.240Z"
+stopped_at: Completed 02-business-notifications-01-PLAN.md
+last_updated: "2026-03-17T16:23:10.941Z"
 last_activity: 2026-03-17 — Phase 1 complete. 179 tests green, UAT 15/15, Nyquist compliant. Starting Phase 2.
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 8
+  completed_plans: 7
 ---
 
 ---
@@ -71,6 +71,7 @@ Progress: [████████░░░░░░░░░░░░] ~40% (F
 | Phase 01-core-backend P05 | 25 | 2 tasks | 10 files |
 | Phase 01-core-backend P04 | 301 | 2 tasks | 10 files |
 | Phase 01-core-backend P06 | 15 | 2 tasks | 2 files |
+| Phase 02-business-notifications P01 | 20 | 2 tasks | 20 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Key decisions affecting 
 - [Phase 01-core-backend]: Crowdsourced prices: confidence_weight=0.5 set in CrowdsourcePriceView.perform_create; destroy-as-deactivate on PriceAlertViewSet
 - [Phase 01-core-backend]: Schema endpoints at /api/v1/schema/ (versioned path consistent with all other v1 endpoints)
 - [Phase 01-core-backend]: Phase 1 gate: 179 tests passing, 92% coverage across all 5 apps
+- [Phase 02-business-notifications]: DRF auto-unique validator bypassed (validators=[]) on PromotionSerializer; transaction.atomic() savepoint in create() to surface IntegrityError as 409
+- [Phase 02-business-notifications]: Partial UniqueConstraint with Q(is_active=True) creates PostgreSQL partial unique index, not a regular constraint
+- [Phase 02-business-notifications]: exponent_server_sdk added in Plan 02-01 so Docker image rebuild happens before Plan 02-02 notifications work
 
 ### Pending Todos
 
@@ -106,6 +110,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T15:36:21.237Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-business-notifications/02-CONTEXT.md
+Last session: 2026-03-17T16:23:10.938Z
+Stopped at: Completed 02-business-notifications-01-PLAN.md
+Resume file: None

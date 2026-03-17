@@ -74,4 +74,3 @@ docker-compose.override.yml
 .opencode/
 .agent/
 .agents/
-.planning/

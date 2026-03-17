@@ -42,6 +42,14 @@ class Store(models.Model):
         default=False,
         verbose_name="Es comercio local",
     )
+    business_profile = models.ForeignKey(
+        "business.BusinessProfile",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="stores",
+        verbose_name="Perfil de negocio",
+    )
     is_active = models.BooleanField(default=True, verbose_name="Activa")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

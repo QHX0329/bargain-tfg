@@ -18,6 +18,7 @@ class Price(models.Model):
         SCRAPING = "scraping", "Scraping"
         CROWDSOURCING = "crowdsourcing", "Crowdsourcing"
         API = "api", "API oficial"
+        BUSINESS = "business", "Portal PYME"
 
     product = models.ForeignKey(
         "products.Product",

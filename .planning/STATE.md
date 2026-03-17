@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-stopped_at: Completed 02-business-notifications-01-PLAN.md
-last_updated: "2026-03-17T16:23:10.941Z"
+stopped_at: Completed 02-business-notifications-02-PLAN.md
+last_updated: "2026-03-17T16:37:18.410Z"
 last_activity: 2026-03-17 — Phase 1 complete. 179 tests green, UAT 15/15, Nyquist compliant. Starting Phase 2.
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 ---
@@ -72,6 +72,7 @@ Progress: [████████░░░░░░░░░░░░] ~40% (F
 | Phase 01-core-backend P04 | 301 | 2 tasks | 10 files |
 | Phase 01-core-backend P06 | 15 | 2 tasks | 2 files |
 | Phase 02-business-notifications P01 | 20 | 2 tasks | 20 files |
+| Phase 02-business-notifications P02 | 10 | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -97,6 +98,9 @@ Decisions are logged in PROJECT.md Key Decisions table. Key decisions affecting 
 - [Phase 02-business-notifications]: DRF auto-unique validator bypassed (validators=[]) on PromotionSerializer; transaction.atomic() savepoint in create() to surface IntegrityError as 409
 - [Phase 02-business-notifications]: Partial UniqueConstraint with Q(is_active=True) creates PostgreSQL partial unique index, not a regular constraint
 - [Phase 02-business-notifications]: exponent_server_sdk added in Plan 02-01 so Docker image rebuild happens before Plan 02-02 notifications work
+- [Phase 02-business-notifications]: exponent_server_sdk imports at module level in tasks.py for testability with patch()
+- [Phase 02-business-notifications]: Notification DB record always created regardless of push success — inbox reflects all dispatched events
+- [Phase 02-business-notifications]: Redis debounce for list notifications: r.exists()+r.setex() with 900s TTL prevents duplicate Celery scheduling
 
 ### Pending Todos
 
@@ -110,6 +114,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T16:23:10.938Z
-Stopped at: Completed 02-business-notifications-01-PLAN.md
+Last session: 2026-03-17T16:37:18.407Z
+Stopped at: Completed 02-business-notifications-02-PLAN.md
 Resume file: None

@@ -70,7 +70,7 @@
 
 ### Notifications
 
-- [ ] **NOTIF-01**: Sistema envía notificaciones push y/o email según preferencias del usuario para: alertas precio, nuevas promos en favoritas, cambios en listas compartidas, resultados OCR (RF-035)
+- [x] **NOTIF-01**: Sistema envía notificaciones push y/o email según preferencias del usuario para: alertas precio, nuevas promos en favoritas, cambios en listas compartidas, resultados OCR (RF-035)
 
 ### Scraping
 
@@ -123,7 +123,7 @@
 | PRICE-01 – PRICE-05 | Phase 1: Core Backend | Pending |
 | LIST-01 – LIST-04 | Phase 1: Core Backend | Pending |
 | BIZ-01 – BIZ-03 | Phase 2: Business & Notifications | Pending |
-| NOTIF-01 | Phase 2: Business & Notifications | Pending |
+| NOTIF-01 | Phase 2: Business & Notifications | Complete |
 | NFR-03 | Phase 3: Frontend | Pending |
 | OPT-01 – OPT-04 | Phase 4: Optimizer & Scraping | Pending |
 | SCRAP-01 | Phase 4: Optimizer & Scraping | Pending |

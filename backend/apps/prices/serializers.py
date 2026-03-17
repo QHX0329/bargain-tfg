@@ -2,6 +2,8 @@
 
 from rest_framework import serializers
 
+from apps.stores.models import Store
+
 from .models import Price, PriceAlert
 
 
@@ -31,6 +33,12 @@ class PriceHistoryPointSerializer(serializers.Serializer):
 
 class PriceAlertSerializer(serializers.ModelSerializer):
     """Serializer para alertas de precio."""
+
+    store = serializers.PrimaryKeyRelatedField(
+        queryset=Store.objects.all(),
+        required=False,
+        allow_null=True,
+    )
 
     class Meta:
         model = PriceAlert

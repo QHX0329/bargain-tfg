@@ -7,6 +7,7 @@ Endpoints:
 
 from django.contrib.auth import get_user_model
 from django.db import models as django_models
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -90,6 +91,15 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
 
     # ── Items ─────────────────────────────────────────────────────────────────
 
+    @extend_schema(
+        methods=["GET"],
+        responses=ShoppingListItemEnrichedSerializer(many=True),
+    )
+    @extend_schema(
+        methods=["POST"],
+        request=ShoppingListItemSerializer,
+        responses={201: ShoppingListItemSerializer},
+    )
     @action(detail=True, methods=["get", "post"], url_path="items")
     def items(self, request, pk=None):
         """GET: lista ítems enriquecidos. POST: añade ítem."""
@@ -118,6 +128,15 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
         serializer.save(shopping_list=shopping_list, added_by=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @extend_schema(
+        methods=["PATCH"],
+        request=ShoppingListItemSerializer,
+        responses={200: ShoppingListItemSerializer},
+    )
+    @extend_schema(
+        methods=["DELETE"],
+        responses={204: None},
+    )
     @action(
         detail=True,
         methods=["patch", "delete"],
@@ -144,6 +163,12 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
 
     # ── Collaborators ─────────────────────────────────────────────────────────
 
+    @extend_schema(methods=["GET"], responses=ListCollaboratorSerializer(many=True))
+    @extend_schema(
+        methods=["POST"],
+        request=AddCollaboratorSerializer,
+        responses={201: ListCollaboratorSerializer},
+    )
     @action(detail=True, methods=["get", "post"], url_path="collaborators")
     def collaborators(self, request, pk=None):
         """GET: lista colaboradores. POST: invita por username."""
@@ -202,6 +227,10 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
 
     # ── Templates ─────────────────────────────────────────────────────────────
 
+    @extend_schema(
+        request={"application/json": {"type": "object", "properties": {"name": {"type": "string"}}, "required": ["name"]}},
+        responses={201: ListTemplateSerializer},
+    )
     @action(detail=True, methods=["post"], url_path="save-template")
     def save_template(self, request, pk=None):
         """POST: crea ListTemplate desde la lista actual (solo products, qty=1, unchecked)."""
@@ -226,6 +255,10 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
         serializer = ListTemplateSerializer(template)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    @extend_schema(
+        request={"application/json": {"type": "object", "properties": {"name": {"type": "string"}}}},
+        responses={201: ShoppingListSerializer},
+    )
     @action(
         detail=False,
         methods=["post"],

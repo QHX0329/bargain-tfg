@@ -5,6 +5,7 @@ from decimal import Decimal
 from django.db.models import Avg, Min, Max
 from django.db.models.functions import TruncDay
 from django.utils import timezone
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import generics, status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -33,6 +34,15 @@ class PriceCompareView(APIView):
 
     permission_classes = []  # Pública — sin autenticación requerida
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter("product", int, required=True, description="ID del producto a comparar"),
+            OpenApiParameter("lat", float, required=False, description="Latitud del usuario (WGS-84); si se omite, devuelve precios de todas las tiendas"),
+            OpenApiParameter("lng", float, required=False, description="Longitud del usuario (WGS-84)"),
+            OpenApiParameter("radius", float, required=False, description=f"Radio de búsqueda en km (defecto: {DEFAULT_RADIUS_KM})"),
+        ],
+        responses=PriceCompareSerializer(many=True),
+    )
     def get(self, request):
         product_id = request.query_params.get("product")
         if not product_id:
@@ -121,6 +131,12 @@ class ListTotalView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter("list", int, required=True, description="ID de la lista de la compra"),
+            OpenApiParameter("store", int, required=True, description="ID de la tienda donde calcular el total"),
+        ],
+    )
     def get(self, request):
         list_id = request.query_params.get("list")
         store_id = request.query_params.get("store")

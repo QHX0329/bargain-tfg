@@ -9,6 +9,7 @@ ViewSets:
 """
 
 from django.contrib.postgres.search import TrigramSimilarity
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import generics, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -55,6 +56,14 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
             return ProductDetailSerializer
         return ProductListSerializer
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter("q", str, description="Búsqueda fuzzy por nombre (mín. 2 chars)"),
+            OpenApiParameter("barcode", str, description="Código de barras exacto (EAN-13); devuelve 404 si no existe"),
+            OpenApiParameter("category", int, description="Filtrar por ID de categoría"),
+            OpenApiParameter("brand", str, description="Filtrar por marca"),
+        ]
+    )
     def list(self, request: Request, *args, **kwargs) -> Response:
         """
         Listado de productos con soporte para:
@@ -101,6 +110,11 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = ProductListSerializer(product)
         return Response({"count": 1, "next": None, "previous": None, "results": [serializer.data]})
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter("q", str, description="Término de búsqueda parcial (mín. 2 chars)"),
+        ]
+    )
     @action(detail=False, methods=["get"], url_path="autocomplete", permission_classes=[])
     def autocomplete(self, request: Request) -> Response:
         """

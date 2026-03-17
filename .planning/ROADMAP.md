@@ -6,7 +6,7 @@ BargAIn is a TFG project (300h, 20 weeks) at ~28% completion with F1 (analysis) 
 
 ## Phases
 
-- [ ] **Phase 1: Core Backend** - Users, products, stores, prices, and shopping lists — the full domain API
+- [x] **Phase 1: Core Backend** - Users, products, stores, prices, and shopping lists — the full domain API (completed 2026-03-16)
 - [ ] **Phase 2: Business & Notifications** - PYME portal, promotions, and push/email notifications
 - [ ] **Phase 3: Frontend** - All React Native screens connected to real API data
 - [ ] **Phase 4: Optimizer & Scraping** - Price scraping + multi-criteria route optimization (core value delivery)
@@ -129,7 +129,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Core Backend | 5/6 | In Progress|  |
+| 1. Core Backend | 6/6 | Complete   | 2026-03-16 |
 | 2. Business & Notifications | 0/2 | Not started | - |
 | 3. Frontend | 0/6 | Not started | - |
 | 4. Optimizer & Scraping | 0/5 | Not started | - |

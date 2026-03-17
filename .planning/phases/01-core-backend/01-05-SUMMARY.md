@@ -162,3 +162,21 @@ None - no external service configuration required.
 ---
 *Phase: 01-core-backend*
 *Completed: 2026-03-16*
+
+## Self-Check: PASSED
+
+All created files exist on disk. Both task commits confirmed in git log.
+
+| Item | Status |
+|------|--------|
+| backend/apps/shopping_lists/models.py | FOUND |
+| backend/apps/shopping_lists/serializers.py | FOUND |
+| backend/apps/shopping_lists/views.py | FOUND |
+| backend/apps/shopping_lists/urls.py | FOUND |
+| backend/apps/shopping_lists/admin.py | FOUND |
+| backend/apps/shopping_lists/permissions.py | FOUND |
+| backend/apps/shopping_lists/migrations/0001_initial.py | FOUND |
+| backend/tests/unit/test_shopping_lists.py | FOUND |
+| backend/tests/integration/test_list_endpoints.py | FOUND |
+| Commit 12849dc (Task 1) | FOUND |
+| Commit 703958d (Task 2) | FOUND |

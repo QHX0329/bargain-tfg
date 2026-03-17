@@ -4,6 +4,7 @@ from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.http import Http404
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -26,6 +27,19 @@ class StoreViewSet(viewsets.ReadOnlyModelViewSet):
         GET /api/v1/stores/<id>/
         POST /api/v1/stores/<id>/favorite/
     """
+
+    permission_classes = []  # list/retrieve son públicos; favorite define el suyo propio
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter("lat", float, required=True, description="Latitud del usuario (WGS-84)"),
+            OpenApiParameter("lng", float, required=True, description="Longitud del usuario (WGS-84)"),
+            OpenApiParameter("radius_km", float, required=False, description="Radio de búsqueda en km (defecto: radio del perfil o 10 km)"),
+        ]
+    )
+    def list(self, request: Request, *args, **kwargs) -> Response:
+        """Lista tiendas dentro del radio especificado, ordenadas por distancia."""
+        return super().list(request, *args, **kwargs)
 
     def get_queryset(self):
         """

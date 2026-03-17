@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-core-backend/01-04-PLAN.md
-last_updated: "2026-03-16T21:22:04.112Z"
+stopped_at: Completed 01-core-backend/01-06-PLAN.md
+last_updated: "2026-03-16T21:27:47.091Z"
 last_activity: 2026-03-16 — Plan 01-02 complete. Products domain with pg_trgm search API (7 min).
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
   percent: 50
 ---
 
@@ -71,6 +71,7 @@ Progress: [██░░░░░░░░░░░░░░░░░░] ~10% (F
 | Phase 01-core-backend P03 | 52 | 2 tasks | 8 files |
 | Phase 01-core-backend P05 | 25 | 2 tasks | 10 files |
 | Phase 01-core-backend P04 | 301 | 2 tasks | 10 files |
+| Phase 01-core-backend P06 | 15 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Key decisions affecting 
 - [Phase 01-core-backend]: ListCollaborator related_name=listcollaborator_set to match IsOwnerOrCollaborator permission filter; template copy rule: product FKs only, qty=1, is_checked=False
 - [Phase 01-core-backend]: Price records never hard-deleted by business logic; only is_stale=True. purge_old_price_history sole exception (90+ day cleanup)
 - [Phase 01-core-backend]: Crowdsourced prices: confidence_weight=0.5 set in CrowdsourcePriceView.perform_create; destroy-as-deactivate on PriceAlertViewSet
+- [Phase 01-core-backend]: Schema endpoints at /api/v1/schema/ (versioned path consistent with all other v1 endpoints)
+- [Phase 01-core-backend]: Phase 1 gate: 179 tests passing, 92% coverage across all 5 apps
 
 ### Pending Todos
 
@@ -104,6 +107,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T21:22:04.110Z
-Stopped at: Completed 01-core-backend/01-04-PLAN.md
+Last session: 2026-03-16T21:27:47.088Z
+Stopped at: Completed 01-core-backend/01-06-PLAN.md
 Resume file: None

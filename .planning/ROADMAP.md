@@ -43,11 +43,11 @@ Plans:
   1. A business can register, get verified by admin, and update its store prices without automatic expiry
   2. A business can create, activate, and deactivate promotions with start/end dates and discount values
   3. User receives a push or email notification when a price alert is triggered, a promotion is added at a favorited store, or a shared list changes
-**Plans**: 6 plans
+**Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: Business portal — profile model, admin verification, price update API, promotions, tests (F3-21 to F3-24)
-- [ ] 02-02: Notifications system — push + email dispatch, event triggers, preferences, tests (F3-25 to F3-26)
+- [ ] 02-01-PLAN.md — Business portal: BusinessProfile model, admin verification flow, business price updates, Promotion model with auto-deactivation, promo_price in price comparison (BIZ-01, BIZ-02, BIZ-03)
+- [ ] 02-02-PLAN.md — Notifications system: Notification inbox model, UserPushToken upsert, Celery dispatch tasks, event hooks for price alerts / new promos / shared list changes (NOTIF-01)
 
 ### Phase 3: Frontend
 **Goal**: All user-facing screens are connected to real backend data — no more hardcoded mock values

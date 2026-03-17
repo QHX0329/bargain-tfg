@@ -71,6 +71,27 @@ class User(AbstractUser):
         default=True,
         verbose_name="Notificaciones por email activadas",
     )
+    notify_price_alerts = models.BooleanField(
+        null=True,
+        blank=True,
+        default=None,
+        verbose_name="Notif. alertas de precio",
+        help_text="None = activado por defecto (hereda el master switch)",
+    )
+    notify_new_promos = models.BooleanField(
+        null=True,
+        blank=True,
+        default=None,
+        verbose_name="Notif. nuevas promociones",
+        help_text="None = activado por defecto (hereda el master switch)",
+    )
+    notify_shared_list_changes = models.BooleanField(
+        null=True,
+        blank=True,
+        default=None,
+        verbose_name="Notif. cambios en listas compartidas",
+        help_text="None = activado por defecto (hereda el master switch)",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -118,6 +118,9 @@ class PromotionViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save()
+        from apps.notifications.tasks import notify_new_promo_at_store
+
+        notify_new_promo_at_store.delay(serializer.instance.id)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

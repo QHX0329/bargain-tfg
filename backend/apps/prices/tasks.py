@@ -81,13 +81,25 @@ def check_price_alerts(self) -> dict[str, int]:
             alert.save(update_fields=["triggered_at", "is_active"])
             triggered_count += 1
             logger.info(
-                "notification_stub_triggered",
+                "price_alert_triggered",
                 user_id=alert.user_id,
                 product_id=alert.product_id,
                 target_price=str(alert.target_price),
                 current_min_price=str(current_min_price),
                 alert_id=alert.id,
             )
+            # Dispatch push notification if user has push enabled and pref not off
+            if alert.user.push_notifications_enabled and alert.user.notify_price_alerts is not False:
+                from apps.notifications.tasks import dispatch_push_notification
+
+                dispatch_push_notification.delay(
+                    user_id=alert.user_id,
+                    title="Alerta de precio activada",
+                    body=f"{alert.product.name} ya está a {current_min_price}€",
+                    data={"product_id": alert.product_id, "alert_id": alert.id},
+                    action_url=f"bargain://products/{alert.product_id}/prices",
+                    notification_type="price_alert",
+                )
 
     logger.info("check_price_alerts_complete", triggered=triggered_count)
     return {"triggered": triggered_count}

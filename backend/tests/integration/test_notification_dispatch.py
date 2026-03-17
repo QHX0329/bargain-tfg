@@ -56,8 +56,9 @@ class TestDispatchPushNotification:
 
             from exponent_server_sdk import DeviceNotRegisteredError
 
+            mock_push_response = MagicMock()
             mock_client = MagicMock()
-            mock_client.publish.side_effect = DeviceNotRegisteredError()
+            mock_client.publish.side_effect = DeviceNotRegisteredError(mock_push_response)
             mock_client_cls.return_value = mock_client
 
             from apps.notifications.tasks import dispatch_push_notification

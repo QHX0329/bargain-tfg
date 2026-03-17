@@ -5,6 +5,8 @@ Endpoints:
 - ShoppingListViewSet: CRUD + items, collaborators, templates
 """
 
+import redis as redis_lib
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models as django_models
 from drf_spectacular.utils import OpenApiParameter, extend_schema
@@ -35,6 +37,31 @@ from .serializers import (
 User = get_user_model()
 
 ACTIVE_LIST_LIMIT = 20
+SHARED_LIST_NOTIF_COUNTDOWN = 900  # 15 minutos en segundos
+
+
+def _trigger_list_notification(list_id: int, actor_id: int) -> None:
+    """Programa una notificación de lista compartida con debounce de 15 minutos.
+
+    Usa Redis para evitar duplicados: si ya hay una tarea programada para esta
+    lista, no programa otra. La primera vez que se detecta un cambio, programa
+    send_shared_list_notification con countdown=900s y establece el lock.
+
+    Args:
+        list_id: ID de la ShoppingList modificada.
+        actor_id: ID del usuario que realizó el cambio.
+    """
+    from apps.notifications.tasks import send_shared_list_notification
+
+    r = redis_lib.from_url(settings.CELERY_BROKER_URL)
+    lock_key = f"list_notif_pending:{list_id}"
+
+    if not r.exists(lock_key):
+        send_shared_list_notification.apply_async(
+            args=[list_id, actor_id],
+            countdown=SHARED_LIST_NOTIF_COUNTDOWN,
+        )
+        r.setex(lock_key, SHARED_LIST_NOTIF_COUNTDOWN, 1)
 
 
 class ActiveListLimitError(BargainAPIException):
@@ -126,6 +153,7 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
             )
 
         serializer.save(shopping_list=shopping_list, added_by=request.user)
+        _trigger_list_notification(shopping_list.id, request.user.id)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @extend_schema(
@@ -155,10 +183,12 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
             serializer = ShoppingListItemSerializer(item, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
+            _trigger_list_notification(shopping_list.id, request.user.id)
             return Response(serializer.data)
 
         # DELETE
         item.delete()
+        _trigger_list_notification(shopping_list.id, request.user.id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     # ── Collaborators ─────────────────────────────────────────────────────────

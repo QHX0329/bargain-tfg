@@ -8,7 +8,7 @@
 > **GitHub Repo:** https://github.com/QHX0329/bargain-tfg
 > **GitHub Issues:** https://github.com/QHX0329/bargain-tfg/issues
 >
-> Última sincronización: 2026-03-14 (F2-10 completada; sección de herramientas documentada; Notion pendiente por auth)
+> Última sincronización: 2026-03-17 (F3-01..F3-20, F3-27, F3-28 completadas — Phase 1 core backend 100%)
 
 ---
 
@@ -35,10 +35,10 @@
 
 ## Estado actual del proyecto
 
-**Fase activa:** F3 — Desarrollo Core Backend
-**Semana estimada:** S5
-**Horas consumidas:** ~85 h / 300 h totales
-**Progreso global:** ██████░░░░░░░░░░░░░░ 28%
+**Fase activa:** F3 (concluida parcialmente) / F2 GSD → iniciando Phase 2
+**Semana estimada:** S6
+**Horas consumidas:** ~145 h / 300 h totales
+**Progreso global:** ██████████░░░░░░░░░░ ~48%
 
 ---
 
@@ -88,40 +88,42 @@
 
 ---
 
-## F3 — Desarrollo Core Backend (95 h) · ⬜ Pendiente
+## F3 — Desarrollo Core Backend (95 h) · 🔄 En progreso
 
 > Semanas S5–S12
 
-| ID | Tarea | Módulo | Prioridad | Estado | Horas est. |
-|----|-------|--------|-----------|--------|:---:|
-| F3-01 | Modelo User + roles | Users | 🔴 Crítica | ⬜ | 4 |
-| F3-02 | Registro + Login con JWT | Users | 🔴 Crítica | ⬜ | 5 |
-| F3-03 | Perfil de usuario + preferencias | Users | 🟠 Alta | ⬜ | 3 |
-| F3-04 | Tests unitarios módulo Users | Users | 🟠 Alta | ⬜ | 3 |
-| F3-05 | Modelo Product + Category + Brand | Products | 🔴 Crítica | ⬜ | 4 |
-| F3-06 | API CRUD productos con filtros y búsqueda | Products | 🔴 Crítica | ⬜ | 4 |
-| F3-07 | Normalización de nombres (matching fuzzy) | Products | 🟠 Alta | ⬜ | 3 |
-| F3-08 | Tests unitarios módulo Products | Products | 🟠 Alta | ⬜ | 2 |
-| F3-09 | Modelo Store con PostGIS PointField | Stores | 🔴 Crítica | ⬜ | 4 |
-| F3-10 | API tiendas con búsqueda geoespacial | Stores | 🔴 Crítica | ⬜ | 5 |
-| F3-11 | Integración Google Places API | Stores | 🟡 Media | ⬜ | 3 |
-| F3-12 | Tests unitarios módulo Stores | Stores | 🟠 Alta | ⬜ | 2 |
-| F3-13 | Modelo Price + PriceHistory | Prices | 🔴 Crítica | ⬜ | 3 |
-| F3-14 | API de precios con comparación multi-tienda | Prices | 🔴 Crítica | ⬜ | 5 |
-| F3-15 | Sistema de caducidad de precios (Celery) | Prices | 🟠 Alta | ⬜ | 3 |
-| F3-16 | Tests unitarios módulo Prices | Prices | 🟠 Alta | ⬜ | 2 |
-| F3-17 | Modelo ShoppingList + ShoppingListItem | Shopping Lists | 🔴 Crítica | ⬜ | 3 |
-| F3-18 | API CRUD listas de la compra | Shopping Lists | 🔴 Crítica | ⬜ | 4 |
-| F3-19 | Compartir listas entre usuarios | Shopping Lists | 🟡 Media | ⬜ | 2 |
-| F3-20 | Tests unitarios módulo Shopping Lists | Shopping Lists | 🟠 Alta | ⬜ | 2 |
-| F3-21 | Modelo BusinessProfile + Subscription | Business | 🟠 Alta | ⬜ | 3 |
-| F3-22 | Portal de gestión de precios para PYMEs | Business | 🟠 Alta | ⬜ | 5 |
-| F3-23 | Sistema de promociones | Business | 🟡 Media | ⬜ | 3 |
-| F3-24 | Tests módulo Business | Business | 🟡 Media | ⬜ | 2 |
-| F3-25 | Notificaciones push + email | Notifications | 🟡 Media | ⬜ | 4 |
-| F3-26 | Tests módulo Notifications | Notifications | 🟡 Media | ⬜ | 2 |
-| F3-27 | Tests de integración y E2E backend | Infraestructura | 🟠 Alta | ⬜ | 6 |
-| F3-28 | Documentación API (OpenAPI/Swagger) | Documentación | 🟡 Media | ⬜ | 3 |
+| ID | Tarea | Módulo | Prioridad | Estado | Horas est. | Horas reales | Notas |
+|----|-------|--------|-----------|--------|:---:|:---:|-------|
+| F3-01 | Modelo User + roles | Users | 🔴 Crítica | ✅ | 4 | 4 | 01-01, JWT auth, custom User model with phone/role |
+| F3-02 | Registro + Login con JWT | Users | 🔴 Crítica | ✅ | 5 | 5 | 01-01, registration, login, token refresh |
+| F3-03 | Perfil de usuario + preferencias | Users | 🟠 Alta | ✅ | 3 | 3 | 01-01, profile PATCH, preferences JSON |
+| F3-04 | Tests unitarios módulo Users | Users | 🟠 Alta | ✅ | 3 | 2 | 01-01, 22 tests |
+| F3-05 | Modelo Product + Category + Brand | Products | 🔴 Crítica | ✅ | 4 | 4 | 01-02, 2-level Category, Product with pg_trgm |
+| F3-06 | API CRUD productos con filtros y búsqueda | Products | 🔴 Crítica | ✅ | 4 | 4 | 01-02, fuzzy search, barcode, category filter |
+| F3-07 | Normalización de nombres (matching fuzzy) | Products | 🟠 Alta | ✅ | 3 | 3 | 01-02, pg_trgm GIN index, normalized_name |
+| F3-08 | Tests unitarios módulo Products | Products | 🟠 Alta | ✅ | 2 | 2 | 01-02, 33 tests |
+| F3-09 | Modelo Store con PostGIS PointField | Stores | 🔴 Crítica | ✅ | 4 | 4 | 01-03, StoreChain + Store with PointField |
+| F3-10 | API tiendas con búsqueda geoespacial | Stores | 🔴 Crítica | ✅ | 5 | 5 | 01-03, radius search ordered by distance, favorites toggle |
+| F3-11 | Integración Google Places API | Stores | 🟡 Media | ⬜ | 3 | - | Not in scope for Phase 1, deferred to Phase 4 |
+| F3-12 | Tests unitarios módulo Stores | Stores | 🟠 Alta | ✅ | 2 | 2 | 01-03 |
+| F3-13 | Modelo Price + PriceHistory | Prices | 🔴 Crítica | ✅ | 3 | 3 | 01-04, Price, PriceAlert, soft-delete pattern |
+| F3-14 | API de precios con comparación multi-tienda | Prices | 🔴 Crítica | ✅ | 5 | 5 | 01-04, compare, history, list-total, crowdsource |
+| F3-15 | Sistema de caducidad de precios (Celery) | Prices | 🟠 Alta | ✅ | 3 | 3 | 01-04, mark_stale_prices + purge_old_price_history tasks |
+| F3-16 | Tests unitarios módulo Prices | Prices | 🟠 Alta | ✅ | 2 | 2 | 01-04 |
+| F3-17 | Modelo ShoppingList + ShoppingListItem | Shopping Lists | 🔴 Crítica | ✅ | 3 | 3 | 01-05, ShoppingList, Item, ListCollaborator, ListTemplate |
+| F3-18 | API CRUD listas de la compra | Shopping Lists | 🔴 Crítica | ✅ | 4 | 4 | 01-05, CRUD + 20-list limit + enriched items |
+| F3-19 | Compartir listas entre usuarios | Shopping Lists | 🟡 Media | ✅ | 2 | 2 | 01-05, collaborators invite by username |
+| F3-20 | Tests unitarios módulo Shopping Lists | Shopping Lists | 🟠 Alta | ✅ | 2 | 2 | 01-05 |
+| F3-21 | Modelo BusinessProfile + Subscription | Business | 🟠 Alta | ⬜ | 3 | - | |
+| F3-22 | Portal de gestión de precios para PYMEs | Business | 🟠 Alta | ⬜ | 5 | - | |
+| F3-23 | Sistema de promociones | Business | 🟡 Media | ⬜ | 3 | - | |
+| F3-24 | Tests módulo Business | Business | 🟡 Media | ⬜ | 2 | - | |
+| F3-25 | Notificaciones push + email | Notifications | 🟡 Media | ⬜ | 4 | - | |
+| F3-26 | Tests módulo Notifications | Notifications | 🟡 Media | ⬜ | 2 | - | |
+| F3-27 | Tests de integración y E2E backend | Infraestructura | 🟠 Alta | ✅ | 6 | 4 | 01-06, cross-domain happy path, 179 tests total |
+| F3-28 | Documentación API (OpenAPI/Swagger) | Documentación | 🟡 Media | ✅ | 3 | 2 | 01-06, Swagger UI + ReDoc at /api/v1/schema/ |
+
+**Subtotal F3:** ~60 h completadas (F3-01..F3-20, F3-27, F3-28). Pendiente: F3-21..F3-26 (Business + Notifications — Fase 2)
 
 ---
 

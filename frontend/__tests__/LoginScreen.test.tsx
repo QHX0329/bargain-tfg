@@ -18,6 +18,7 @@ jest.mock("@/api/authService", () => ({
     login: jest.fn(),
     register: jest.fn(),
     getProfile: jest.fn(),
+    getProfileWithToken: jest.fn(),
     requestPasswordReset: jest.fn(),
   },
 }));
@@ -107,10 +108,10 @@ describe("LoginScreen", () => {
     });
   });
 
-  // Test 1: renders email and password inputs
-  it("Test 1: renders email and password text inputs", () => {
+  // Test 1: renders username and password inputs
+  it("Test 1: renders username and password text inputs", () => {
     const { getByPlaceholderText } = render(<LoginScreen />);
-    expect(getByPlaceholderText("tu@email.com")).toBeTruthy();
+    expect(getByPlaceholderText("tu_usuario")).toBeTruthy();
     expect(getByPlaceholderText("Tu contraseña")).toBeTruthy();
   });
 
@@ -120,17 +121,17 @@ describe("LoginScreen", () => {
       access: "access123",
       refresh: "refresh456",
     } as never);
-    mockAuthService.getProfile.mockResolvedValueOnce(mockProfile as never);
+    mockAuthService.getProfileWithToken.mockResolvedValueOnce(mockProfile as never);
     (SecureStore.setItemAsync as jest.Mock).mockResolvedValue(undefined);
 
     const { getByPlaceholderText, getByText } = render(<LoginScreen />);
-    fireEvent.changeText(getByPlaceholderText("tu@email.com"), "test@example.com");
+    fireEvent.changeText(getByPlaceholderText("tu_usuario"), "test_user");
     fireEvent.changeText(getByPlaceholderText("Tu contraseña"), "password123");
     fireEvent.press(getByText("Iniciar sesión"));
 
     await waitFor(() => {
       expect(mockAuthService.login).toHaveBeenCalledWith(
-        "test@example.com",
+        "test_user",
         "password123",
       );
     });
@@ -141,11 +142,11 @@ describe("LoginScreen", () => {
     mockAuthService.login.mockRejectedValueOnce(new Error("Unauthorized"));
 
     const { getByPlaceholderText, getByText, findByText } = render(<LoginScreen />);
-    fireEvent.changeText(getByPlaceholderText("tu@email.com"), "bad@example.com");
+    fireEvent.changeText(getByPlaceholderText("tu_usuario"), "bad_user");
     fireEvent.changeText(getByPlaceholderText("Tu contraseña"), "wrongpass");
     fireEvent.press(getByText("Iniciar sesión"));
 
-    const errorMsg = await findByText("Email o contraseña incorrectos");
+    const errorMsg = await findByText("Usuario o contraseña incorrectos");
     expect(errorMsg).toBeTruthy();
   });
 
@@ -158,7 +159,7 @@ describe("LoginScreen", () => {
     mockAuthService.login.mockReturnValueOnce(loginPromise as never);
 
     const { getByPlaceholderText, getByTestId } = render(<LoginScreen />);
-    fireEvent.changeText(getByPlaceholderText("tu@email.com"), "test@example.com");
+    fireEvent.changeText(getByPlaceholderText("tu_usuario"), "test_user");
     fireEvent.changeText(getByPlaceholderText("Tu contraseña"), "password123");
 
     const submitButton = getByTestId("login-submit-button");
@@ -203,25 +204,23 @@ describe("RegisterScreen", () => {
   });
 
   // Test 6: renders all required fields
-  it("Test 6: renders first_name, last_name, email, and password fields", () => {
+  it("Test 6: renders username, first_name, last_name, email, and password fields", () => {
     const { getByPlaceholderText } = render(<RegisterScreen />);
+    expect(getByPlaceholderText("tu_usuario")).toBeTruthy();
     expect(getByPlaceholderText("Tu nombre")).toBeTruthy();
     expect(getByPlaceholderText("Tus apellidos")).toBeTruthy();
     expect(getByPlaceholderText("tu@email.com")).toBeTruthy();
     expect(getByPlaceholderText("Mínimo 8 caracteres")).toBeTruthy();
   });
 
-  // Test 7: valid data → calls authService.register then authService.login (auto-login)
+  // Test 7: valid data → calls authService.register with all required fields (auto-login)
   it("Test 7: pressing submit with valid data calls register then login (auto-login)", async () => {
     mockAuthService.register.mockResolvedValueOnce({ user: { id: "u1", email: "juan@example.com", name: "Juan García" } } as never);
-    mockAuthService.login.mockResolvedValueOnce({
-      access: "access123",
-      refresh: "refresh456",
-    } as never);
-    mockAuthService.getProfile.mockResolvedValueOnce(mockProfile as never);
+    mockAuthService.getProfileWithToken.mockResolvedValueOnce(mockProfile as never);
     (SecureStore.setItemAsync as jest.Mock).mockResolvedValue(undefined);
 
     const { getByPlaceholderText, getByText } = render(<RegisterScreen />);
+    fireEvent.changeText(getByPlaceholderText("tu_usuario"), "juan_garcia");
     fireEvent.changeText(getByPlaceholderText("Tu nombre"), "Juan");
     fireEvent.changeText(getByPlaceholderText("Tus apellidos"), "García");
     fireEvent.changeText(getByPlaceholderText("tu@email.com"), "juan@example.com");
@@ -231,18 +230,13 @@ describe("RegisterScreen", () => {
 
     await waitFor(() => {
       expect(mockAuthService.register).toHaveBeenCalledWith({
+        username: "juan_garcia",
         email: "juan@example.com",
         password: "password123",
+        password_confirm: "password123",
         first_name: "Juan",
         last_name: "García",
       });
-    });
-
-    await waitFor(() => {
-      expect(mockAuthService.login).toHaveBeenCalledWith(
-        "juan@example.com",
-        "password123",
-      );
     });
   });
 
@@ -264,6 +258,7 @@ describe("RegisterScreen", () => {
     mockAuthService.register.mockRejectedValueOnce(apiError);
 
     const { getByPlaceholderText, getByText, findByText } = render(<RegisterScreen />);
+    fireEvent.changeText(getByPlaceholderText("tu_usuario"), "juan_garcia");
     fireEvent.changeText(getByPlaceholderText("Tu nombre"), "Juan");
     fireEvent.changeText(getByPlaceholderText("Tus apellidos"), "García");
     fireEvent.changeText(
@@ -281,6 +276,7 @@ describe("RegisterScreen", () => {
   // Test 9: password confirmation mismatch disables submit
   it("Test 9: submit is disabled when passwords do not match", async () => {
     const { getByPlaceholderText, getByTestId } = render(<RegisterScreen />);
+    fireEvent.changeText(getByPlaceholderText("tu_usuario"), "juan_garcia");
     fireEvent.changeText(getByPlaceholderText("Tu nombre"), "Juan");
     fireEvent.changeText(getByPlaceholderText("Tus apellidos"), "García");
     fireEvent.changeText(getByPlaceholderText("tu@email.com"), "juan@example.com");

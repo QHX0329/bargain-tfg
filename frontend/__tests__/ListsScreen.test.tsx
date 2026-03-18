@@ -333,7 +333,7 @@ describe("ListDetailScreen", () => {
 
     await waitFor(() => {
       expect(listService.addItem).toHaveBeenCalledWith("list1", {
-        product_id: mockProduct.id,
+        product: mockProduct.id,
         quantity: 1,
       });
     });

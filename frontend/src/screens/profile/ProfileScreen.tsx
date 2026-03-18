@@ -23,7 +23,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
 import {
@@ -171,35 +171,34 @@ export const ProfileScreen: React.FC = () => {
   const [notifyNewPromos, setNotifyNewPromos] = useState(true);
   const [notifySharedListChanges, setNotifySharedListChanges] = useState(true);
 
+  const loadProfile = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const p = await authService.getProfile();
+      setProfile(p);
+      setWeightPrice(p.weightPrice);
+      setWeightDistance(p.weightDistance);
+      setWeightTime(p.weightTime);
+      setSearchRadiusKm(p.searchRadiusKm);
+      setMaxStops(p.maxStops);
+    } catch {
+      // Conservar valores del store si falla la carga
+    } finally {
+      setIsLoading(false);
+    }
+  }, [setProfile]);
+
   // ── Cargar perfil al montar ──────────────────────────────────────────────
 
   useEffect(() => {
-    let cancelled = false;
+    void loadProfile();
+  }, [loadProfile]);
 
-    async function loadProfile() {
-      setIsLoading(true);
-      try {
-        const p = await authService.getProfile();
-        if (!cancelled) {
-          setProfile(p);
-          setWeightPrice(p.weightPrice);
-          setWeightDistance(p.weightDistance);
-          setWeightTime(p.weightTime);
-          setSearchRadiusKm(p.searchRadiusKm);
-          setMaxStops(p.maxStops);
-        }
-      } catch {
-        // Conservar valores del store si falla la carga
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    }
-
-    loadProfile();
-    return () => {
-      cancelled = true;
-    };
-  }, [setProfile]);
+  useFocusEffect(
+    useCallback(() => {
+      void loadProfile();
+    }, [loadProfile]),
+  );
 
   // ── Handlers de toggles de notificación ─────────────────────────────────
 
@@ -326,6 +325,15 @@ export const ProfileScreen: React.FC = () => {
               Miembro desde {formatMemberSince(memberSince)}
             </Text>
           ) : null}
+          <TouchableOpacity
+            style={styles.editProfileButton}
+            onPress={() => navigation.navigate("EditProfile")}
+            accessibilityRole="button"
+            accessibilityLabel="Modificar información del usuario"
+          >
+            <Ionicons name="create-outline" size={14} color={colors.primary} />
+            <Text style={styles.editProfileButtonText}>Modificar información</Text>
+          </TouchableOpacity>
         </View>
 
         {/* ── Sección 2: Optimización (solo lectura) ──────────────────── */}
@@ -495,6 +503,22 @@ const styles = StyleSheet.create({
   memberSince: {
     ...textStyles.caption,
     color: colors.textDisabled,
+  },
+  editProfileButton: {
+    marginTop: spacing.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryTint,
+  },
+  editProfileButtonText: {
+    ...textStyles.bodySmall,
+    color: colors.primary,
   },
   weightSumRow: {
     flexDirection: "row",

@@ -47,6 +47,7 @@ import { AssistantScreen } from "@/screens/assistant/AssistantScreen";
 
 // Profile
 import { ProfileScreen } from "@/screens/profile/ProfileScreen";
+import { EditProfileScreen } from "@/screens/profile/EditProfileScreen";
 import { ChangePasswordScreen } from "@/screens/profile/ChangePasswordScreen";
 import { OptimizerConfigScreen } from "@/screens/profile/OptimizerConfigScreen";
 
@@ -164,6 +165,11 @@ const ProfileStackNavigator: React.FC = () => (
       name="Profile"
       component={ProfileScreen}
       options={{ headerShown: false }}
+    />
+    <ProfileStack.Screen
+      name="EditProfile"
+      component={EditProfileScreen}
+      options={{ title: "Modificar información" }}
     />
     <ProfileStack.Screen
       name="ChangePassword"

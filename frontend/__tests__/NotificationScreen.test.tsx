@@ -388,15 +388,8 @@ describe("NotificationScreen", () => {
     });
   });
 
-  // Test 8: swipe-to-delete reveals Eliminar and calls deleteNotification
-  it("Test 8: swipe-to-delete calls notificationService.deleteNotification after confirmation", async () => {
-    // Simulate confirm deletion (button index 1 = Eliminar)
-    alertSpy.mockImplementation(
-      (_title: string, _msg: string, buttons?: Array<{ onPress?: () => void }>) => {
-        buttons?.[1]?.onPress?.();
-      },
-    );
-
+  // Test 8: swipe-to-delete calls deleteNotification directly
+  it("Test 8: swipe-to-delete calls notificationService.deleteNotification", async () => {
     const { getByTestId } = render(
       <NotificationScreen navigation={mockNavigation as never} />,
     );

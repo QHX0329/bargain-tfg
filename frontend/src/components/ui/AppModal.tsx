@@ -103,7 +103,12 @@ export interface AppModalProps {
 
 // ─── Constantes de animación ──────────────────────────────────────────────────
 
-const SPRING_CONFIG = { damping: 18, stiffness: 320, useNativeDriver: true } as const;
+const CAN_USE_NATIVE_DRIVER = Platform.OS !== "web";
+const SPRING_CONFIG = {
+  damping: 18,
+  stiffness: 320,
+  useNativeDriver: CAN_USE_NATIVE_DRIVER,
+} as const;
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
@@ -130,6 +135,13 @@ export const AppModal: React.FC<AppModalProps> = ({
   // ─── Resetear input al abrir ────────────────────────────────────────────
   useEffect(() => {
     if (visible) {
+      // In web, blur current focused element before opening modal to avoid
+      // aria-hidden warnings caused by focused descendants outside the modal.
+      if (Platform.OS === "web" && typeof document !== "undefined") {
+        const active = document.activeElement as HTMLElement | null;
+        active?.blur?.();
+      }
+
       setInputValue(defaultValue);
       // Animar entrada
       Animated.parallel([
@@ -137,7 +149,7 @@ export const AppModal: React.FC<AppModalProps> = ({
         Animated.timing(opacityAnim, {
           toValue: 1,
           duration: 180,
-          useNativeDriver: true,
+          useNativeDriver: CAN_USE_NATIVE_DRIVER,
         }),
       ]).start(() => {
         if (type === "input") {

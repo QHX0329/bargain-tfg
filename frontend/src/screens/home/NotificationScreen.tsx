@@ -14,6 +14,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Modal,
+  Platform,
   Pressable,
   SectionList,
   SectionListData,
@@ -86,25 +87,6 @@ function groupByDay(notifications: Notification[]): SectionListData<Notification
   }
 
   return sections;
-}
-
-// ─── Deep link navigation ─────────────────────────────────────────────────────
-
-function parseAndNavigate(
-  actionUrl: string,
-  navigation: NativeStackNavigationProp<HomeStackParamList>,
-): void {
-  // bargain://lists/list-123 → navigate to ListDetail (different stack)
-  // bargain://notifications → stay on Notifications
-  const withoutScheme = actionUrl.replace("bargain://", "");
-  const parts = withoutScheme.split("/").filter(Boolean);
-  const resource = parts[0];
-
-  if (!resource) throw new Error("Unknown route");
-
-  // For now, unknown routes are treated as unsupported
-  // Future: cross-tab navigation via root navigation ref
-  throw new Error(`Route not yet supported: ${resource}`);
 }
 
 // ─── Notification row ─────────────────────────────────────────────────────────
@@ -255,6 +237,11 @@ export const NotificationScreen: React.FC<NotificationScreenProps> = ({
 
   const handleTap = useCallback(
     async (notification: Notification) => {
+      if (Platform.OS === "web" && typeof document !== "undefined") {
+        const active = document.activeElement as HTMLElement | null;
+        active?.blur?.();
+      }
+
       // Open modal with notification details
       setSelectedNotif(notification);
       // Mark as read in background
@@ -270,31 +257,20 @@ export const NotificationScreen: React.FC<NotificationScreenProps> = ({
 
   const handleDelete = useCallback(
     (notification: Notification) => {
-      Alert.alert(
-        "Eliminar notificación",
-        "¿Eliminar esta notificación?",
-        [
-          { text: "Cancelar", style: "cancel" },
-          {
-            text: "Eliminar",
-            style: "destructive",
-            onPress: async () => {
-              try {
-                await notificationService.deleteNotification(notification.id);
-                removeNotification(notification.id);
-                if (
-                  selectedNotif &&
-                  String(selectedNotif.id) === String(notification.id)
-                ) {
-                  setSelectedNotif(null);
-                }
-              } catch {
-                Alert.alert("Error", "No se pudo eliminar la notificación");
-              }
-            },
-          },
-        ],
-      );
+      void (async () => {
+        try {
+          await notificationService.deleteNotification(notification.id);
+          removeNotification(notification.id);
+          if (
+            selectedNotif &&
+            String(selectedNotif.id) === String(notification.id)
+          ) {
+            setSelectedNotif(null);
+          }
+        } catch {
+          Alert.alert("Error", "No se pudo eliminar la notificación");
+        }
+      })();
     },
     [removeNotification, selectedNotif],
   );
@@ -405,16 +381,6 @@ export const NotificationScreen: React.FC<NotificationScreenProps> = ({
               onPress={() => setSelectedNotif(null)}
             >
               <Text style={modalStyles.closeText}>Cerrar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={modalStyles.deleteButton}
-              onPress={() => {
-                if (selectedNotif) {
-                  handleDelete(selectedNotif);
-                }
-              }}
-            >
-              <Text style={modalStyles.deleteText}>Eliminar</Text>
             </TouchableOpacity>
           </Pressable>
         </Pressable>
@@ -596,20 +562,6 @@ const modalStyles = StyleSheet.create({
     fontFamily: fontFamilies.bodyMedium,
     fontSize: fontSize.sm,
     color: colors.primary,
-  },
-  deleteButton: {
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.lg,
-    alignSelf: "flex-end",
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.error,
-    borderRadius: borderRadius.md,
-  },
-  deleteText: {
-    fontFamily: fontFamilies.bodyMedium,
-    fontSize: fontSize.sm,
-    color: colors.white,
   },
 });
 

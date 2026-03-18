@@ -632,7 +632,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
             )}
           </View>
           {safePriceAlerts.length === 0 ? (
-            <Text style={styles.emptyText}>Sin alertas activas</Text>
+            <View style={styles.emptyAlertsWrap}>
+              <Text style={styles.emptyText}>Sin alertas activas</Text>
+              <TouchableOpacity
+                style={styles.createAlertButton}
+                onPress={() => navigation.navigate("PriceAlerts" as never)}
+                accessibilityRole="button"
+                accessibilityLabel="Crear alerta de precio"
+              >
+                <Ionicons name="add-circle-outline" size={16} color={colors.primary} />
+                <Text style={styles.createAlertButtonText}>Crear alerta</Text>
+              </TouchableOpacity>
+            </View>
           ) : (
             safePriceAlerts.slice(0, 3).map((alert) => (
               <PriceAlertCard
@@ -762,6 +773,26 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textAlign: "center",
     paddingVertical: spacing.md,
+  },
+  emptyAlertsWrap: {
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  createAlertButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.primary,
+    backgroundColor: colors.primaryTint,
+  },
+  createAlertButtonText: {
+    fontFamily: fontFamilies.bodyMedium,
+    fontSize: fontSize.sm,
+    color: colors.primary,
   },
 });
 

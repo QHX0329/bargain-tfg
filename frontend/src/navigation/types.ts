@@ -73,6 +73,7 @@ export type AssistantStackParamList = {
 /** Parámetros del Stack de Perfil */
 export type ProfileStackParamList = {
   Profile: undefined;
+  EditProfile: undefined;
   ChangePassword: undefined;
   OptimizerConfig: undefined;
 };

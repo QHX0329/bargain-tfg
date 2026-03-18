@@ -14,6 +14,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Platform,
   ScrollView,
   StyleSheet,
   Switch,
@@ -257,24 +258,32 @@ export const ProfileScreen: React.FC = () => {
       }
       debounceTimer.current = setTimeout(async () => {
         try {
-          const updated = await authService.updatePreferences(prefs);
-          // Actualizar store con nuevos valores
+          await authService.updatePreferences(prefs);
+          // Actualizar store con los valores locales confirmados
+          // (el backend no devuelve weight_price/distance/time ya que no son campos del modelo)
           setProfile({
             ...(profile ?? {
               id: "",
+              username: "",
               email: "",
+              first_name: "",
+              last_name: "",
               name: "",
-              searchRadiusKm: 5,
-              maxStops: 3,
-              weightPrice: 50,
-              weightDistance: 30,
-              weightTime: 20,
+              max_search_radius_km: prefs.max_search_radius_km ?? 5,
+              max_stops: prefs.max_stops ?? 3,
+              searchRadiusKm: prefs.max_search_radius_km ?? 5,
+              maxStops: prefs.max_stops ?? 3,
+              weightPrice: prefs.weight_price ?? 50,
+              weightDistance: prefs.weight_distance ?? 30,
+              weightTime: prefs.weight_time ?? 20,
             }),
-            weightPrice: updated.weight_price,
-            weightDistance: updated.weight_distance,
-            weightTime: updated.weight_time,
-            searchRadiusKm: updated.max_search_radius_km,
-            maxStops: updated.max_stops,
+            searchRadiusKm: prefs.max_search_radius_km ?? (profile?.searchRadiusKm ?? 5),
+            maxStops: prefs.max_stops ?? (profile?.maxStops ?? 3),
+            max_search_radius_km: prefs.max_search_radius_km ?? (profile?.max_search_radius_km ?? 5),
+            max_stops: prefs.max_stops ?? (profile?.max_stops ?? 3),
+            weightPrice: prefs.weight_price ?? (profile?.weightPrice ?? 50),
+            weightDistance: prefs.weight_distance ?? (profile?.weightDistance ?? 30),
+            weightTime: prefs.weight_time ?? (profile?.weightTime ?? 20),
           });
         } catch {
           // No interrumpir la UX si el guardado falla
@@ -427,12 +436,26 @@ export const ProfileScreen: React.FC = () => {
   // ── Logout ────────────────────────────────────────────────────────────────
 
   const handleLogout = useCallback(() => {
+    // Alert button callbacks are unreliable on web; use browser confirm there.
+    if (Platform.OS === "web") {
+      const shouldLogout =
+        typeof window !== "undefined"
+          ? window.confirm("¿Cerrar sesión?")
+          : true;
+      if (shouldLogout) {
+        void logout();
+      }
+      return;
+    }
+
     Alert.alert("¿Cerrar sesión?", "", [
       { text: "Cancelar", style: "cancel" },
       {
         text: "Cerrar sesión",
         style: "destructive",
-        onPress: () => logout(),
+        onPress: () => {
+          void logout();
+        },
       },
     ]);
   }, [logout]);

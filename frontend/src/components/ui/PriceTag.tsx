@@ -25,7 +25,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native";
-import { colors, fontFamilies, fontSize, borderRadius, spacing } from "@/theme";
+import { colors, fontFamilies, spacing } from "@/theme";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 

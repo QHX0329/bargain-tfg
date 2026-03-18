@@ -1,9 +1,14 @@
 /**
  * Pantalla de registro de usuario.
+ *
+ * Conectada a POST /auth/register/ a través de authService.register.
+ * Tras el registro, realiza auto-login llamando a authService.login
+ * para que el usuario entre directamente a la app sin pasar por LoginScreen.
  */
 
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -21,6 +26,7 @@ import { useNavigation } from "@react-navigation/native";
 
 import { colors, spacing, textStyles } from "@/theme";
 import { useAuthStore } from "@/store/authStore";
+import { authService } from "@/api/authService";
 import type { AuthStackParamList } from "@/navigation/types";
 
 type RegisterNavigationProp = NativeStackNavigationProp<
@@ -28,18 +34,88 @@ type RegisterNavigationProp = NativeStackNavigationProp<
   "Register"
 >;
 
+/** Errores a nivel de campo devueltos por el backend (400) */
+interface FieldErrors {
+  email?: string;
+  password?: string;
+  first_name?: string;
+  last_name?: string;
+  [key: string]: string | undefined;
+}
+
 export const RegisterScreen: React.FC = () => {
   const navigation = useNavigation<RegisterNavigationProp>();
-  const login = useAuthStore((state) => state.login);
   const { height } = useWindowDimensions();
   const isCompact = height <= 650;
-  const [name, setName] = useState("");
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [generalError, setGeneralError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
-  const handleRegister = () => {
-    // TODO: implementar lógica real de registro con API (F3-02)
-    login("fake-token", { id: "1", email, name });
+  /** Contraseñas no coinciden — deshabilita el botón de envío */
+  const passwordMismatch =
+    confirmPassword.length > 0 && password !== confirmPassword;
+  const isSubmitDisabled = isLoading || passwordMismatch;
+
+  const handleRegister = async () => {
+    if (passwordMismatch) return;
+
+    setIsLoading(true);
+    setGeneralError(null);
+    setFieldErrors({});
+
+    try {
+      await authService.register({
+        email: email.trim(),
+        password,
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+      });
+
+      // Auto-login tras registro exitoso
+      const tokens = await authService.login(email.trim(), password);
+      const profile = await authService.getProfile();
+
+      const user = {
+        id: profile.id,
+        email: profile.email,
+        name: profile.name,
+      };
+
+      await useAuthStore.getState().login(tokens.access, tokens.refresh, user);
+    } catch (err: unknown) {
+      // Extraer errores de campo del backend (400 con details)
+      const axiosError = err as {
+        response?: {
+          data?: {
+            error?: {
+              details?: Record<string, string[]>;
+            };
+          };
+        };
+      };
+
+      const details = axiosError?.response?.data?.error?.details;
+
+      if (details && typeof details === "object") {
+        const mapped: FieldErrors = {};
+        for (const [field, messages] of Object.entries(details)) {
+          if (Array.isArray(messages) && messages.length > 0) {
+            mapped[field] = messages[0];
+          }
+        }
+        setFieldErrors(mapped);
+      } else {
+        setGeneralError("No se pudo crear la cuenta. Inténtalo de nuevo.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -74,6 +150,7 @@ export const RegisterScreen: React.FC = () => {
           </View>
 
           <View style={[styles.form, isCompact && styles.formCompact]}>
+            {/* Nombre */}
             <View
               style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}
             >
@@ -82,12 +159,36 @@ export const RegisterScreen: React.FC = () => {
                 style={[styles.input, isCompact && styles.inputCompact]}
                 placeholder="Tu nombre"
                 placeholderTextColor={colors.textMuted}
-                value={name}
-                onChangeText={setName}
+                value={firstName}
+                onChangeText={setFirstName}
                 autoCapitalize="words"
+                editable={!isLoading}
               />
+              {fieldErrors.first_name ? (
+                <Text style={styles.fieldError}>{fieldErrors.first_name}</Text>
+              ) : null}
             </View>
 
+            {/* Apellidos */}
+            <View
+              style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}
+            >
+              <Text style={styles.label}>Apellidos</Text>
+              <TextInput
+                style={[styles.input, isCompact && styles.inputCompact]}
+                placeholder="Tus apellidos"
+                placeholderTextColor={colors.textMuted}
+                value={lastName}
+                onChangeText={setLastName}
+                autoCapitalize="words"
+                editable={!isLoading}
+              />
+              {fieldErrors.last_name ? (
+                <Text style={styles.fieldError}>{fieldErrors.last_name}</Text>
+              ) : null}
+            </View>
+
+            {/* Email */}
             <View
               style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}
             >
@@ -101,9 +202,14 @@ export const RegisterScreen: React.FC = () => {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
+                editable={!isLoading}
               />
+              {fieldErrors.email ? (
+                <Text style={styles.fieldError}>{fieldErrors.email}</Text>
+              ) : null}
             </View>
 
+            {/* Contraseña */}
             <View
               style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}
             >
@@ -115,23 +221,65 @@ export const RegisterScreen: React.FC = () => {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
+                editable={!isLoading}
               />
+              {fieldErrors.password ? (
+                <Text style={styles.fieldError}>{fieldErrors.password}</Text>
+              ) : null}
             </View>
 
+            {/* Confirmar contraseña */}
+            <View
+              style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}
+            >
+              <Text style={styles.label}>Repetir contraseña</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  isCompact && styles.inputCompact,
+                  passwordMismatch && styles.inputError,
+                ]}
+                placeholder="Repetir contraseña"
+                placeholderTextColor={colors.textMuted}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry
+                editable={!isLoading}
+              />
+              {passwordMismatch ? (
+                <Text style={styles.fieldError}>
+                  Las contraseñas no coinciden
+                </Text>
+              ) : null}
+            </View>
+
+            {generalError ? (
+              <Text style={styles.errorText}>{generalError}</Text>
+            ) : null}
+
             <TouchableOpacity
+              testID="register-submit-button"
               style={[
                 styles.registerButton,
                 isCompact && styles.registerButtonCompact,
+                isSubmitDisabled && styles.registerButtonDisabled,
               ]}
               onPress={handleRegister}
+              disabled={isSubmitDisabled}
+              accessibilityState={{ disabled: isSubmitDisabled }}
             >
-              <Text style={styles.registerButtonText}>Crear cuenta</Text>
+              {isLoading ? (
+                <ActivityIndicator color={colors.white} />
+              ) : (
+                <Text style={styles.registerButtonText}>Crear cuenta</Text>
+              )}
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.loginLink, isCompact && styles.loginLinkCompact]}
               onPress={() => navigation.navigate("Login")}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              disabled={isLoading}
             >
               <Text style={styles.loginText}>
                 ¿Ya tienes cuenta?{" "}
@@ -224,6 +372,20 @@ const styles = StyleSheet.create({
   inputCompact: {
     paddingVertical: spacing.sm,
   },
+  inputError: {
+    borderColor: colors.error,
+  },
+  fieldError: {
+    ...textStyles.caption,
+    color: colors.error,
+    marginTop: spacing.xs,
+  },
+  errorText: {
+    ...textStyles.caption,
+    color: colors.error,
+    marginBottom: spacing.md,
+    textAlign: "center",
+  },
   registerButton: {
     backgroundColor: colors.primary,
     paddingVertical: spacing.lg,
@@ -236,6 +398,9 @@ const styles = StyleSheet.create({
   registerButtonCompact: {
     marginTop: spacing.sm,
     paddingVertical: spacing.md,
+  },
+  registerButtonDisabled: {
+    opacity: 0.7,
   },
   registerButtonText: {
     ...textStyles.button,

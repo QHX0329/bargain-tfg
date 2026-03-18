@@ -48,6 +48,7 @@ export const RegisterScreen: React.FC = () => {
   const { height } = useWindowDimensions();
   const isCompact = height <= 650;
 
+  const [username, setUsername] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -70,14 +71,18 @@ export const RegisterScreen: React.FC = () => {
     setFieldErrors({});
 
     try {
-      const tokens = await authService.register({
+      // POST /auth/register/ — crea la cuenta; devuelve el perfil (sin tokens)
+      await authService.register({
+        username: username.trim(),
         email: email.trim(),
         password,
+        password_confirm: confirmPassword,
         first_name: firstName.trim(),
         last_name: lastName.trim(),
       });
 
-      // El endpoint de registro ya devuelve tokens; evitamos un segundo login.
+      // El endpoint de registro no devuelve tokens; realizamos login explícito.
+      const tokens = await authService.login(username.trim(), password);
       const profile = await authService.getProfileWithToken(tokens.access);
 
       const user = {
@@ -149,6 +154,26 @@ export const RegisterScreen: React.FC = () => {
           </View>
 
           <View style={[styles.form, isCompact && styles.formCompact]}>
+            {/* Usuario */}
+            <View
+              style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}
+            >
+              <Text style={styles.label}>Nombre de usuario</Text>
+              <TextInput
+                style={[styles.input, isCompact && styles.inputCompact]}
+                placeholder="tu_usuario"
+                placeholderTextColor={colors.textMuted}
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!isLoading}
+              />
+              {fieldErrors.username ? (
+                <Text style={styles.fieldError}>{fieldErrors.username}</Text>
+              ) : null}
+            </View>
+
             {/* Nombre */}
             <View
               style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}

@@ -1,39 +1,20 @@
 /**
- * [P03] Home Dashboard — Pantalla principal de BargAIn.
+ * [P03-04] Home Dashboard — Pantalla principal de BargAIn.
  *
- * Anatomía de la pantalla:
+ * Datos en vivo: authStore (saludo), listStore (listas recientes),
+ * storeService (tiendas cercanas), notificationStore (notificaciones recientes),
+ * priceService (alertas de precio).
  *
- *  ┌──────────────────────────────────────────────┐
- *  │  HEADER                                       │
- *  │  "Buenos días, Ana" · avatar                 │
- *  │  Sevilla · Triana                            │
- *  ├──────────────────────────────────────────────┤
- *  │  SEARCHBAR                                    │
- *  ├──────────────────────────────────────────────┤
- *  │  HERO: Ahorro esta semana                     │
- *  │  €12,40  ↑51% vs semana anterior             │
- *  │  barra de progreso semanal                    │
- *  ├──────────────────────────────────────────────┤
- *  │  ACCIONES RÁPIDAS (grid 2×2)                  │
- *  │  [Nueva lista] [Buscar]                       │
- *  │  [Escanear]    [Mi ruta]                      │
- *  ├──────────────────────────────────────────────┤
- *  │  LISTA ACTIVA                                 │
- *  │  "Compra semanal" · 8 ítems · €34,20         │
- *  │  [✓] Pan  [✗] Leche  [✗] Tomates  +5 más    │
- *  │  [Ir a la lista →]                            │
- *  ├──────────────────────────────────────────────┤
- *  │  TIENDAS CERCANAS (scroll horizontal)         │
- *  │  [Mercadona 0.3km] [Lidl 0.8km] [Aldi 1.2km] │
- *  └──────────────────────────────────────────────┘
- *
- * Datos: mock hasta que se conecte el backend.
- * Animaciones: entrada con FadeInDown staggered (Reanimated 2).
+ * Pull-to-refresh recarga los 4 widgets simultáneamente.
+ * Icono de campana en header con badge de no leídas.
  */
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
+  Alert,
+  Linking,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -51,6 +32,8 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
+import * as Location from "expo-location";
+
 import {
   colors,
   spacing,
@@ -61,181 +44,23 @@ import {
   sizes,
 } from "@/theme";
 import { SearchBar } from "@/components/ui/SearchBar";
+import { SkeletonBox } from "@/components/ui/SkeletonBox";
+import { useAuthStore } from "@/store/authStore";
+import { useListStore } from "@/store/listStore";
+import { useNotificationStore } from "@/store/notificationStore";
+import { listService } from "@/api/listService";
+import { storeService } from "@/api/storeService";
+import { notificationService } from "@/api/notificationService";
+import { priceService } from "@/api/priceService";
+import { useNavigation } from "@react-navigation/native";
 import type {
-  ShoppingList,
   Store,
-  StoreChain,
-  WeeklySavings,
+  PriceAlert,
+  ShoppingList,
+  Notification,
 } from "@/types/domain";
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
-// TODO: reemplazar con llamadas a la API cuando backend esté listo (F3)
-
-const MOCK_USER_NAME = "Ana";
-const MOCK_LOCATION = "Triana · Sevilla";
-
-const MOCK_SAVINGS: WeeklySavings = {
-  thisWeek: 12.4,
-  lastWeek: 8.2,
-  improvementPercent: 51,
-  totalSavedAllTime: 142.8,
-  optimizationsCount: 24,
-};
-
-const MOCK_ACTIVE_LIST: ShoppingList = {
-  id: "list-1",
-  name: "Compra semanal",
-  items: [
-    {
-      id: "i1",
-      product: {
-        id: "p1",
-        name: "Leche semidesnatada",
-        normalizedName: "leche semidesnatada",
-        category: "lácteos",
-        unit: "l",
-        unitQuantity: 1,
-      },
-      quantity: 2,
-      isChecked: false,
-    },
-    {
-      id: "i2",
-      product: {
-        id: "p2",
-        name: "Pan integral",
-        normalizedName: "pan integral",
-        category: "panadería",
-        unit: "ud",
-        unitQuantity: 1,
-      },
-      quantity: 1,
-      isChecked: true,
-    },
-    {
-      id: "i3",
-      product: {
-        id: "p3",
-        name: "Tomates rama",
-        normalizedName: "tomates rama",
-        category: "verduras",
-        unit: "kg",
-        unitQuantity: 1,
-      },
-      quantity: 1,
-      isChecked: false,
-    },
-    {
-      id: "i4",
-      product: {
-        id: "p4",
-        name: "Aceite de oliva virgen extra",
-        normalizedName: "aove",
-        category: "aceites",
-        unit: "l",
-        unitQuantity: 1,
-      },
-      quantity: 1,
-      isChecked: false,
-    },
-    {
-      id: "i5",
-      product: {
-        id: "p5",
-        name: "Yogur griego natural",
-        normalizedName: "yogur griego",
-        category: "lácteos",
-        unit: "ud",
-        unitQuantity: 4,
-      },
-      quantity: 4,
-      isChecked: true,
-    },
-    {
-      id: "i6",
-      product: {
-        id: "p6",
-        name: "Arroz redondo",
-        normalizedName: "arroz redondo",
-        category: "cereales",
-        unit: "kg",
-        unitQuantity: 1,
-      },
-      quantity: 1,
-      isChecked: false,
-    },
-    {
-      id: "i7",
-      product: {
-        id: "p7",
-        name: "Huevos camperos L",
-        normalizedName: "huevos camperos",
-        category: "huevos",
-        unit: "pack",
-        unitQuantity: 12,
-      },
-      quantity: 1,
-      isChecked: false,
-    },
-    {
-      id: "i8",
-      product: {
-        id: "p8",
-        name: "Pasta espagueti",
-        normalizedName: "pasta espagueti",
-        category: "pasta",
-        unit: "g",
-        unitQuantity: 500,
-      },
-      quantity: 2,
-      isChecked: false,
-    },
-  ],
-  totalEstimated: 34.2,
-  totalOptimized: 28.6,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-  isFavorite: false,
-};
-
-const MOCK_NEARBY: Store[] = [
-  {
-    id: "s1",
-    name: "Mercadona Triana",
-    chain: "mercadona",
-    address: "C/ Pagés del Corro, 90",
-    distanceKm: 0.3,
-    estimatedMinutes: 5,
-    isOpen: true,
-  },
-  {
-    id: "s2",
-    name: "Lidl Macarena",
-    chain: "lidl",
-    address: "Ronda de Capuchinos, 1",
-    distanceKm: 0.8,
-    estimatedMinutes: 12,
-    isOpen: true,
-  },
-  {
-    id: "s3",
-    name: "Aldi San Bernardo",
-    chain: "aldi",
-    address: "Av. Dr. Fedriani, 37",
-    distanceKm: 1.2,
-    estimatedMinutes: 18,
-    isOpen: false,
-  },
-  {
-    id: "s4",
-    name: "Carrefour Express",
-    chain: "carrefour",
-    address: "C/ Sierpes, 12",
-    distanceKm: 1.8,
-    estimatedMinutes: 22,
-    isOpen: true,
-  },
-];
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { HomeStackParamList } from "@/navigation/types";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -245,26 +70,6 @@ const fmt = (n: number): string =>
     maximumFractionDigits: 2,
   });
 
-const CHAIN_COLORS: Record<StoreChain, string> = {
-  mercadona: colors.chains.mercadona,
-  lidl: colors.chains.lidl,
-  aldi: colors.chains.aldi,
-  carrefour: colors.chains.carrefour,
-  dia: colors.chains.dia,
-  alcampo: colors.chains.alcampo,
-  local: colors.chains.local,
-};
-
-const CHAIN_INITIALS: Record<StoreChain, string> = {
-  mercadona: "M",
-  lidl: "L",
-  aldi: "A",
-  carrefour: "C",
-  dia: "D",
-  alcampo: "Al",
-  local: "◎",
-};
-
 // ─── Sub-componentes ──────────────────────────────────────────────────────────
 
 const getGreeting = (): string => {
@@ -272,66 +77,6 @@ const getGreeting = (): string => {
   if (h < 13) return "Buenos días";
   if (h < 21) return "Buenas tardes";
   return "Buenas noches";
-};
-
-// ── Tarjeta hero de ahorro semanal ────────────────────────────────────────────
-
-interface SavingsHeroProps {
-  savings: WeeklySavings;
-}
-
-const SavingsHero: React.FC<SavingsHeroProps> = ({ savings }) => {
-  const progress = Math.min(savings.thisWeek / (savings.thisWeek + 10), 1);
-  const improved = savings.improvementPercent > 0;
-
-  return (
-    <View style={heroStyles.container}>
-      {/* Patrón de azulejos abstracto, decorativo */}
-      <View style={[heroStyles.tilePattern, heroStyles.pointerNone]}>
-        {[0, 1, 2, 3, 4, 5].map((i) => (
-          <View
-            key={i}
-            style={[heroStyles.tile, { opacity: 0.06 + i * 0.02 }]}
-          />
-        ))}
-      </View>
-
-      <Text style={heroStyles.label}>AHORRO ESTA SEMANA</Text>
-
-      <View style={heroStyles.amountRow}>
-        <Text style={heroStyles.currency}>€</Text>
-        <Text style={heroStyles.amount}>{fmt(savings.thisWeek)}</Text>
-        <View
-          style={[
-            heroStyles.deltaBadge,
-            !improved && heroStyles.deltaBadgeNeutral,
-          ]}
-        >
-          <Text style={heroStyles.deltaText}>
-            {improved ? "↑" : "↓"} {Math.abs(savings.improvementPercent)}%
-          </Text>
-        </View>
-      </View>
-
-      <Text style={heroStyles.compareText}>
-        vs €{fmt(savings.lastWeek)} la semana pasada
-      </Text>
-
-      <View style={heroStyles.progressTrack}>
-        <View
-          style={[
-            heroStyles.progressFill,
-            { width: `${Math.round(progress * 100)}%` },
-          ]}
-        />
-      </View>
-
-      <Text style={heroStyles.totalText}>
-        Total ahorrado: €{fmt(savings.totalSavedAllTime)} ·{" "}
-        {savings.optimizationsCount} rutas
-      </Text>
-    </View>
-  );
 };
 
 // ── Acciones rápidas ──────────────────────────────────────────────────────────
@@ -391,146 +136,286 @@ const QuickActionTile: React.FC<{ action: QuickAction; delay: number }> = ({
   );
 };
 
-// ── Card de lista activa ──────────────────────────────────────────────────────
+// ── Widget: Listas recientes ──────────────────────────────────────────────────
 
-const ActiveListCard: React.FC<{ list: ShoppingList; onPress: () => void }> = ({
+const RecentListCard: React.FC<{ list: ShoppingList; onPress: () => void }> = ({
   list,
   onPress,
-}) => {
-  const checkedCount = list.items.filter((i) => i.isChecked).length;
-  const previewItems = list.items.slice(0, 4);
-  const remaining = list.items.length - 4;
-  const progressPercent = Math.round((checkedCount / list.items.length) * 100);
-  const savings =
-    list.totalOptimized !== undefined
-      ? list.totalEstimated - list.totalOptimized
-      : 0;
-
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[listCardStyles.container, shadows.card]}
-      activeOpacity={0.88}
-      accessibilityRole="button"
-      accessibilityLabel={`Lista ${list.name}, ${list.items.length} ítems`}
-    >
-      <View style={listCardStyles.header}>
-        <View style={listCardStyles.headerLeft}>
-          <Text style={listCardStyles.listName}>{list.name}</Text>
-          <Text style={listCardStyles.listMeta}>
-            {list.items.length} ítems · {checkedCount}/{list.items.length}{" "}
-            completados
-          </Text>
-        </View>
-        <View style={listCardStyles.headerRight}>
-          <Text style={listCardStyles.totalPrice}>
-            €{fmt(list.totalEstimated)}
-          </Text>
-          {savings > 0.01 && (
-            <Text style={listCardStyles.savedBadge}>-€{fmt(savings)}</Text>
-          )}
-        </View>
+}) => (
+  <TouchableOpacity
+    onPress={onPress}
+    style={[recentListStyles.card, shadows.card]}
+    activeOpacity={0.88}
+    accessibilityRole="button"
+    accessibilityLabel={`Lista ${list.name}`}
+  >
+    <View style={recentListStyles.row}>
+      <View style={recentListStyles.iconWrap}>
+        <Ionicons name="list-outline" size={18} color={colors.primary} />
       </View>
-
-      <View style={listCardStyles.progressTrack}>
-        <View
-          style={[
-            listCardStyles.progressFill,
-            { width: `${progressPercent}%` },
-          ]}
-        />
-      </View>
-
-      <View style={listCardStyles.itemsRow}>
-        {previewItems.map((item) => (
-          <View
-            key={item.id}
-            style={[
-              listCardStyles.itemChip,
-              item.isChecked && listCardStyles.itemChipDone,
-            ]}
-          >
-            <Text
-              style={[
-                listCardStyles.itemChipText,
-                item.isChecked && listCardStyles.itemChipTextDone,
-              ]}
-              numberOfLines={1}
-            >
-              {item.isChecked ? "✓ " : ""}
-              {item.product.name.split(" ")[0]}
-            </Text>
-          </View>
-        ))}
-        {remaining > 0 && (
-          <View style={listCardStyles.moreChip}>
-            <Text style={listCardStyles.moreChipText}>+{remaining}</Text>
-          </View>
-        )}
-      </View>
-
-      <View style={listCardStyles.footer}>
-        <Text style={listCardStyles.ctaText}>Ver lista completa →</Text>
-      </View>
-    </TouchableOpacity>
-  );
-};
-
-// ── Tarjeta de tienda cercana ─────────────────────────────────────────────────
-
-const NearbyStoreCard: React.FC<{ store: Store; onPress: () => void }> = ({
-  store,
-  onPress,
-}) => {
-  const chainColor = CHAIN_COLORS[store.chain];
-  const initial = CHAIN_INITIALS[store.chain];
-
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[nearbyStyles.card, shadows.card]}
-      activeOpacity={0.85}
-      accessibilityRole="button"
-      accessibilityLabel={`${store.name}, a ${store.distanceKm} kilómetros`}
-    >
-      <View style={[nearbyStyles.logo, { backgroundColor: chainColor + "18" }]}>
-        <Text style={[nearbyStyles.logoText, { color: chainColor }]}>
-          {initial}
+      <View style={recentListStyles.info}>
+        <Text style={recentListStyles.name} numberOfLines={1}>
+          {list.name}
+        </Text>
+        <Text style={recentListStyles.meta}>
+          {list.items.length} producto{list.items.length !== 1 ? "s" : ""}
         </Text>
       </View>
-      <Text style={nearbyStyles.storeName} numberOfLines={2}>
-        {store.name}
-      </Text>
-      <Text style={nearbyStyles.distanceText}>
-        {store.distanceKm < 1
-          ? `${Math.round(store.distanceKm * 1000)} m`
-          : `${store.distanceKm.toFixed(1)} km`}
-      </Text>
-      <Text style={nearbyStyles.timeText}>≈ {store.estimatedMinutes} min</Text>
-      <View
-        style={[
-          nearbyStyles.statusDot,
-          !store.isOpen && nearbyStyles.statusDotClosed,
-        ]}
-      />
+      <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+    </View>
+  </TouchableOpacity>
+);
+
+// ── Widget: Tiendas cercanas ──────────────────────────────────────────────────
+
+interface NearbyWidgetProps {
+  count: number;
+  isLoading: boolean;
+  locationStatus: string;
+  onMapPress: () => void;
+}
+
+const NearbyWidget: React.FC<NearbyWidgetProps> = ({
+  count,
+  isLoading,
+  locationStatus,
+  onMapPress,
+}) => {
+  if (isLoading) {
+    return (
+      <SkeletonBox testID="skeleton-nearby" width="100%" height={64} borderRadius={12} />
+    );
+  }
+
+  if (locationStatus === "denied") {
+    return (
+      <TouchableOpacity
+        testID="location-denied-card"
+        style={[nearbyWidgetStyles.deniedCard, shadows.card]}
+        onPress={() => Linking.openSettings()}
+        activeOpacity={0.85}
+      >
+        <Ionicons name="location-outline" size={20} color={colors.textMuted} />
+        <Text style={nearbyWidgetStyles.deniedText}>
+          Activa la ubicación para ver tiendas cercanas
+        </Text>
+        <Ionicons name="settings-outline" size={16} color={colors.textMuted} />
+      </TouchableOpacity>
+    );
+  }
+
+  return (
+    <TouchableOpacity
+      style={[nearbyWidgetStyles.card, shadows.card]}
+      onPress={onMapPress}
+      activeOpacity={0.88}
+    >
+      <Ionicons name="storefront-outline" size={22} color={colors.primary} />
+      <View style={nearbyWidgetStyles.info}>
+        <Text style={nearbyWidgetStyles.count}>
+          {count} tienda{count !== 1 ? "s" : ""} en tu radio
+        </Text>
+        <Text style={nearbyWidgetStyles.sub}>Ver en mapa →</Text>
+      </View>
     </TouchableOpacity>
   );
 };
+
+// ── Widget: Notificaciones recientes ─────────────────────────────────────────
+
+const RecentNotifCard: React.FC<{
+  notif: Notification;
+  onPress: () => void;
+}> = ({ notif, onPress }) => (
+  <TouchableOpacity
+    onPress={onPress}
+    style={[notifCardStyles.card, !notif.is_read && notifCardStyles.unread]}
+    activeOpacity={0.85}
+  >
+    <View style={notifCardStyles.dot}>
+      {!notif.is_read && <View style={notifCardStyles.unreadDot} />}
+    </View>
+    <View style={notifCardStyles.body}>
+      <Text style={notifCardStyles.title} numberOfLines={1}>
+        {notif.title}
+      </Text>
+      <Text style={notifCardStyles.bodyText} numberOfLines={2}>
+        {notif.body}
+      </Text>
+    </View>
+  </TouchableOpacity>
+);
+
+// ── Widget: Alertas de precio ─────────────────────────────────────────────────
+
+const PriceAlertCard: React.FC<{
+  alert: PriceAlert;
+  onPress: () => void;
+}> = ({ alert, onPress }) => (
+  <TouchableOpacity
+    onPress={onPress}
+    style={[priceAlertStyles.card, shadows.card]}
+    activeOpacity={0.85}
+  >
+    <View style={priceAlertStyles.row}>
+      <Ionicons name="pricetag-outline" size={18} color={colors.accentDark} />
+      <View style={priceAlertStyles.info}>
+        <Text style={priceAlertStyles.name} numberOfLines={1}>
+          {alert.product.name}
+        </Text>
+        <Text style={priceAlertStyles.prices}>
+          Objetivo: €{fmt(alert.target_price)} · Actual: €{fmt(alert.current_price)}
+        </Text>
+      </View>
+    </View>
+  </TouchableOpacity>
+);
 
 // ─── Pantalla principal ───────────────────────────────────────────────────────
 
-export const HomeScreen: React.FC = () => {
+interface HomeScreenProps {
+  navigation?: NativeStackNavigationProp<HomeStackParamList>;
+}
+
+export const HomeScreen: React.FC<HomeScreenProps> = () => {
+  const { user } = useAuthStore();
+  const { lists, setLists } = useListStore();
+  const {
+    notifications,
+    unreadCount,
+    setNotifications: setStoreNotifications,
+  } = useNotificationStore();
+
   const [searchQuery, setSearchQuery] = useState("");
+  const [nearbyStores, setNearbyStores] = useState<Store[]>([]);
+  const [priceAlerts, setPriceAlerts] = useState<PriceAlert[]>([]);
+  const [locationStatus, setLocationStatus] = useState<
+    "loading" | "granted" | "denied" | "undetermined"
+  >("loading");
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [widgetLoading, setWidgetLoading] = useState({
+    lists: false,
+    stores: true,
+    notifications: false,
+    alerts: false,
+  });
+
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
 
-  const handleListPress = useCallback(() => {
-    // TODO: router.push('/(tabs)/lists/' + MOCK_ACTIVE_LIST.id)
-    console.log("Navigate to list:", MOCK_ACTIVE_LIST.id);
-  }, []);
+  const loadAll = useCallback(async () => {
+    // Lists
+    setWidgetLoading((prev) => ({ ...prev, lists: true }));
+    try {
+      const fetchedLists = await listService.getLists();
+      setLists(fetchedLists);
+    } catch {
+      // silent
+    } finally {
+      setWidgetLoading((prev) => ({ ...prev, lists: false }));
+    }
 
-  const handleStorePress = useCallback((storeId: string) => {
-    console.log("Navigate to store:", storeId);
-  }, []);
+    // Notifications
+    try {
+      const result = await notificationService.getNotifications(1);
+      setStoreNotifications(result.results);
+    } catch {
+      // silent
+    }
+
+    // Price alerts
+    try {
+      const alerts = await priceService.getPriceAlerts();
+      setPriceAlerts(alerts);
+    } catch {
+      // silent
+    }
+
+    // Location + nearby stores
+    setWidgetLoading((prev) => ({ ...prev, stores: true }));
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === "granted") {
+        setLocationStatus("granted");
+        let lat: number;
+        let lng: number;
+        if (__DEV__) {
+          // Dev fallback: Seville center
+          lat = 37.3886;
+          lng = -5.9823;
+        } else {
+          const pos = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          });
+          lat = pos.coords.latitude;
+          lng = pos.coords.longitude;
+        }
+        const stores = await storeService.getNearby(lat, lng, 5);
+        setNearbyStores(stores);
+      } else {
+        setLocationStatus("denied");
+      }
+    } catch {
+      setLocationStatus("undetermined");
+    } finally {
+      setWidgetLoading((prev) => ({ ...prev, stores: false }));
+    }
+  }, [setLists, setStoreNotifications]);
+
+  useEffect(() => {
+    loadAll();
+  }, [loadAll]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    // Force re-fetch lists even if already loaded
+    try {
+      const [fetchedLists, notifResult, alerts] = await Promise.all([
+        listService.getLists(),
+        notificationService.getNotifications(1),
+        priceService.getPriceAlerts(),
+      ]);
+      setLists(fetchedLists);
+      setStoreNotifications(notifResult.results);
+      setPriceAlerts(alerts);
+    } catch {
+      // silent
+    }
+
+    // Also refresh stores
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === "granted") {
+        const pos = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+        const stores = await storeService.getNearby(
+          pos.coords.latitude,
+          pos.coords.longitude,
+          5,
+        );
+        setNearbyStores(stores);
+        setLocationStatus("granted");
+      } else {
+        setLocationStatus("denied");
+      }
+    } catch {
+      // silent
+    }
+
+    setIsRefreshing(false);
+  }, [setLists, setStoreNotifications]);
+
+  // Recent lists: 2 most recently updated
+  const recentLists = [...lists]
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    .slice(0, 2);
+
+  // Recent unread notifications: 3 most recent
+  const recentNotifs = notifications.filter((n) => !n.is_read).slice(0, 3);
+
+  // Bell badge display
+  const badgeCount = unreadCount > 99 ? "99+" : String(unreadCount);
 
   const QUICK_ACTIONS: QuickAction[] = [
     {
@@ -539,7 +424,7 @@ export const HomeScreen: React.FC = () => {
       iconName: "add",
       color: colors.secondary,
       bg: colors.secondaryTint,
-      onPress: () => console.log("Nueva lista"),
+      onPress: () => navigation.navigate("ListsTab" as never),
     },
     {
       id: "search",
@@ -567,9 +452,12 @@ export const HomeScreen: React.FC = () => {
     },
   ];
 
+  const firstName = user?.name?.split(" ")[0] ?? "amigo";
+
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <ScrollView
+        testID="home-scroll"
         style={styles.scroll}
         contentContainerStyle={[
           styles.content,
@@ -577,6 +465,9 @@ export const HomeScreen: React.FC = () => {
         ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+        }
       >
         {/* ── Header ─────────────────────────────────────────────────── */}
         <Animated.View
@@ -584,21 +475,23 @@ export const HomeScreen: React.FC = () => {
           style={styles.header}
         >
           <View style={styles.headerLeft}>
-            <Text style={styles.greeting}>{getGreeting()},</Text>
-            <Text style={styles.userName}>{MOCK_USER_NAME}</Text>
-            <View style={styles.locationRow}>
-              <Text style={styles.locationDot}>◉</Text>
-              <Text style={styles.locationText}>{MOCK_LOCATION}</Text>
-            </View>
+            <Text style={styles.greeting}>{getGreeting()}, 👋</Text>
+            <Text style={styles.userName}>{firstName}</Text>
           </View>
+
+          {/* Bell icon with unread badge */}
           <TouchableOpacity
-            style={styles.avatarButton}
+            style={styles.bellButton}
+            onPress={() => navigation.navigate("Notifications" as never)}
             accessibilityRole="button"
-            accessibilityLabel="Perfil de usuario"
+            accessibilityLabel={`Notificaciones, ${unreadCount} sin leer`}
           >
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{MOCK_USER_NAME.charAt(0)}</Text>
-            </View>
+            <Ionicons name="notifications-outline" size={24} color={colors.text} />
+            {unreadCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{badgeCount}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </Animated.View>
 
@@ -615,14 +508,9 @@ export const HomeScreen: React.FC = () => {
           />
         </Animated.View>
 
-        {/* ── Hero ahorro ────────────────────────────────────────────── */}
-        <Animated.View entering={FadeInDown.delay(120).springify().damping(20)}>
-          <SavingsHero savings={MOCK_SAVINGS} />
-        </Animated.View>
-
         {/* ── Acciones rápidas ───────────────────────────────────────── */}
         <Animated.View
-          entering={FadeInDown.delay(180).springify().damping(20)}
+          entering={FadeInDown.delay(120).springify().damping(20)}
           style={styles.section}
         >
           <Text style={styles.sectionTitle}>Acciones rápidas</Text>
@@ -631,59 +519,132 @@ export const HomeScreen: React.FC = () => {
               <QuickActionTile
                 key={action.id}
                 action={action}
-                delay={200 + i * 40}
+                delay={140 + i * 40}
               />
             ))}
           </View>
         </Animated.View>
 
-        {/* ── Lista activa ────────────────────────────────────────────── */}
+        {/* ── Widget 1: Notificaciones recientes ─────────────────────── */}
+        {(recentNotifs.length > 0 || widgetLoading.notifications) && (
+          <Animated.View
+            entering={FadeInDown.delay(200).springify().damping(20)}
+            style={styles.section}
+          >
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Notificaciones recientes</Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("Notifications" as never)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Text style={styles.sectionLink}>Ver todas →</Text>
+              </TouchableOpacity>
+            </View>
+            {recentNotifs.map((n) => (
+              <RecentNotifCard
+                key={n.id}
+                notif={n}
+                onPress={() => navigation.navigate("Notifications" as never)}
+              />
+            ))}
+          </Animated.View>
+        )}
+
+        {/* ── Widget 2: Listas recientes ─────────────────────────────── */}
         <Animated.View
-          entering={FadeInDown.delay(280).springify().damping(20)}
+          entering={FadeInDown.delay(260).springify().damping(20)}
           style={styles.section}
         >
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Lista activa</Text>
+            <Text style={styles.sectionTitle}>Listas recientes</Text>
             <TouchableOpacity
-              accessibilityRole="button"
-              accessibilityLabel="Ver todas las listas"
+              onPress={() => navigation.navigate("ListsTab" as never)}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <Text style={styles.sectionLink}>Ver todas →</Text>
             </TouchableOpacity>
           </View>
-          <ActiveListCard list={MOCK_ACTIVE_LIST} onPress={handleListPress} />
+
+          {widgetLoading.lists ? (
+            <>
+              <SkeletonBox testID="skeleton-list-1" width="100%" height={56} borderRadius={12} style={{ marginBottom: spacing.xs }} />
+              <SkeletonBox testID="skeleton-list-2" width="100%" height={56} borderRadius={12} />
+            </>
+          ) : recentLists.length === 0 ? (
+            <Text style={styles.emptyText}>Sin listas recientes. ¡Crea tu primera lista!</Text>
+          ) : (
+            recentLists.map((list) => (
+              <RecentListCard
+                key={list.id}
+                list={list}
+                onPress={() => navigation.navigate("ListsTab" as never)}
+              />
+            ))
+          )}
         </Animated.View>
 
-        {/* ── Tiendas cercanas ────────────────────────────────────────── */}
+        {/* ── Widget 3: Tiendas cercanas ─────────────────────────────── */}
         <Animated.View
-          entering={FadeInDown.delay(340).springify().damping(20)}
-          style={styles.sectionHeader}
+          entering={FadeInDown.delay(320).springify().damping(20)}
+          style={styles.section}
         >
           <Text style={styles.sectionTitle}>Cerca de ti</Text>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessibilityLabel="Ver mapa de tiendas"
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Text style={styles.sectionLink}>Mapa →</Text>
-          </TouchableOpacity>
+          <NearbyWidget
+            count={nearbyStores.length}
+            isLoading={widgetLoading.stores}
+            locationStatus={locationStatus}
+            onMapPress={() => navigation.navigate("MapTab" as never)}
+          />
         </Animated.View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={nearbyStyles.scrollContent}
-          style={nearbyStyles.scroll}
+        {/* ── Widget 4: Alertas de precio ────────────────────────────── */}
+        <Animated.View
+          entering={FadeInDown.delay(380).springify().damping(20)}
+          style={styles.section}
         >
-          {MOCK_NEARBY.map((store) => (
-            <NearbyStoreCard
-              key={store.id}
-              store={store}
-              onPress={() => handleStorePress(store.id)}
-            />
-          ))}
-        </ScrollView>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Alertas de precio</Text>
+            {priceAlerts.length > 0 && (
+              <TouchableOpacity
+                onPress={() => navigation.navigate("PriceAlerts" as never)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Text style={styles.sectionLink}>Ver todas →</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          {priceAlerts.length === 0 ? (
+            <Text style={styles.emptyText}>Sin alertas activas</Text>
+          ) : (
+            priceAlerts.slice(0, 3).map((alert) => (
+              <PriceAlertCard
+                key={alert.id}
+                alert={alert}
+                onPress={() => navigation.navigate("PriceAlerts" as never)}
+              />
+            ))
+          )}
+        </Animated.View>
+
+        {/* ── Optimizer teaser ───────────────────────────────────────── */}
+        <Animated.View
+          entering={FadeInDown.delay(440).springify().damping(20)}
+          style={styles.section}
+        >
+          <TouchableOpacity
+            style={teaserStyles.card}
+            activeOpacity={1}
+            onPress={() =>
+              Alert.alert("Próximamente", "Esta función estará disponible próximamente")
+            }
+          >
+            <Ionicons name="lock-closed-outline" size={24} color={colors.textMuted} />
+            <View style={teaserStyles.info}>
+              <Text style={teaserStyles.title}>Optimizar ruta</Text>
+              <Text style={teaserStyles.badge}>Próximamente</Text>
+            </View>
+          </TouchableOpacity>
+        </Animated.View>
 
         <View style={{ height: spacing.xxl }} />
       </ScrollView>
@@ -706,7 +667,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     justifyContent: "space-between",
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
@@ -727,40 +688,30 @@ const styles = StyleSheet.create({
     lineHeight: Math.round(fontSize["3xl"] * 1.15),
     letterSpacing: -0.5,
   },
-  locationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginTop: 2,
-  },
-  locationDot: {
-    fontSize: 9,
-    color: colors.primary,
-    lineHeight: 14,
-  },
-  locationText: {
-    fontFamily: fontFamilies.bodyMedium,
-    fontSize: fontSize.xs,
-    color: colors.textMuted,
-    lineHeight: 14,
-  },
-  avatarButton: {
-    marginTop: spacing.xs,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.primaryTint,
-    borderWidth: 2,
-    borderColor: colors.primary + "30",
+  bellButton: {
+    width: 40,
+    height: 40,
     alignItems: "center",
     justifyContent: "center",
+    position: "relative",
   },
-  avatarText: {
+  badge: {
+    position: "absolute",
+    top: 2,
+    right: 2,
+    backgroundColor: colors.error ?? "#E53E3E",
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 3,
+  },
+  badgeText: {
     fontFamily: fontFamilies.bodySemiBold,
-    fontSize: fontSize.lg,
-    color: colors.primary,
+    fontSize: 9,
+    color: colors.white,
+    lineHeight: 14,
   },
   searchWrap: {
     marginBottom: spacing.md,
@@ -787,103 +738,12 @@ const styles = StyleSheet.create({
     color: colors.primary,
     lineHeight: 18,
   },
-});
-
-// ─── Estilos Hero ─────────────────────────────────────────────────────────────
-
-const heroStyles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    paddingTop: spacing.lg,
-    marginBottom: spacing.md,
-    overflow: "hidden",
-    position: "relative",
-  },
-  tilePattern: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    width: 120,
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-  pointerNone: {
-    pointerEvents: "none",
-  },
-  tile: {
-    width: 40,
-    height: 40,
-    borderRadius: 8,
-    backgroundColor: colors.white,
-    margin: 2,
-  },
-  label: {
-    fontFamily: fontFamilies.bodySemiBold,
-    fontSize: fontSize.xs,
-    color: "rgba(255,255,255,0.7)",
-    letterSpacing: 1.2,
-    marginBottom: spacing.xs,
-  },
-  amountRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    gap: spacing.sm,
-    marginBottom: 4,
-  },
-  currency: {
-    fontFamily: fontFamilies.monoMedium,
-    fontSize: fontSize.xl,
-    color: "rgba(255,255,255,0.8)",
-    lineHeight: Math.round(fontSize["4xl"] * 1.1),
-    paddingBottom: 4,
-  },
-  amount: {
-    fontFamily: fontFamilies.monoMedium,
-    fontSize: fontSize["4xl"],
-    color: colors.white,
-    lineHeight: Math.round(fontSize["4xl"] * 1.0),
-    letterSpacing: -1,
-  },
-  deltaBadge: {
-    backgroundColor: colors.successBg,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: borderRadius.pill,
-    marginBottom: 6,
-  },
-  deltaBadgeNeutral: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-  },
-  deltaText: {
-    fontFamily: fontFamilies.bodySemiBold,
-    fontSize: fontSize.xs,
-    color: colors.success,
-  },
-  compareText: {
+  emptyText: {
     fontFamily: fontFamilies.body,
     fontSize: fontSize.sm,
-    color: "rgba(255,255,255,0.7)",
-    marginBottom: spacing.sm,
-  },
-  progressTrack: {
-    height: 4,
-    backgroundColor: "rgba(255,255,255,0.25)",
-    borderRadius: borderRadius.pill,
-    marginBottom: spacing.sm,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    backgroundColor: colors.accent,
-    borderRadius: borderRadius.pill,
-  },
-  totalText: {
-    fontFamily: fontFamilies.body,
-    fontSize: fontSize.xs,
-    color: "rgba(255,255,255,0.55)",
+    color: colors.textMuted,
+    textAlign: "center",
+    paddingVertical: spacing.md,
   },
 });
 
@@ -914,10 +774,6 @@ const quickStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  icon: {
-    fontSize: 18,
-    lineHeight: 22,
-  },
   label: {
     fontFamily: fontFamilies.bodySemiBold,
     fontSize: fontSize.sm,
@@ -925,175 +781,194 @@ const quickStyles = StyleSheet.create({
   },
 });
 
-// ─── Estilos Lista activa ─────────────────────────────────────────────────────
+// ─── Estilos Listas recientes ──────────────────────────────────────────────────
 
-const listCardStyles = StyleSheet.create({
-  container: {
+const recentListStyles = StyleSheet.create({
+  card: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
-    padding: spacing.md,
+    padding: spacing.sm,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
+    marginBottom: spacing.xs,
   },
-  header: {
+  row: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    marginBottom: spacing.sm,
+    alignItems: "center",
+    gap: spacing.sm,
   },
-  headerLeft: { flex: 1 },
-  listName: {
-    fontFamily: fontFamilies.display,
-    fontSize: fontSize.lg,
-    color: colors.text,
-    lineHeight: Math.round(fontSize.lg * 1.3),
-  },
-  listMeta: {
-    fontFamily: fontFamilies.body,
-    fontSize: fontSize.xs,
-    color: colors.textMuted,
-    marginTop: 2,
-  },
-  headerRight: { alignItems: "flex-end" },
-  totalPrice: {
-    fontFamily: fontFamilies.monoMedium,
-    fontSize: fontSize.lg,
-    color: colors.text,
-  },
-  savedBadge: {
-    fontFamily: fontFamilies.bodySemiBold,
-    fontSize: fontSize.xs,
-    color: colors.success,
-    marginTop: 2,
-  },
-  progressTrack: {
-    height: 3,
-    backgroundColor: colors.border,
-    borderRadius: borderRadius.pill,
-    marginBottom: spacing.sm,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    backgroundColor: colors.secondary,
-    borderRadius: borderRadius.pill,
-  },
-  itemsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 6,
-    marginBottom: spacing.sm,
-  },
-  itemChip: {
-    backgroundColor: colors.background,
-    borderRadius: borderRadius.sm,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-  },
-  itemChipDone: {
-    backgroundColor: colors.successBg,
-    borderColor: colors.success + "40",
-  },
-  itemChipText: {
-    fontFamily: fontFamilies.body,
-    fontSize: fontSize.xs,
-    color: colors.textMuted,
-  },
-  itemChipTextDone: {
-    color: colors.success,
-    textDecorationLine: "line-through",
-  },
-  moreChip: {
+  iconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: colors.primaryTint,
-    borderRadius: borderRadius.sm,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.primary + "30",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  moreChipText: {
-    fontFamily: fontFamilies.bodySemiBold,
-    fontSize: fontSize.xs,
-    color: colors.primary,
+  info: {
+    flex: 1,
   },
-  footer: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.divider,
-    paddingTop: spacing.sm,
-    alignItems: "flex-end",
-  },
-  ctaText: {
-    fontFamily: fontFamilies.bodySemiBold,
+  name: {
+    fontFamily: fontFamilies.bodyMedium,
     fontSize: fontSize.sm,
-    color: colors.primary,
+    color: colors.text,
+  },
+  meta: {
+    fontFamily: fontFamilies.body,
+    fontSize: fontSize.xs,
+    color: colors.textMuted,
+    marginTop: 2,
   },
 });
 
 // ─── Estilos Tiendas cercanas ─────────────────────────────────────────────────
 
-const nearbyStyles = StyleSheet.create({
-  scroll: {
-    marginBottom: spacing.md,
-    marginHorizontal: -spacing.md,
-  },
-  scrollContent: {
-    paddingHorizontal: spacing.md,
+const nearbyWidgetStyles = StyleSheet.create({
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
-    paddingBottom: 2,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
   },
+  info: {
+    flex: 1,
+  },
+  count: {
+    fontFamily: fontFamilies.bodyMedium,
+    fontSize: fontSize.sm,
+    color: colors.text,
+  },
+  sub: {
+    fontFamily: fontFamilies.body,
+    fontSize: fontSize.xs,
+    color: colors.primary,
+    marginTop: 2,
+  },
+  deniedCard: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+  },
+  deniedText: {
+    fontFamily: fontFamilies.body,
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
+    flex: 1,
+  },
+});
+
+// ─── Estilos Notificaciones recientes ─────────────────────────────────────────
+
+const notifCardStyles = StyleSheet.create({
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    padding: spacing.sm,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: spacing.xs,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+  },
+  unread: {
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
+  },
+  dot: {
+    width: 16,
+    alignItems: "center",
+    paddingTop: 4,
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.primary,
+  },
+  body: {
+    flex: 1,
+  },
+  title: {
+    fontFamily: fontFamilies.bodyMedium,
+    fontSize: fontSize.sm,
+    color: colors.text,
+  },
+  bodyText: {
+    fontFamily: fontFamilies.body,
+    fontSize: fontSize.xs,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+});
+
+// ─── Estilos Alertas de precio ────────────────────────────────────────────────
+
+const priceAlertStyles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.sm,
-    width: 130,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
-    position: "relative",
-  },
-  logo: {
-    width: 44,
-    height: 44,
-    borderRadius: borderRadius.md,
-    alignItems: "center",
-    justifyContent: "center",
     marginBottom: spacing.xs,
   },
-  logoText: {
-    fontFamily: fontFamilies.bodyBold,
-    fontSize: fontSize.lg,
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
   },
-  storeName: {
+  info: {
+    flex: 1,
+  },
+  name: {
     fontFamily: fontFamilies.bodyMedium,
     fontSize: fontSize.sm,
     color: colors.text,
-    lineHeight: 17,
-    marginBottom: 4,
   },
-  distanceText: {
-    fontFamily: fontFamilies.monoMedium,
-    fontSize: fontSize.sm,
-    color: colors.primary,
-    lineHeight: 17,
-  },
-  timeText: {
+  prices: {
     fontFamily: fontFamilies.body,
     fontSize: fontSize.xs,
     color: colors.textMuted,
-    lineHeight: 15,
+    marginTop: 2,
   },
-  statusDot: {
-    position: "absolute",
-    top: spacing.sm,
-    right: spacing.sm,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.success,
+});
+
+// ─── Estilos Optimizer teaser ─────────────────────────────────────────────────
+
+const teaserStyles = StyleSheet.create({
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    opacity: 0.5,
   },
-  statusDotClosed: {
-    backgroundColor: colors.textDisabled,
+  info: {
+    flex: 1,
+  },
+  title: {
+    fontFamily: fontFamilies.bodyMedium,
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
+  },
+  badge: {
+    fontFamily: fontFamilies.bodySemiBold,
+    fontSize: fontSize.xs,
+    color: colors.textMuted,
+    marginTop: 2,
   },
 });
 

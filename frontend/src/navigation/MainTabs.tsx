@@ -22,10 +22,12 @@ import type {
 
 // Screens
 import { HomeScreen } from "@/screens/home/HomeScreen";
+import { NotificationScreen } from "@/screens/home/NotificationScreen";
 import { ListsScreen } from "@/screens/lists/ListsScreen";
 import { ListDetailScreen } from "@/screens/lists/ListDetailScreen";
 import { MapScreen } from "@/screens/map/MapScreen";
 import { ProfileScreen } from "@/screens/profile/ProfileScreen";
+import { ChangePasswordScreen } from "@/screens/profile/ChangePasswordScreen";
 
 // ── Stack Navigators anidados ────────────────────────
 
@@ -37,6 +39,11 @@ const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 const HomeStackNavigator: React.FC = () => (
   <HomeStack.Navigator screenOptions={{ headerShown: false }}>
     <HomeStack.Screen name="Home" component={HomeScreen} />
+    <HomeStack.Screen
+      name="Notifications"
+      component={NotificationScreen}
+      options={{ headerShown: true, title: "Notificaciones" }}
+    />
   </HomeStack.Navigator>
 );
 
@@ -69,8 +76,22 @@ const MapStackNavigator: React.FC = () => (
 );
 
 const ProfileStackNavigator: React.FC = () => (
-  <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
-    <ProfileStack.Screen name="Profile" component={ProfileScreen} />
+  <ProfileStack.Navigator
+    screenOptions={{
+      headerStyle: { backgroundColor: colors.surface },
+      headerTintColor: colors.text,
+    }}
+  >
+    <ProfileStack.Screen
+      name="Profile"
+      component={ProfileScreen}
+      options={{ headerShown: false }}
+    />
+    <ProfileStack.Screen
+      name="ChangePassword"
+      component={ChangePasswordScreen}
+      options={{ title: "Cambiar contraseña" }}
+    />
   </ProfileStack.Navigator>
 );
 

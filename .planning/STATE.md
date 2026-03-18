@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-stopped_at: Completed 03-frontend-03-01-PLAN.md
-last_updated: "2026-03-18T08:06:59.031Z"
+stopped_at: Completed 03-frontend-03-02-PLAN.md
+last_updated: "2026-03-18T08:17:01.579Z"
 last_activity: 2026-03-17 — Phase 1 complete. 179 tests green, UAT 15/15, Nyquist compliant. Starting Phase 2.
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 14
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 ---
@@ -74,6 +74,7 @@ Progress: [████████░░░░░░░░░░░░] ~40% (F
 | Phase 02-business-notifications P01 | 20 | 2 tasks | 20 files |
 | Phase 02-business-notifications P02 | 10 | 2 tasks | 14 files |
 | Phase 03-frontend P01 | 9 | 2 tasks | 19 files |
+| Phase 03-frontend P02 | 7 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -105,6 +106,8 @@ Decisions are logged in PROJECT.md Key Decisions table. Key decisions affecting 
 - [Phase 03-frontend]: Zustand 5 does not support built-in persist middleware with expo-secure-store — manual hydration via hydrate() on app mount
 - [Phase 03-frontend]: Refresh token endpoint uses a separate axios.create() instance (refreshAxios) to avoid interceptor recursion
 - [Phase 03-frontend]: API layer: one service file per domain; all functions typed; no direct apiClient calls from screens
+- [Phase 03-frontend]: getProfile() called after login to populate user object — POST /auth/token/ returns flat {access,refresh}, not user data
+- [Phase 03-frontend]: App.tsx renders loading View until both fontsLoaded AND hydrated — prevents NavigationContainer auth flicker on restart
 
 ### Pending Todos
 
@@ -118,6 +121,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-18T08:06:59.028Z
-Stopped at: Completed 03-frontend-03-01-PLAN.md
+Last session: 2026-03-18T08:17:01.575Z
+Stopped at: Completed 03-frontend-03-02-PLAN.md
 Resume file: None

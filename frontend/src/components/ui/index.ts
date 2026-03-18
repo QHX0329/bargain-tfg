@@ -22,3 +22,6 @@ export type { ProductCardProps, ProductCardVariant } from "./ProductCard";
 
 export { SearchBar } from "./SearchBar";
 export type { SearchBarProps } from "./SearchBar";
+
+export { SkeletonBox } from "./SkeletonBox";
+export type { SkeletonBoxProps } from "./SkeletonBox";

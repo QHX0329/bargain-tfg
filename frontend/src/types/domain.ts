@@ -164,3 +164,41 @@ export interface UserProfile {
   weightDistance: number;
   weightTime: number;
 }
+
+// ─── Preferencias de usuario ──────────────────────────────────────────────────
+
+export interface UserPreferences {
+  max_search_radius_km: number;
+  max_stops: number;
+  weight_price: number;
+  weight_distance: number;
+  weight_time: number;
+  push_notifications_enabled: boolean;
+  notify_price_alerts: boolean;
+  notify_new_promos: boolean;
+  notify_shared_list_changes: boolean;
+}
+
+// ─── Notificación ─────────────────────────────────────────────────────────────
+
+export interface Notification {
+  id: string;
+  notification_type: string;
+  title: string;
+  body: string;
+  is_read: boolean;
+  data: Record<string, unknown>;
+  action_url: string | null;
+  created_at: string;
+}
+
+// ─── Alerta de precio ─────────────────────────────────────────────────────────
+
+export interface PriceAlert {
+  id: string;
+  product: Product;
+  target_price: number;
+  current_price: number;
+  is_active: boolean;
+  created_at: string;
+}

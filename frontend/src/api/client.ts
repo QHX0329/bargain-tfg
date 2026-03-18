@@ -50,7 +50,7 @@ const refreshAxios = axios.create({
 let isRefreshing = false;
 
 /** Callbacks encolados mientras se espera el nuevo access token */
-let refreshQueue: Array<(token: string) => void> = [];
+let refreshQueue: ((token: string) => void)[] = [];
 
 /**
  * Drena la cola de peticiones que esperaban un nuevo token.

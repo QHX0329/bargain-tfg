@@ -27,6 +27,8 @@ export type MainTabParamList = {
 /** Parámetros del Stack de Home */
 export type HomeStackParamList = {
   Home: undefined;
+  Notifications: undefined;
+  PriceAlerts: undefined;
 };
 
 /** Parámetros del Stack de Listas */
@@ -43,4 +45,5 @@ export type MapStackParamList = {
 /** Parámetros del Stack de Perfil */
 export type ProfileStackParamList = {
   Profile: undefined;
+  ChangePassword: undefined;
 };

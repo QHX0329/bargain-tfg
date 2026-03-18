@@ -29,6 +29,12 @@ export interface Store {
   estimatedMinutes: number;
   isOpen: boolean;
   logoUrl?: string;
+  /**
+   * Punto geográfico PostGIS serializado como GeoJSON.
+   * Formato: { type: "Point", coordinates: [lng, lat] }
+   * Extraer: lat = coordinates[1], lng = coordinates[0]
+   */
+  location?: { type: string; coordinates: [number, number] };
 }
 
 // ─── Producto ─────────────────────────────────────────────────────────────────

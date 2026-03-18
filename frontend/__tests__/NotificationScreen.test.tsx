@@ -59,8 +59,25 @@ jest.mock("react-native-safe-area-context", () => ({
 
 jest.mock("react-native-gesture-handler", () => {
   const RN = jest.requireActual("react-native");
+  // Render both children and right actions so testIDs in renderRightActions are accessible
+  const Swipeable = ({
+    children,
+    renderRightActions,
+  }: {
+    children: React.ReactNode;
+    renderRightActions?: () => React.ReactNode;
+  }) => {
+    const React = jest.requireActual("react");
+    const { View } = jest.requireActual("react-native");
+    return React.createElement(
+      View,
+      null,
+      children,
+      renderRightActions ? renderRightActions() : null,
+    );
+  };
   return {
-    Swipeable: ({ children }: { children: React.ReactNode }) => children,
+    Swipeable,
     GestureHandlerRootView: ({ children }: { children: React.ReactNode }) => children,
     PanGestureHandler: ({ children }: { children: React.ReactNode }) => children,
     State: {},

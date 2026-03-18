@@ -71,6 +71,8 @@ export interface BargainButtonProps {
   style?: StyleProp<ViewStyle>;
   /** accessibilityHint para screen readers */
   accessibilityHint?: string;
+  /** testID para pruebas automatizadas */
+  testID?: string;
 }
 
 // ─── Configuración de variantes ───────────────────────────────────────────────
@@ -192,6 +194,7 @@ export const BargainButton: React.FC<BargainButtonProps> = ({
   fullWidth = false,
   style,
   accessibilityHint,
+  testID,
 }) => {
   const variantConfig = variantMap[variant];
   const sizeConfig = sizeMap[size];
@@ -250,6 +253,7 @@ export const BargainButton: React.FC<BargainButtonProps> = ({
         disabled={isDisabled}
         activeOpacity={1}
         style={[styles.base, containerStyle, style]}
+        testID={testID}
         accessibilityRole="button"
         accessibilityLabel={label}
         accessibilityHint={accessibilityHint}

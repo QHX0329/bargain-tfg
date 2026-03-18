@@ -23,6 +23,7 @@
     "@expo-google-fonts/source-sans-3": "^0.2.3",
     "@expo/metro-runtime": "~55.0.6",
     "@expo/vector-icons": "^15.0.2",
+    "@react-native-community/slider": "^5.1.2",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.0",
     "@react-navigation/native-stack": "^7.2.0",
@@ -62,7 +63,8 @@
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg)"
     ],
     "moduleNameMapper": {
-      "^react-native-maps$": "<rootDir>/__mocks__/react-native-maps.js"
+      "^react-native-maps$": "<rootDir>/__mocks__/react-native-maps.js",
+      "^@react-native-community/slider$": "<rootDir>/__mocks__/@react-native-community/slider.js"
     }
   }
 }

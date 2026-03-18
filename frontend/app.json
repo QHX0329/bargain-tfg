@@ -21,12 +21,25 @@
         "foregroundImage": "./src/assets/adaptative-icon.png",
         "backgroundColor": "#1A1A2E"
       },
-      "package": "com.bargain.app"
+      "package": "com.bargain.app",
+      "config": {
+        "googleMaps": {
+          "apiKey": "$(EXPO_PUBLIC_GOOGLE_MAPS_KEY)"
+        }
+      }
     },
     "web": {
       "favicon": "./src/assets/icon.png",
       "bundler": "metro"
     },
-    "plugins": ["expo-secure-store"]
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "BargAIn necesita tu ubicación para mostrar tiendas cercanas."
+        }
+      ]
+    ]
   }
 }

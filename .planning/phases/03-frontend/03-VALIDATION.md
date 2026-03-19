@@ -2,8 +2,8 @@
 phase: 3
 slug: frontend
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-18
 ---
 
@@ -81,10 +81,10 @@ created: 2026-03-18
 
 - [x] All tasks have `<automated>` verify or Wave 0 dependencies
 - [x] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
+- [x] Wave 0 covers all MISSING references
 - [x] No watch-mode flags
-- [ ] Feedback latency < 30s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] Feedback latency < 30s
+- [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
 
@@ -95,3 +95,4 @@ created: 2026-03-18
 - Automated mobile checks passed for: `App.test.tsx`, `apiClient.test.ts`, `SkeletonBox.test.tsx`, `LoginScreen.test.tsx`, `ListsScreen.test.tsx`, `NotificationScreen.test.tsx`.
 - Automated web checks passed for: `frontend/web/src/__tests__/LoginPage.test.tsx`, `frontend/web/src/__tests__/UnverifiedGuard.test.tsx`.
 - Contract realigned (2026-03-19): optimization editing is validated via navigation from `ProfileScreen` to `OptimizerConfig`; `ProfileScreen` assertions cover read-only summary + CTA navigation.
+- Automated validation green (2026-03-19): mobile `npx jest --watchAll=false --testPathIgnorePatterns=web/` (7/7 suites, 55/55 tests) + web `npx vitest run` (2/2 suites, 8/8 tests).

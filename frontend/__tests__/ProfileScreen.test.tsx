@@ -137,6 +137,10 @@ describe("ProfileScreen", () => {
   it("Test 3: tapping Configurar navigates to OptimizerConfig", async () => {
     const { getByText } = render(<ProfileScreen />);
 
+    await waitFor(() => {
+      expect(getByText("Configurar")).toBeTruthy();
+    });
+
     fireEvent.press(getByText("Configurar"));
 
     await waitFor(() => {

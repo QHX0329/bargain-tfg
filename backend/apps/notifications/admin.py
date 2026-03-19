@@ -7,7 +7,15 @@ from .models import Notification, UserPushToken
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
-    list_display = ["id", "user", "notification_type", "title", "is_read", "deleted_at", "created_at"]
+    list_display = [
+        "id",
+        "user",
+        "notification_type",
+        "title",
+        "is_read",
+        "deleted_at",
+        "created_at",
+    ]
     list_filter = ["notification_type", "is_read"]
     search_fields = ["user__username", "title", "body"]
     raw_id_fields = ["user"]

@@ -21,6 +21,7 @@ import { priceService } from '@/api/priceService';
 import { productService } from '@/api/productService';
 import type { HomeStackParamList } from '@/navigation/types';
 import type { PriceAlert, Product } from '@/types/domain';
+import { blurActiveElementOnWeb } from '@/utils/webA11y';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'PriceAlerts'>;
 
@@ -146,6 +147,7 @@ export const PriceAlertsScreen: React.FC<Props> = ({ navigation }) => {
 
   const handleOpenAlertModal = useCallback(
     (alert: PriceAlert) => {
+      blurActiveElementOnWeb();
       setSelectedAlert(alert);
       setEditTargetPrice(Number(alert.target_price ?? 0).toFixed(2));
     },
@@ -270,7 +272,10 @@ export const PriceAlertsScreen: React.FC<Props> = ({ navigation }) => {
 
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => setCreateModalVisible(true)}
+        onPress={() => {
+          blurActiveElementOnWeb();
+          setCreateModalVisible(true);
+        }}
         activeOpacity={0.9}
         accessibilityRole="button"
         accessibilityLabel="Crear alerta de precio"

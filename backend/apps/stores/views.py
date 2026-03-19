@@ -118,15 +118,17 @@ class StoreViewSet(viewsets.ReadOnlyModelViewSet):
         try:
             lat = float(lat)
             lng = float(lng)
-        except ValueError:
+        except ValueError as exc:
             raise BargainAPIException(
                 detail="Los parámetros lat y lng deben ser números válidos.",
                 code="INVALID_LOCATION",
-            )
+            ) from exc
 
         # Radio: usa el parámetro de la request o el predeterminado del usuario
         try:
-            radius_km = float(request.query_params.get("radius_km", request.user.max_search_radius_km))
+            radius_km = float(
+                request.query_params.get("radius_km", request.user.max_search_radius_km)
+            )
         except (ValueError, AttributeError):
             radius_km = 10.0
 
@@ -151,7 +153,11 @@ class StoreViewSet(viewsets.ReadOnlyModelViewSet):
 
     @extend_schema(
         request=None,
-        responses={200: inline_serializer("FavoriteResponse", fields={"is_favorite": drf_serializers.BooleanField()})},
+        responses={
+            200: inline_serializer(
+                "FavoriteResponse", fields={"is_favorite": drf_serializers.BooleanField()}
+            )
+        },
         description="Alterna el estado de favorito de una tienda. Devuelve `is_favorite: true` si se añadió, `false` si se eliminó.",
     )
     @action(
@@ -171,8 +177,8 @@ class StoreViewSet(viewsets.ReadOnlyModelViewSet):
         # Lookup directamente por pk sin requerir lat/lng (el favorito no necesita distancia)
         try:
             store = Store.objects.get(pk=pk)
-        except Store.DoesNotExist:
-            raise Http404
+        except Store.DoesNotExist as exc:
+            raise Http404 from exc
         self.check_object_permissions(request, store)
         favorite_qs = UserFavoriteStore.objects.filter(user=request.user, store=store)
 

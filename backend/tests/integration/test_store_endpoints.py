@@ -68,9 +68,7 @@ class TestNearbyStores:
         self, authenticated_client, store_seville_center, store_nearby
     ):
         """Las tiendas deben devolverse ordenadas por distancia ascendente."""
-        response = authenticated_client.get(
-            f"/api/v1/stores/?lat={SEVILLE_LAT}&lng={SEVILLE_LNG}"
-        )
+        response = authenticated_client.get(f"/api/v1/stores/?lat={SEVILLE_LAT}&lng={SEVILLE_LNG}")
         assert response.status_code == status.HTTP_200_OK
         data = response.data["results"]
         assert len(data) >= 2
@@ -112,21 +110,15 @@ class TestNearbyStores:
         assert "Mercadona Alameda" not in names
         assert "Carrefour Alcosa" not in names
 
-    def test_response_includes_distance_km_field(
-        self, authenticated_client, store_seville_center
-    ):
+    def test_response_includes_distance_km_field(self, authenticated_client, store_seville_center):
         """Cada tienda en el listado debe incluir distance_km."""
-        response = authenticated_client.get(
-            f"/api/v1/stores/?lat={SEVILLE_LAT}&lng={SEVILLE_LNG}"
-        )
+        response = authenticated_client.get(f"/api/v1/stores/?lat={SEVILLE_LAT}&lng={SEVILLE_LNG}")
         assert response.status_code == status.HTTP_200_OK
         store = response.data["results"][0]
         assert "distance_km" in store
         assert store["distance_km"] is not None
 
-    def test_response_includes_is_local_business_field(
-        self, authenticated_client, store_far
-    ):
+    def test_response_includes_is_local_business_field(self, authenticated_client, store_far):
         """Cada tienda debe incluir is_local_business."""
         response = authenticated_client.get(
             f"/api/v1/stores/?lat={SEVILLE_LAT}&lng={SEVILLE_LNG}&radius_km=15"
@@ -139,13 +131,9 @@ class TestNearbyStores:
         assert carrefour is not None
         assert carrefour["is_local_business"] is True
 
-    def test_response_includes_location_geojson(
-        self, authenticated_client, store_seville_center
-    ):
+    def test_response_includes_location_geojson(self, authenticated_client, store_seville_center):
         """Cada tienda debe incluir location GeoJSON para renderizar markers."""
-        response = authenticated_client.get(
-            f"/api/v1/stores/?lat={SEVILLE_LAT}&lng={SEVILLE_LNG}"
-        )
+        response = authenticated_client.get(f"/api/v1/stores/?lat={SEVILLE_LAT}&lng={SEVILLE_LNG}")
         assert response.status_code == status.HTTP_200_OK
 
         store = response.data["results"][0]
@@ -170,9 +158,7 @@ class TestStoreDetail:
         assert data["chain"]["name"] == "Mercadona"
         assert "opening_hours" in data
 
-    def test_is_favorite_false_when_not_favorited(
-        self, authenticated_client, store_nearby
-    ):
+    def test_is_favorite_false_when_not_favorited(self, authenticated_client, store_nearby):
         """is_favorite debe ser False cuando el usuario no la ha favoriteado."""
         response = authenticated_client.get(
             f"/api/v1/stores/{store_nearby.id}/?lat={SEVILLE_LAT}&lng={SEVILLE_LNG}&radius_km=10"
@@ -187,9 +173,7 @@ class TestStoreDetail:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["name"] == "Mercadona Alameda"
 
-    def test_detail_with_location_params_returns_200(
-        self, authenticated_client, store_nearby
-    ):
+    def test_detail_with_location_params_returns_200(self, authenticated_client, store_nearby):
         """El detalle con lat/lng debe devolver 200."""
         response = authenticated_client.get(
             f"/api/v1/stores/{store_nearby.id}/?lat={SEVILLE_LAT}&lng={SEVILLE_LNG}&radius_km=10"
@@ -212,9 +196,7 @@ class TestFavorites:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["success"] is True
         assert response.data["data"]["is_favorite"] is True
-        assert UserFavoriteStore.objects.filter(
-            user=consumer_user, store=store_nearby
-        ).exists()
+        assert UserFavoriteStore.objects.filter(user=consumer_user, store=store_nearby).exists()
 
     def test_toggle_favorite_again_removes_favorite(
         self, authenticated_client, consumer_user, store_nearby

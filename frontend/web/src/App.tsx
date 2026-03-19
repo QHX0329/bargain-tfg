@@ -8,6 +8,7 @@ import UnverifiedGuard from './components/UnverifiedGuard';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import PricesPage from './pages/PricesPage';
+import ProductsUploadPage from './pages/ProductsUploadPage';
 import PromotionsPage from './pages/PromotionsPage';
 import BusinessProfilePage from './pages/BusinessProfilePage';
 
@@ -51,6 +52,7 @@ const App: React.FC = () => {
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/prices" element={<PricesPage />} />
+            <Route path="/products-upload" element={<ProductsUploadPage />} />
             <Route path="/promotions" element={<PromotionsPage />} />
             <Route path="/profile" element={<BusinessProfilePage />} />
           </Route>

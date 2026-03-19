@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getGuardContent } from '../components/UnverifiedGuard';
+import { getGuardContent } from '../utils/unverifiedGuardContent';
 
 describe('getGuardContent', () => {
   it('returns pending message for pending status', () => {

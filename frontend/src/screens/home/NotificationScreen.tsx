@@ -14,7 +14,6 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Modal,
-  Platform,
   Pressable,
   SectionList,
   SectionListData,
@@ -40,6 +39,7 @@ import { useNotificationStore } from "@/store/notificationStore";
 import { notificationService } from "@/api/notificationService";
 import type { Notification } from "@/types/domain";
 import type { HomeStackParamList } from "@/navigation/types";
+import { blurActiveElementOnWeb } from "@/utils/webA11y";
 
 // ─── Day grouping ─────────────────────────────────────────────────────────────
 
@@ -237,10 +237,7 @@ export const NotificationScreen: React.FC<NotificationScreenProps> = ({
 
   const handleTap = useCallback(
     async (notification: Notification) => {
-      if (Platform.OS === "web" && typeof document !== "undefined") {
-        const active = document.activeElement as HTMLElement | null;
-        active?.blur?.();
-      }
+      blurActiveElementOnWeb();
 
       // Open modal with notification details
       setSelectedNotif(notification);

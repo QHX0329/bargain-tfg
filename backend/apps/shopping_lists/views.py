@@ -88,8 +88,7 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
         user = self.request.user
         return (
             ShoppingList.objects.filter(
-                django_models.Q(owner=user)
-                | django_models.Q(listcollaborator_set__user=user)
+                django_models.Q(owner=user) | django_models.Q(listcollaborator_set__user=user)
             )
             .distinct()
             .prefetch_related("items__product__category")
@@ -135,7 +134,9 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
         shopping_list = self.get_object()
 
         if request.method == "GET":
-            items_qs = shopping_list.items.select_related("product__category").order_by("created_at")
+            items_qs = shopping_list.items.select_related("product__category").order_by(
+                "created_at"
+            )
             serializer = ShoppingListItemEnrichedSerializer(items_qs, many=True)
             return Response(serializer.data)
 
@@ -213,9 +214,9 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
         shopping_list = self.get_object()
 
         if request.method == "GET":
-            collabs = ListCollaborator.objects.filter(
-                shopping_list=shopping_list
-            ).select_related("user", "invited_by")
+            collabs = ListCollaborator.objects.filter(shopping_list=shopping_list).select_related(
+                "user", "invited_by"
+            )
             serializer = ListCollaboratorSerializer(collabs, many=True)
             return Response(serializer.data)
 
@@ -233,9 +234,7 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
             )
 
         # Check if already a collaborator
-        if ListCollaborator.objects.filter(
-            shopping_list=shopping_list, user=user
-        ).exists():
+        if ListCollaborator.objects.filter(shopping_list=shopping_list, user=user).exists():
             return Response(
                 {"detail": "Este usuario ya es colaborador de la lista."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -250,6 +249,7 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
         # In-app notification for invited user
         try:
             from apps.notifications.models import Notification, NotificationType
+
             inviter = request.user
             Notification.objects.create(
                 user=user,
@@ -298,9 +298,7 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
         shopping_list = self.get_object()
 
         try:
-            collab = ListCollaborator.objects.get(
-                shopping_list=shopping_list, user_id=user_pk
-            )
+            collab = ListCollaborator.objects.get(shopping_list=shopping_list, user_id=user_pk)
         except ListCollaborator.DoesNotExist:
             return Response(
                 {"detail": "Colaborador no encontrado."}, status=status.HTTP_404_NOT_FOUND
@@ -312,7 +310,13 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
     # ── Templates ─────────────────────────────────────────────────────────────
 
     @extend_schema(
-        request={"application/json": {"type": "object", "properties": {"name": {"type": "string"}}, "required": ["name"]}},
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {"name": {"type": "string"}},
+                "required": ["name"],
+            }
+        },
         responses={201: ListTemplateSerializer},
     )
     @action(detail=True, methods=["post"], url_path="save-template")
@@ -321,7 +325,9 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
         shopping_list = self.get_object()
         name = request.data.get("name")
         if not name:
-            return Response({"detail": "Se requiere el campo 'name'."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "Se requiere el campo 'name'."}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         template = ListTemplate.objects.create(
             owner=request.user,
@@ -340,7 +346,9 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @extend_schema(
-        request={"application/json": {"type": "object", "properties": {"name": {"type": "string"}}}},
+        request={
+            "application/json": {"type": "object", "properties": {"name": {"type": "string"}}}
+        },
         responses={201: ShoppingListSerializer},
     )
     @action(
@@ -412,7 +420,9 @@ class ListTemplateViewSet(viewsets.ModelViewSet):
         serializer.save(owner=self.request.user)
 
     @extend_schema(
-        request={"application/json": {"type": "object", "properties": {"name": {"type": "string"}}}},
+        request={
+            "application/json": {"type": "object", "properties": {"name": {"type": "string"}}}
+        },
         responses={201: ShoppingListSerializer},
     )
     @action(detail=True, methods=["post"], url_path="create-list")

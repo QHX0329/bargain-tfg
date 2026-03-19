@@ -16,6 +16,7 @@ import { EditOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons';
 import { apiClient } from '../api/client';
 import { useBusinessStore } from '../store/businessStore';
 import type { BusinessProfile } from '../store/businessStore';
+import { extractBusinessProfiles } from '../utils/businessProfiles';
 
 const { Title } = Typography;
 
@@ -51,10 +52,12 @@ const BusinessProfilePage: React.FC = () => {
       const fetchProfile = async () => {
         setFetchLoading(true);
         try {
-          const res = await apiClient.get<BusinessProfile[]>('/business/profiles/');
-          const data = res.data;
-          if (Array.isArray(data) && data.length > 0) {
-            setProfile(data[0]);
+          const res = await apiClient.get<BusinessProfile[] | { results?: BusinessProfile[] }>(
+            '/business/profiles/',
+          );
+          const profiles = extractBusinessProfiles(res.data);
+          if (profiles.length > 0) {
+            setProfile(profiles[0]);
           }
         } catch {
           setError('Error al cargar el perfil del negocio');

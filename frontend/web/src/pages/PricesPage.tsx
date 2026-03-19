@@ -8,6 +8,7 @@ import {
   InputNumber,
   DatePicker,
   Space,
+  Select,
   Typography,
   Input,
   message,
@@ -26,9 +27,21 @@ interface ProductOption {
   barcode?: string;
 }
 
+interface StoreOption {
+  id: string | number;
+  name: string;
+  address?: string;
+}
+
+interface EntityReference {
+  id: string | number;
+  name?: string;
+}
+
 interface PriceRecord {
   id: string;
-  product: { id: string; name: string };
+  product: EntityReference | string | number;
+  store: EntityReference | string | number;
   price: string;
   unit_price?: string;
   offer_price?: string;
@@ -39,19 +52,36 @@ interface PriceRecord {
 interface PriceFormValues {
   product_id: string;
   product_name: string;
+  store_id: string;
   price: number;
   unit_price?: number;
   offer_price?: number;
   offer_end_date?: dayjs.Dayjs;
 }
 
+const getEntityId = (entity: EntityReference | string | number): string => {
+  if (typeof entity === 'object' && entity !== null && 'id' in entity) {
+    return String(entity.id);
+  }
+  return String(entity);
+};
+
+const getEntityName = (entity: EntityReference | string | number): string => {
+  if (typeof entity === 'object' && entity !== null && 'name' in entity && entity.name) {
+    return entity.name;
+  }
+  return `#${getEntityId(entity)}`;
+};
+
 const PricesPage: React.FC = () => {
   const [prices, setPrices] = useState<PriceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<PriceRecord | null>(null);
+  const [storeOptions, setStoreOptions] = useState<StoreOption[]>([]);
   const [productOptions, setProductOptions] = useState<{ value: string; label: string; id: string }[]>([]);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const [barcodeError, setBarcodeError] = useState<string | null>(null);
   const [manualBarcode, setManualBarcode] = useState('');
   const [showBarcodeInput, setShowBarcodeInput] = useState(false);
@@ -82,11 +112,24 @@ const PricesPage: React.FC = () => {
     void fetchPrices();
   }, []);
 
+  const fetchStores = async () => {
+    try {
+      const res = await apiClient.get<StoreOption[]>('/business/prices/stores/');
+      setStoreOptions(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      void message.error('No se pudieron cargar tus tiendas asociadas');
+    }
+  };
+
+  useEffect(() => {
+    void fetchStores();
+  }, []);
+
   const searchProducts = async (query: string) => {
     if (query.length < 2) return;
     try {
       const res = await apiClient.get<ProductOption[] | { results?: ProductOption[] }>(
-        `/products/?search=${encodeURIComponent(query)}`,
+        `/products/?q=${encodeURIComponent(query)}`,
       );
       const data = res.data;
       const items = Array.isArray(data) ? data : (data as { results?: ProductOption[] }).results ?? [];
@@ -178,18 +221,24 @@ const PricesPage: React.FC = () => {
     setShowBarcodeInput(false);
     setBarcodeError(null);
     if (record) {
+      const productId = getEntityId(record.product);
+      const storeId = getEntityId(record.store);
+
       form.setFieldsValue({
-        product_name: record.product.name,
-        product_id: record.product.id,
+        product_name: getEntityName(record.product),
+        product_id: productId,
+        store_id: storeId,
         price: parseFloat(record.price),
         unit_price: record.unit_price ? parseFloat(record.unit_price) : undefined,
         offer_price: record.offer_price ? parseFloat(record.offer_price) : undefined,
         offer_end_date: record.offer_end_date ? dayjs(record.offer_end_date) : undefined,
       });
-      setSelectedProductId(record.product.id);
+      setSelectedProductId(productId);
+      setSelectedStoreId(storeId);
     } else {
       form.resetFields();
       setSelectedProductId(null);
+      setSelectedStoreId(null);
     }
     setDrawerOpen(true);
   };
@@ -201,8 +250,14 @@ const PricesPage: React.FC = () => {
   };
 
   const onFinish = async (values: PriceFormValues) => {
+    if (!selectedProductId || !selectedStoreId) {
+      void message.error('Selecciona un producto y una tienda antes de guardar');
+      return;
+    }
+
     const payload = {
       product: selectedProductId,
+      store: selectedStoreId,
       price: values.price,
       unit_price: values.unit_price,
       offer_price: values.offer_price,
@@ -226,8 +281,13 @@ const PricesPage: React.FC = () => {
   const columns: ColumnsType<PriceRecord> = [
     {
       title: 'Producto',
-      dataIndex: ['product', 'name'],
       key: 'product',
+      render: (_: unknown, record: PriceRecord) => getEntityName(record.product),
+    },
+    {
+      title: 'Tienda',
+      key: 'store',
+      render: (_: unknown, record: PriceRecord) => getEntityName(record.store),
     },
     {
       title: 'Precio',
@@ -280,7 +340,7 @@ const PricesPage: React.FC = () => {
       <Drawer
         title={editingRecord ? 'Editar precio' : 'Añadir precio'}
         placement="right"
-        width={480}
+        size="large"
         open={drawerOpen}
         onClose={closeDrawer}
         footer={
@@ -305,8 +365,27 @@ const PricesPage: React.FC = () => {
             />
           </Form.Item>
 
+          <Form.Item
+            name="store_id"
+            label="Tienda asociada"
+            rules={[{ required: true, message: 'Selecciona una tienda asociada' }]}
+          >
+            <Select
+              placeholder="Selecciona tu tienda"
+              options={storeOptions.map((store) => ({
+                value: String(store.id),
+                label: `${store.name}${store.address ? ` · ${store.address}` : ''}`,
+              }))}
+              onChange={(value: string | number) => {
+                const normalized = String(value);
+                setSelectedStoreId(normalized);
+                form.setFieldValue('store_id', normalized);
+              }}
+            />
+          </Form.Item>
+
           <Form.Item label="Escanear código de barras">
-            <Space direction="vertical" style={{ width: '100%' }}>
+            <Space orientation="vertical" style={{ width: '100%' }}>
               <Button icon={<BarcodeOutlined />} onClick={startBarcodeScanner}>
                 Escanear código de barras
               </Button>

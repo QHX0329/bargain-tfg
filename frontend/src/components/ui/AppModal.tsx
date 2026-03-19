@@ -61,6 +61,7 @@ import {
   spacing,
   textStyles,
 } from "@/theme";
+import { blurActiveElementOnWeb } from "@/utils/webA11y";
 import { BargainButton, type ButtonVariant } from "./BargainButton";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -137,10 +138,7 @@ export const AppModal: React.FC<AppModalProps> = ({
     if (visible) {
       // In web, blur current focused element before opening modal to avoid
       // aria-hidden warnings caused by focused descendants outside the modal.
-      if (Platform.OS === "web" && typeof document !== "undefined") {
-        const active = document.activeElement as HTMLElement | null;
-        active?.blur?.();
-      }
+      blurActiveElementOnWeb();
 
       setInputValue(defaultValue);
       // Animar entrada

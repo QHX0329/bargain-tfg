@@ -12,7 +12,6 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -46,7 +45,7 @@ interface FieldErrors {
 export const RegisterScreen: React.FC = () => {
   const navigation = useNavigation<RegisterNavigationProp>();
   const { height } = useWindowDimensions();
-  const isCompact = height <= 650;
+  const isCompact = height <= 750;
 
   const [username, setUsername] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -123,41 +122,31 @@ export const RegisterScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={[]}>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={80}
         style={styles.keyboardView}
       >
-        <ScrollView
-          contentContainerStyle={[
-            styles.scrollContent,
-            isCompact && styles.scrollContentCompact,
-          ]}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
+        <View style={styles.inner}>
+          {/* Header — se oculta el logo en pantallas compactas */}
           <View style={[styles.header, isCompact && styles.headerCompact]}>
-            <Image
-              source={require("@/assets/logo.png")}
-              style={[styles.logoImage, isCompact && styles.logoImageCompact]}
-              resizeMode="contain"
-            />
+            {!isCompact && (
+              <Image
+                source={require("@/assets/logo.png")}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
+            )}
             <Text style={[styles.title, isCompact && styles.titleCompact]}>
               Crea tu cuenta
             </Text>
-            <Text
-              style={[styles.subtitle, isCompact && styles.subtitleCompact]}
-            >
-              Únete a BargAIn y empieza a ahorrar
-            </Text>
+            <Text style={styles.subtitle}>Únete a BargAIn y empieza a ahorrar</Text>
           </View>
 
-          <View style={[styles.form, isCompact && styles.formCompact]}>
-            {/* Usuario */}
-            <View
-              style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}
-            >
+          <View style={styles.form}>
+            {/* Fila usuario */}
+            <View style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}>
               <Text style={styles.label}>Nombre de usuario</Text>
               <TextInput
                 style={[styles.input, isCompact && styles.inputCompact]}
@@ -174,48 +163,42 @@ export const RegisterScreen: React.FC = () => {
               ) : null}
             </View>
 
-            {/* Nombre */}
-            <View
-              style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}
-            >
-              <Text style={styles.label}>Nombre</Text>
-              <TextInput
-                style={[styles.input, isCompact && styles.inputCompact]}
-                placeholder="Tu nombre"
-                placeholderTextColor={colors.textMuted}
-                value={firstName}
-                onChangeText={setFirstName}
-                autoCapitalize="words"
-                editable={!isLoading}
-              />
-              {fieldErrors.first_name ? (
-                <Text style={styles.fieldError}>{fieldErrors.first_name}</Text>
-              ) : null}
-            </View>
-
-            {/* Apellidos */}
-            <View
-              style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}
-            >
-              <Text style={styles.label}>Apellidos</Text>
-              <TextInput
-                style={[styles.input, isCompact && styles.inputCompact]}
-                placeholder="Tus apellidos"
-                placeholderTextColor={colors.textMuted}
-                value={lastName}
-                onChangeText={setLastName}
-                autoCapitalize="words"
-                editable={!isLoading}
-              />
-              {fieldErrors.last_name ? (
-                <Text style={styles.fieldError}>{fieldErrors.last_name}</Text>
-              ) : null}
+            {/* Nombre y Apellidos en fila */}
+            <View style={[styles.row, isCompact && styles.rowCompact]}>
+              <View style={[styles.inputGroup, styles.rowItem, isCompact && styles.inputGroupCompact]}>
+                <Text style={styles.label}>Nombre</Text>
+                <TextInput
+                  style={[styles.input, isCompact && styles.inputCompact]}
+                  placeholder="Nombre"
+                  placeholderTextColor={colors.textMuted}
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  autoCapitalize="words"
+                  editable={!isLoading}
+                />
+                {fieldErrors.first_name ? (
+                  <Text style={styles.fieldError}>{fieldErrors.first_name}</Text>
+                ) : null}
+              </View>
+              <View style={[styles.inputGroup, styles.rowItem, isCompact && styles.inputGroupCompact]}>
+                <Text style={styles.label}>Apellidos</Text>
+                <TextInput
+                  style={[styles.input, isCompact && styles.inputCompact]}
+                  placeholder="Apellidos"
+                  placeholderTextColor={colors.textMuted}
+                  value={lastName}
+                  onChangeText={setLastName}
+                  autoCapitalize="words"
+                  editable={!isLoading}
+                />
+                {fieldErrors.last_name ? (
+                  <Text style={styles.fieldError}>{fieldErrors.last_name}</Text>
+                ) : null}
+              </View>
             </View>
 
             {/* Email */}
-            <View
-              style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}
-            >
+            <View style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}>
               <Text style={styles.label}>Email</Text>
               <TextInput
                 style={[styles.input, isCompact && styles.inputCompact]}
@@ -233,48 +216,38 @@ export const RegisterScreen: React.FC = () => {
               ) : null}
             </View>
 
-            {/* Contraseña */}
-            <View
-              style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}
-            >
-              <Text style={styles.label}>Contraseña</Text>
-              <TextInput
-                style={[styles.input, isCompact && styles.inputCompact]}
-                placeholder="Mínimo 8 caracteres"
-                placeholderTextColor={colors.textMuted}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                editable={!isLoading}
-              />
-              {fieldErrors.password ? (
-                <Text style={styles.fieldError}>{fieldErrors.password}</Text>
-              ) : null}
-            </View>
-
-            {/* Confirmar contraseña */}
-            <View
-              style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}
-            >
-              <Text style={styles.label}>Repetir contraseña</Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  isCompact && styles.inputCompact,
-                  passwordMismatch && styles.inputError,
-                ]}
-                placeholder="Repetir contraseña"
-                placeholderTextColor={colors.textMuted}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry
-                editable={!isLoading}
-              />
-              {passwordMismatch ? (
-                <Text style={styles.fieldError}>
-                  Las contraseñas no coinciden
-                </Text>
-              ) : null}
+            {/* Contraseñas en fila */}
+            <View style={[styles.row, isCompact && styles.rowCompact]}>
+              <View style={[styles.inputGroup, styles.rowItem, isCompact && styles.inputGroupCompact]}>
+                <Text style={styles.label}>Contraseña</Text>
+                <TextInput
+                  style={[styles.input, isCompact && styles.inputCompact]}
+                  placeholder="Mín. 8 caracteres"
+                  placeholderTextColor={colors.textMuted}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  editable={!isLoading}
+                />
+                {fieldErrors.password ? (
+                  <Text style={styles.fieldError}>{fieldErrors.password}</Text>
+                ) : null}
+              </View>
+              <View style={[styles.inputGroup, styles.rowItem, isCompact && styles.inputGroupCompact]}>
+                <Text style={styles.label}>Repetir</Text>
+                <TextInput
+                  style={[styles.input, isCompact && styles.inputCompact, passwordMismatch && styles.inputError]}
+                  placeholder="Repetir"
+                  placeholderTextColor={colors.textMuted}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry
+                  editable={!isLoading}
+                />
+                {passwordMismatch ? (
+                  <Text style={styles.fieldError}>No coinciden</Text>
+                ) : null}
+              </View>
             </View>
 
             {generalError ? (
@@ -283,11 +256,7 @@ export const RegisterScreen: React.FC = () => {
 
             <TouchableOpacity
               testID="register-submit-button"
-              style={[
-                styles.registerButton,
-                isCompact && styles.registerButtonCompact,
-                isSubmitDisabled && styles.registerButtonDisabled,
-              ]}
+              style={[styles.registerButton, isSubmitDisabled && styles.registerButtonDisabled]}
               onPress={handleRegister}
               disabled={isSubmitDisabled}
               accessibilityState={{ disabled: isSubmitDisabled }}
@@ -300,7 +269,7 @@ export const RegisterScreen: React.FC = () => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.loginLink, isCompact && styles.loginLinkCompact]}
+              style={styles.loginLink}
               onPress={() => navigation.navigate("Login")}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               disabled={isLoading}
@@ -311,7 +280,7 @@ export const RegisterScreen: React.FC = () => {
               </Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -325,31 +294,22 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
   },
-  scrollContent: {
-    flexGrow: 1,
+  inner: {
+    flex: 1,
     justifyContent: "center",
-    paddingVertical: spacing.xl,
-  },
-  scrollContentCompact: {
-    justifyContent: "flex-start",
-    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xxl,
   },
   header: {
-    paddingHorizontal: spacing.xxl,
-    marginBottom: spacing.xl,
     alignItems: "center",
+    marginBottom: spacing.xl,
   },
   headerCompact: {
     marginBottom: spacing.md,
-    paddingHorizontal: spacing.xl,
   },
   logoImage: {
-    width: 200,
-    height: 100,
-  },
-  logoImageCompact: {
     width: 160,
     height: 80,
+    marginBottom: spacing.sm,
   },
   title: {
     ...textStyles.heading1,
@@ -361,34 +321,36 @@ const styles = StyleSheet.create({
   subtitle: {
     ...textStyles.body,
     color: colors.textMuted,
-    marginTop: spacing.sm,
-  },
-  subtitleCompact: {
     marginTop: spacing.xs,
   },
-  form: {
-    paddingHorizontal: spacing.xxl,
+  form: {},
+  row: {
+    flexDirection: "row",
+    gap: spacing.md,
   },
-  formCompact: {
-    paddingHorizontal: spacing.xl,
+  rowCompact: {
+    gap: spacing.sm,
+  },
+  rowItem: {
+    flex: 1,
   },
   inputGroup: {
     marginBottom: spacing.lg,
   },
   inputGroupCompact: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
   },
   label: {
     ...textStyles.label,
     color: colors.text,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
   input: {
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 12,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     ...textStyles.body,
     color: colors.text,
@@ -407,7 +369,7 @@ const styles = StyleSheet.create({
   errorText: {
     ...textStyles.caption,
     color: colors.error,
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
     textAlign: "center",
   },
   registerButton: {
@@ -415,13 +377,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
     borderRadius: 12,
     alignItems: "center",
-    marginTop: spacing.md,
+    marginTop: spacing.sm,
     minHeight: 44,
     justifyContent: "center",
-  },
-  registerButtonCompact: {
-    marginTop: spacing.sm,
-    paddingVertical: spacing.md,
   },
   registerButtonDisabled: {
     opacity: 0.7,
@@ -431,13 +389,10 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   loginLink: {
-    marginTop: spacing.xl,
+    marginTop: spacing.md,
     alignItems: "center",
     minHeight: 44,
     justifyContent: "center",
-  },
-  loginLinkCompact: {
-    marginTop: spacing.md,
   },
   loginText: {
     ...textStyles.body,

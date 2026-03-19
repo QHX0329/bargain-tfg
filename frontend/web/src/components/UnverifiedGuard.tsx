@@ -1,54 +1,11 @@
 import React from 'react';
 import { Button, Result, Spin } from 'antd';
 import { useNavigate } from 'react-router-dom';
+import { apiClient } from '../api/client';
 import { useBusinessStore } from '../store/businessStore';
-
-type VerificationStatus = 'pending' | 'verified' | 'rejected';
-
-/**
- * Pure function — returns display content for the given verification status.
- * Returns null for 'verified' (children should render).
- * Exported for unit testing without React rendering.
- */
-export function getGuardContent(
-  status: VerificationStatus | undefined,
-  rejectionReason: string | undefined,
-): React.ReactNode {
-  if (status === 'verified') {
-    return null;
-  }
-
-  if (status === 'pending') {
-    return (
-      <Result
-        status="warning"
-        title="Solicitud en revisión"
-        subTitle="Tu solicitud está siendo revisada. Te notificaremos cuando sea aprobada."
-      />
-    );
-  }
-
-  if (status === 'rejected') {
-    return (
-      <Result
-        status="error"
-        title="Solicitud rechazada"
-        subTitle={
-          rejectionReason
-            ? `Motivo del rechazo: ${rejectionReason}`
-            : 'Tu solicitud ha sido rechazada.'
-        }
-        extra={
-          <Button type="primary" href="/profile">
-            Editar perfil
-          </Button>
-        }
-      />
-    );
-  }
-
-  return null;
-}
+import type { BusinessProfile } from '../store/businessStore';
+import { extractBusinessProfiles } from '../utils/businessProfiles';
+import { getGuardContent } from '../utils/unverifiedGuardContent';
 
 interface UnverifiedGuardProps {
   children: React.ReactNode;
@@ -59,10 +16,80 @@ interface UnverifiedGuardProps {
  * Renders a status screen for pending and rejected, passes through for verified.
  */
 const UnverifiedGuard: React.FC<UnverifiedGuardProps> = ({ children }) => {
-  const { profile } = useBusinessStore();
+  const { profile, setProfile, logout } = useBusinessStore();
   const navigate = useNavigate();
+  const [hydrating, setHydrating] = React.useState(profile === null);
+  const [hydrateError, setHydrateError] = React.useState<string | null>(null);
+
+  const hydrateProfile = React.useCallback(async () => {
+    if (profile !== null) {
+      setHydrating(false);
+      setHydrateError(null);
+      return;
+    }
+
+    setHydrating(true);
+    setHydrateError(null);
+    try {
+      const res = await apiClient.get<BusinessProfile[] | { results?: BusinessProfile[] }>(
+        '/business/profiles/',
+      );
+      const profiles = extractBusinessProfiles(res.data);
+      if (profiles.length > 0) {
+        setProfile(profiles[0]);
+      } else {
+        setHydrateError('No se encontró un perfil de negocio para esta cuenta.');
+      }
+    } catch {
+      setHydrateError('No se pudo cargar tu perfil de negocio.');
+    } finally {
+      setHydrating(false);
+    }
+  }, [profile, setProfile]);
+
+  React.useEffect(() => {
+    void hydrateProfile();
+  }, [hydrateProfile]);
 
   if (profile === null) {
+    if (hydrating) {
+      return (
+        <div
+          style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}
+        >
+          <Spin size="large" />
+        </div>
+      );
+    }
+
+    if (hydrateError) {
+      return (
+        <div
+          style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}
+        >
+          <Result
+            status="error"
+            title="No se pudo iniciar el portal"
+            subTitle={hydrateError}
+            extra={[
+              <Button key="retry" type="primary" onClick={() => void hydrateProfile()}>
+                Reintentar
+              </Button>,
+              <Button
+                key="logout"
+                onClick={() => {
+                  logout();
+                  navigate('/login');
+                }}
+              >
+                Volver al login
+              </Button>,
+            ]}
+          />
+        </div>
+      );
+    }
+
     return (
       <div
         style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}

@@ -17,6 +17,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
 import {
   borderRadius,
@@ -32,29 +33,30 @@ import type { Store } from "@/types/domain";
 
 // ─── Store card ───────────────────────────────────────────────────────────────
 
-const CHAIN_ICONS: Record<string, string> = {
-  mercadona: "🟢",
-  lidl: "🔵",
-  aldi: "🟠",
-  carrefour: "🔴",
-  dia: "🔴",
-  alcampo: "🟣",
-  local: "🏪",
-};
-
 interface StoreCardProps {
   store: Store;
   onToggleFavorite: (store: Store) => void;
+  onOpenProfile: (store: Store) => void;
   isRemoving: boolean;
 }
 
-const StoreCard: React.FC<StoreCardProps> = ({ store, onToggleFavorite, isRemoving }) => {
-  const chainEmoji = CHAIN_ICONS[store.chain ?? "local"] ?? "🏪";
-
-  return (
+const StoreCard: React.FC<StoreCardProps> = ({
+  store,
+  onToggleFavorite,
+  onOpenProfile,
+  isRemoving,
+}) => (
     <View style={[cardStyles.card, shadows.card]}>
-      <View style={cardStyles.left}>
-        <Text style={cardStyles.emoji}>{chainEmoji}</Text>
+      <TouchableOpacity
+        style={cardStyles.left}
+        onPress={() => onOpenProfile(store)}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={`Abrir perfil de ${store.name}`}
+      >
+        <View style={cardStyles.iconWrap}>
+          <Ionicons name="storefront-outline" size={18} color={colors.primary} />
+        </View>
         <View style={cardStyles.info}>
           <Text style={cardStyles.name} numberOfLines={1}>
             {store.name}
@@ -67,8 +69,9 @@ const StoreCard: React.FC<StoreCardProps> = ({ store, onToggleFavorite, isRemovi
           <Text style={cardStyles.chain}>
             {store.chain ? store.chain.charAt(0).toUpperCase() + store.chain.slice(1) : "Local"}
           </Text>
+          <Text style={cardStyles.profileLink}>Ver perfil de tienda</Text>
         </View>
-      </View>
+      </TouchableOpacity>
       <TouchableOpacity
         onPress={() => onToggleFavorite(store)}
         disabled={isRemoving}
@@ -83,11 +86,11 @@ const StoreCard: React.FC<StoreCardProps> = ({ store, onToggleFavorite, isRemovi
       </TouchableOpacity>
     </View>
   );
-};
 
 // ─── Pantalla ─────────────────────────────────────────────────────────────────
 
 export const FavoriteStoresScreen: React.FC = () => {
+  const navigation = useNavigation<any>();
   const [stores, setStores] = useState<Store[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -127,9 +130,27 @@ export const FavoriteStoresScreen: React.FC = () => {
     }
   }, []);
 
+  const handleOpenProfile = useCallback(
+    (store: Store) => {
+      const fallbackLat = store.location?.coordinates?.[1] ?? 37.3886;
+      const fallbackLng = store.location?.coordinates?.[0] ?? -5.9823;
+
+      navigation.getParent()?.navigate('MapTab', {
+        screen: 'StoreProfile',
+        params: {
+          storeId: store.id,
+          storeName: store.name,
+          userLat: fallbackLat,
+          userLng: fallbackLng,
+        },
+      });
+    },
+    [navigation],
+  );
+
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container} edges={["bottom"]}>
+      <SafeAreaView style={styles.container} edges={[]}>
         <View style={styles.skeletonWrap}>
           {[0, 1, 2, 3].map((i) => (
             <SkeletonBox
@@ -147,7 +168,7 @@ export const FavoriteStoresScreen: React.FC = () => {
 
   if (stores.length === 0) {
     return (
-      <SafeAreaView style={styles.container} edges={["bottom"]}>
+      <SafeAreaView style={styles.container} edges={[]}>
         <View style={styles.emptyWrap}>
           <Ionicons name="heart-outline" size={48} color={colors.textDisabled} />
           <Text style={styles.emptyTitle}>Sin tiendas favoritas</Text>
@@ -160,7 +181,7 @@ export const FavoriteStoresScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
+    <SafeAreaView style={styles.container} edges={[]}>
       <FlatList
         data={stores}
         keyExtractor={(item) => item.id}
@@ -172,6 +193,7 @@ export const FavoriteStoresScreen: React.FC = () => {
           <StoreCard
             store={item}
             onToggleFavorite={handleToggleFavorite}
+            onOpenProfile={handleOpenProfile}
             isRemoving={removingId === item.id}
           />
         )}
@@ -231,8 +253,13 @@ const cardStyles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
   },
-  emoji: {
-    fontSize: 28,
+  iconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: colors.primaryTint,
+    alignItems: "center",
+    justifyContent: "center",
   },
   info: {
     flex: 1,
@@ -253,6 +280,12 @@ const cardStyles = StyleSheet.create({
     fontSize: fontSize.xs,
     color: colors.textDisabled,
     marginTop: 1,
+  },
+  profileLink: {
+    fontFamily: fontFamilies.bodyMedium,
+    fontSize: fontSize.xs,
+    color: colors.primary,
+    marginTop: spacing.xs,
   },
   heartButton: {
     padding: spacing.xs,

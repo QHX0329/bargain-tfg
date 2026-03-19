@@ -7,55 +7,163 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('products', '0001_initial'),
-        ('stores', '0001_initial'),
+        ("products", "0001_initial"),
+        ("stores", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='PriceAlert',
+            name="PriceAlert",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('target_price', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='Precio objetivo')),
-                ('is_active', models.BooleanField(default=True, verbose_name='Activa')),
-                ('triggered_at', models.DateTimeField(blank=True, null=True, verbose_name='Disparada en')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Creada en')),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='price_alerts', to='products.product', verbose_name='Producto')),
-                ('store', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='price_alerts', to='stores.store', verbose_name='Tienda (opcional)')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='price_alerts', to=settings.AUTH_USER_MODEL, verbose_name='Usuario')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "target_price",
+                    models.DecimalField(
+                        decimal_places=2, max_digits=10, verbose_name="Precio objetivo"
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True, verbose_name="Activa")),
+                (
+                    "triggered_at",
+                    models.DateTimeField(blank=True, null=True, verbose_name="Disparada en"),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True, verbose_name="Creada en")),
+                (
+                    "product",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="price_alerts",
+                        to="products.product",
+                        verbose_name="Producto",
+                    ),
+                ),
+                (
+                    "store",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="price_alerts",
+                        to="stores.store",
+                        verbose_name="Tienda (opcional)",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="price_alerts",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Usuario",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Alerta de precio',
-                'verbose_name_plural': 'Alertas de precio',
-                'ordering': ['-created_at'],
+                "verbose_name": "Alerta de precio",
+                "verbose_name_plural": "Alertas de precio",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='Price',
+            name="Price",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('price', models.DecimalField(decimal_places=2, max_digits=10, verbose_name='Precio')),
-                ('unit_price', models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True, verbose_name='Precio por unidad')),
-                ('offer_price', models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True, verbose_name='Precio de oferta')),
-                ('offer_end_date', models.DateField(blank=True, null=True, verbose_name='Fin de oferta')),
-                ('source', models.CharField(choices=[('scraping', 'Scraping'), ('crowdsourcing', 'Crowdsourcing'), ('api', 'API oficial')], default='scraping', max_length=20, verbose_name='Fuente')),
-                ('confidence_weight', models.FloatField(default=1.0, verbose_name='Peso de confianza')),
-                ('is_stale', models.BooleanField(default=False, verbose_name='Caducado')),
-                ('verified_at', models.DateTimeField(default=django.utils.timezone.now, verbose_name='Verificado en')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Creado en')),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='prices', to='products.product', verbose_name='Producto')),
-                ('store', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='prices', to='stores.store', verbose_name='Tienda')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "price",
+                    models.DecimalField(decimal_places=2, max_digits=10, verbose_name="Precio"),
+                ),
+                (
+                    "unit_price",
+                    models.DecimalField(
+                        blank=True,
+                        decimal_places=2,
+                        max_digits=10,
+                        null=True,
+                        verbose_name="Precio por unidad",
+                    ),
+                ),
+                (
+                    "offer_price",
+                    models.DecimalField(
+                        blank=True,
+                        decimal_places=2,
+                        max_digits=10,
+                        null=True,
+                        verbose_name="Precio de oferta",
+                    ),
+                ),
+                (
+                    "offer_end_date",
+                    models.DateField(blank=True, null=True, verbose_name="Fin de oferta"),
+                ),
+                (
+                    "source",
+                    models.CharField(
+                        choices=[
+                            ("scraping", "Scraping"),
+                            ("crowdsourcing", "Crowdsourcing"),
+                            ("api", "API oficial"),
+                        ],
+                        default="scraping",
+                        max_length=20,
+                        verbose_name="Fuente",
+                    ),
+                ),
+                (
+                    "confidence_weight",
+                    models.FloatField(default=1.0, verbose_name="Peso de confianza"),
+                ),
+                ("is_stale", models.BooleanField(default=False, verbose_name="Caducado")),
+                (
+                    "verified_at",
+                    models.DateTimeField(
+                        default=django.utils.timezone.now, verbose_name="Verificado en"
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True, verbose_name="Creado en")),
+                (
+                    "product",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="prices",
+                        to="products.product",
+                        verbose_name="Producto",
+                    ),
+                ),
+                (
+                    "store",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="prices",
+                        to="stores.store",
+                        verbose_name="Tienda",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Precio',
-                'verbose_name_plural': 'Precios',
-                'ordering': ['-verified_at'],
-                'indexes': [models.Index(fields=['product', 'store', 'is_stale'], name='prices_product_store_stale_idx')],
+                "verbose_name": "Precio",
+                "verbose_name_plural": "Precios",
+                "ordering": ["-verified_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["product", "store", "is_stale"],
+                        name="prices_product_store_stale_idx",
+                    )
+                ],
             },
         ),
     ]

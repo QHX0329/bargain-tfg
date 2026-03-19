@@ -258,7 +258,7 @@ class TestCheckAlertsTask:
 
     def test_skips_inactive_alerts(self, product, store, user):
         """Alertas inactivas no se procesan."""
-        alert = PriceAlert.objects.create(
+        PriceAlert.objects.create(
             user=user,
             product=product,
             target_price="2.00",

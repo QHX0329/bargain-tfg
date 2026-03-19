@@ -4,6 +4,7 @@ import { ShopOutlined, TagsOutlined, DollarOutlined } from '@ant-design/icons';
 import { apiClient } from '../api/client';
 import { useBusinessStore } from '../store/businessStore';
 import type { BusinessProfile, Promotion } from '../store/businessStore';
+import { extractBusinessProfiles } from '../utils/businessProfiles';
 
 const { Title, Text } = Typography;
 
@@ -34,9 +35,9 @@ const DashboardPage: React.FC = () => {
           ),
         ]);
 
-        const profileData = profileRes.data;
-        if (Array.isArray(profileData) && profileData.length > 0) {
-          setProfile(profileData[0]);
+        const profiles = extractBusinessProfiles(profileRes.data);
+        if (profiles.length > 0) {
+          setProfile(profiles[0]);
         }
 
         const promotionsData = promotionsRes.data;
@@ -76,19 +77,19 @@ const DashboardPage: React.FC = () => {
         Dashboard
       </Title>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={8}>
-          <Card>
+      <Row gutter={[16, 16]} align="stretch">
+        <Col xs={24} sm={8} style={{ display: 'flex' }}>
+          <Card style={{ width: '100%', height: '100%' }}>
             <Statistic
               title="Nombre del negocio"
               value={profile?.business_name ?? '—'}
               prefix={<ShopOutlined />}
-              valueStyle={{ fontSize: 18 }}
+              styles={{ content: { fontSize: 18 } }}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={8}>
-          <Card>
+        <Col xs={24} sm={8} style={{ display: 'flex' }}>
+          <Card style={{ width: '100%', height: '100%' }}>
             <Statistic
               title="Promociones activas"
               value={promotions.length}
@@ -96,8 +97,8 @@ const DashboardPage: React.FC = () => {
             />
           </Card>
         </Col>
-        <Col xs={24} sm={8}>
-          <Card>
+        <Col xs={24} sm={8} style={{ display: 'flex' }}>
+          <Card style={{ width: '100%', height: '100%' }}>
             <Statistic
               title="Últimas actualizaciones de precio"
               value={recentPrices.length}

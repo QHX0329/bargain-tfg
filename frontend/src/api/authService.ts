@@ -93,8 +93,12 @@ export const authService = {
   },
 
   /** PATCH /auth/profile/me/ — actualizar datos del perfil */
-  updateProfile: (data: Partial<UserProfile>): Promise<UserProfile> =>
-    apiClient.patch<never, UserProfile>("/auth/profile/me/", data),
+  updateProfile: (data: Partial<UserProfile> | FormData): Promise<UserProfile> => {
+    const isFormData = data instanceof FormData;
+    return apiClient.patch<never, UserProfile>("/auth/profile/me/", data, {
+      headers: isFormData ? { "Content-Type": "multipart/form-data" } : undefined,
+    });
+  },
 
   /** PATCH /auth/profile/me/ — actualizar preferencias del usuario */
   updatePreferences: (prefs: Partial<UserPreferences>): Promise<UserPreferences> =>

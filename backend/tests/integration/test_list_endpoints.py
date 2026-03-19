@@ -91,9 +91,7 @@ class TestListCRUD:
         client = auth_client(user)
         create_resp = client.post("/api/v1/lists/", {"name": "Lista"}, format="json")
         list_id = create_resp.json()["id"]
-        response = client.patch(
-            f"/api/v1/lists/{list_id}/", {"is_archived": True}, format="json"
-        )
+        response = client.patch(f"/api/v1/lists/{list_id}/", {"is_archived": True}, format="json")
         assert response.status_code == 200
         assert response.json()["is_archived"] is True
 
@@ -214,9 +212,7 @@ class TestListItems:
             format="json",
         )
         item_id = add_resp.json()["id"]
-        response = self.client.delete(
-            f"/api/v1/lists/{self.list_id}/items/{item_id}/"
-        )
+        response = self.client.delete(f"/api/v1/lists/{self.list_id}/items/{item_id}/")
         assert response.status_code == 204
 
     def test_get_list_with_enriched_items(self):

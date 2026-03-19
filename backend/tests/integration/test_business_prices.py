@@ -58,10 +58,17 @@ class TestBusinessPrices:
         from apps.users.models import User
 
         other_user = User.objects.create_user(
-            username="other_biz", email="other@test.com", password="pass1234", role=User.Role.BUSINESS
+            username="other_biz",
+            email="other@test.com",
+            password="pass1234",
+            role=User.Role.BUSINESS,
         )
         other_profile = BusinessProfile.objects.create(
-            user=other_user, business_name="Otro Negocio", tax_id="Z99887766", address="Otra Calle", is_verified=True
+            user=other_user,
+            business_name="Otro Negocio",
+            tax_id="Z99887766",
+            address="Otra Calle",
+            is_verified=True,
         )
         other_store = Store.objects.create(
             name="Tienda Ajena",
@@ -91,9 +98,58 @@ class TestBusinessPrices:
 
         from apps.prices.models import Price
 
-        price = Price.objects.filter(product=product, store=business_store, source="business").first()
+        price = Price.objects.filter(
+            product=product, store=business_store, source="business"
+        ).first()
         assert price is not None
         assert price.is_stale is False
+
+    def test_verified_business_can_list_owned_stores(
+        self, api_client, verified_business_user, business_store
+    ):
+        """Un negocio verificado puede listar únicamente sus tiendas activas."""
+        api_client.force_authenticate(user=verified_business_user)
+
+        response = api_client.get("/api/v1/business/prices/stores/")
+
+        assert response.status_code == 200
+        assert isinstance(response.data, list)
+        assert len(response.data) == 1
+        assert response.data[0]["id"] == business_store.id
+        assert response.data[0]["name"] == business_store.name
+
+    def test_verified_business_can_patch_price_offer_fields(
+        self, api_client, verified_business_user, business_store, product
+    ):
+        """Un negocio verificado puede actualizar offer_price y offer_end_date vía PATCH."""
+        from apps.prices.models import Price
+
+        api_client.force_authenticate(user=verified_business_user)
+        created = api_client.post(
+            "/api/v1/business/prices/",
+            data={
+                "product": product.id,
+                "store": business_store.id,
+                "price": "2.50",
+            },
+            format="json",
+        )
+        assert created.status_code == 201
+
+        price_id = created.data["id"]
+        response = api_client.patch(
+            f"/api/v1/business/prices/{price_id}/",
+            data={
+                "offer_price": "2.10",
+                "offer_end_date": "2026-04-30",
+            },
+            format="json",
+        )
+
+        assert response.status_code == 200
+        price_obj = Price.objects.get(id=price_id)
+        assert str(price_obj.offer_price) == "2.10"
+        assert str(price_obj.offer_end_date) == "2026-04-30"
 
 
 # ── Fixtures ────────────────────────────────────────────────

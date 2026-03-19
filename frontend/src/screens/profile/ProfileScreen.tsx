@@ -14,6 +14,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
+  Image,
   Platform,
   ScrollView,
   StyleSheet,
@@ -22,7 +23,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -147,6 +148,7 @@ export const ProfileScreen: React.FC = () => {
     useNavigation<NativeStackNavigationProp<ProfileStackParamList>>();
   const { user, memberSince, logout } = useAuthStore();
   const { profile, setProfile } = useProfileStore();
+  const insets = useSafeAreaInsets();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -286,8 +288,8 @@ export const ProfileScreen: React.FC = () => {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
+      <SafeAreaView style={styles.container} edges={[]}>
+        <View style={[styles.header, { paddingTop: spacing.md + insets.top }]}>
           <Text style={styles.title}>Perfil</Text>
         </View>
         <ScrollView
@@ -304,20 +306,24 @@ export const ProfileScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={styles.container} edges={[]}>
+      <View style={[styles.header, { paddingTop: spacing.md + insets.top }]}>
         <Text style={styles.title}>Perfil</Text>
       </View>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: spacing.xxl + insets.bottom }]}
         showsVerticalScrollIndicator={false}
       >
         {/* ── Sección 1: Información del usuario ─────────────────────── */}
         <View style={[sectionStyles.card, styles.userCard]}>
-          <View style={styles.avatarCircle}>
-            <Text style={styles.avatarInitial}>{userInitial}</Text>
-          </View>
+          {profile?.avatar ? (
+            <Image source={{ uri: profile.avatar }} style={styles.avatarImage} />
+          ) : (
+            <View style={styles.avatarCircle}>
+              <Text style={styles.avatarInitial}>{userInitial}</Text>
+            </View>
+          )}
           <Text style={styles.userName}>{userName}</Text>
           <Text style={styles.userEmail}>{userEmail}</Text>
           {memberSince ? (
@@ -455,7 +461,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
+    paddingTop: spacing.md,
     paddingBottom: spacing.md,
   },
   title: {
@@ -472,6 +478,14 @@ const styles = StyleSheet.create({
   userCard: {
     alignItems: "center",
     paddingVertical: spacing.xl,
+    marginBottom: spacing.md,
+  },
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderColor: colors.primary + "30",
     marginBottom: spacing.md,
   },
   avatarCircle: {

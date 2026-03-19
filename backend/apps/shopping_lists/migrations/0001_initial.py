@@ -6,96 +6,214 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('products', '0001_initial'),
+        ("products", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ListTemplate',
+            name="ListTemplate",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200, verbose_name='Nombre')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Creado en')),
-                ('owner', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='list_templates', to=settings.AUTH_USER_MODEL, verbose_name='Propietario')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("name", models.CharField(max_length=200, verbose_name="Nombre")),
+                ("created_at", models.DateTimeField(auto_now_add=True, verbose_name="Creado en")),
+                (
+                    "owner",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="list_templates",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Propietario",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Plantilla de lista',
-                'verbose_name_plural': 'Plantillas de lista',
-                'ordering': ['-created_at'],
+                "verbose_name": "Plantilla de lista",
+                "verbose_name_plural": "Plantillas de lista",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='ListTemplateItem',
+            name="ListTemplateItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('ordering', models.PositiveSmallIntegerField(default=0, verbose_name='Orden')),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='template_items', to='products.product', verbose_name='Producto')),
-                ('template', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='shopping_lists.listtemplate', verbose_name='Plantilla')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("ordering", models.PositiveSmallIntegerField(default=0, verbose_name="Orden")),
+                (
+                    "product",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="template_items",
+                        to="products.product",
+                        verbose_name="Producto",
+                    ),
+                ),
+                (
+                    "template",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="items",
+                        to="shopping_lists.listtemplate",
+                        verbose_name="Plantilla",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Ítem de plantilla',
-                'verbose_name_plural': 'Ítems de plantilla',
-                'ordering': ['ordering'],
+                "verbose_name": "Ítem de plantilla",
+                "verbose_name_plural": "Ítems de plantilla",
+                "ordering": ["ordering"],
             },
         ),
         migrations.CreateModel(
-            name='ShoppingList',
+            name="ShoppingList",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200, verbose_name='Nombre')),
-                ('is_archived', models.BooleanField(default=False, verbose_name='Archivada')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Creado en')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Actualizado en')),
-                ('owner', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='owned_lists', to=settings.AUTH_USER_MODEL, verbose_name='Propietario')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("name", models.CharField(max_length=200, verbose_name="Nombre")),
+                ("is_archived", models.BooleanField(default=False, verbose_name="Archivada")),
+                ("created_at", models.DateTimeField(auto_now_add=True, verbose_name="Creado en")),
+                ("updated_at", models.DateTimeField(auto_now=True, verbose_name="Actualizado en")),
+                (
+                    "owner",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="owned_lists",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Propietario",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Lista de la compra',
-                'verbose_name_plural': 'Listas de la compra',
-                'ordering': ['-updated_at'],
+                "verbose_name": "Lista de la compra",
+                "verbose_name_plural": "Listas de la compra",
+                "ordering": ["-updated_at"],
             },
         ),
         migrations.AddField(
-            model_name='listtemplate',
-            name='source_list',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='templates', to='shopping_lists.shoppinglist', verbose_name='Lista de origen'),
+            model_name="listtemplate",
+            name="source_list",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="templates",
+                to="shopping_lists.shoppinglist",
+                verbose_name="Lista de origen",
+            ),
         ),
         migrations.CreateModel(
-            name='ListCollaborator',
+            name="ListCollaborator",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Fecha de invitación')),
-                ('invited_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='sent_invitations', to=settings.AUTH_USER_MODEL, verbose_name='Invitado por')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='collaborating_lists', to=settings.AUTH_USER_MODEL, verbose_name='Colaborador')),
-                ('shopping_list', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='listcollaborator_set', to='shopping_lists.shoppinglist', verbose_name='Lista de la compra')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Fecha de invitación"),
+                ),
+                (
+                    "invited_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="sent_invitations",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Invitado por",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="collaborating_lists",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Colaborador",
+                    ),
+                ),
+                (
+                    "shopping_list",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="listcollaborator_set",
+                        to="shopping_lists.shoppinglist",
+                        verbose_name="Lista de la compra",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Colaborador de lista',
-                'verbose_name_plural': 'Colaboradores de lista',
-                'ordering': ['created_at'],
-                'unique_together': {('shopping_list', 'user')},
+                "verbose_name": "Colaborador de lista",
+                "verbose_name_plural": "Colaboradores de lista",
+                "ordering": ["created_at"],
+                "unique_together": {("shopping_list", "user")},
             },
         ),
         migrations.CreateModel(
-            name='ShoppingListItem',
+            name="ShoppingListItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('quantity', models.PositiveSmallIntegerField(default=1, verbose_name='Cantidad')),
-                ('is_checked', models.BooleanField(default=False, verbose_name='Marcado')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Creado en')),
-                ('added_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='added_items', to=settings.AUTH_USER_MODEL, verbose_name='Añadido por')),
-                ('product', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='list_items', to='products.product', verbose_name='Producto')),
-                ('shopping_list', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='items', to='shopping_lists.shoppinglist', verbose_name='Lista de la compra')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("quantity", models.PositiveSmallIntegerField(default=1, verbose_name="Cantidad")),
+                ("is_checked", models.BooleanField(default=False, verbose_name="Marcado")),
+                ("created_at", models.DateTimeField(auto_now_add=True, verbose_name="Creado en")),
+                (
+                    "added_by",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="added_items",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Añadido por",
+                    ),
+                ),
+                (
+                    "product",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="list_items",
+                        to="products.product",
+                        verbose_name="Producto",
+                    ),
+                ),
+                (
+                    "shopping_list",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="items",
+                        to="shopping_lists.shoppinglist",
+                        verbose_name="Lista de la compra",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Ítem de lista',
-                'verbose_name_plural': 'Ítems de lista',
-                'ordering': ['created_at'],
-                'unique_together': {('shopping_list', 'product')},
+                "verbose_name": "Ítem de lista",
+                "verbose_name_plural": "Ítems de lista",
+                "ordering": ["created_at"],
+                "unique_together": {("shopping_list", "product")},
             },
         ),
     ]

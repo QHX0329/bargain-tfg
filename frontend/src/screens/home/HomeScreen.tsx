@@ -103,38 +103,37 @@ const QuickActionTile: React.FC<{ action: QuickAction; delay: number }> = ({
   }));
 
   return (
-    <Animated.View
-      entering={FadeInDown.delay(delay).springify().damping(18)}
-      style={[quickStyles.tileWrap, animStyle]}
-    >
-      <Pressable
-        onPressIn={() => {
-          scale.value = withSpring(0.95, { damping: 12, stiffness: 300 });
-        }}
-        onPressOut={() => {
-          scale.value = withSpring(1, { damping: 12, stiffness: 300 });
-        }}
-        onPress={action.onPress}
-        style={[quickStyles.tile, { backgroundColor: action.bg }]}
-        accessibilityRole="button"
-        accessibilityLabel={action.label}
-      >
-        <View
-          style={[
-            quickStyles.iconCircle,
-            { backgroundColor: action.color + "20" },
-          ]}
+    <Animated.View entering={FadeInDown.delay(delay).duration(200)} style={quickStyles.tileWrap}>
+      <Animated.View style={animStyle}>
+        <Pressable
+          onPressIn={() => {
+            scale.value = withSpring(0.93, { damping: 12, stiffness: 300 });
+          }}
+          onPressOut={() => {
+            scale.value = withSpring(1, { damping: 12, stiffness: 300 });
+          }}
+          onPress={action.onPress}
+          style={[quickStyles.tile, { backgroundColor: action.bg }]}
+          accessibilityRole="button"
+          accessibilityLabel={action.label}
         >
-          <Ionicons
-            name={action.iconName as any}
-            size={18}
-            color={action.color}
-          />
-        </View>
-        <Text style={[quickStyles.label, { color: action.color }]}>
-          {action.label}
-        </Text>
-      </Pressable>
+          <View
+            style={[
+              quickStyles.iconCircle,
+              { backgroundColor: action.color + "22" },
+            ]}
+          >
+            <Ionicons
+              name={action.iconName as any}
+              size={20}
+              color={action.color}
+            />
+          </View>
+          <Text style={[quickStyles.label, { color: action.color }]}>
+            {action.label}
+          </Text>
+        </Pressable>
+      </Animated.View>
     </Animated.View>
   );
 };
@@ -194,31 +193,41 @@ const NearbyWidget: React.FC<NearbyWidgetProps> = ({
     return (
       <TouchableOpacity
         testID="location-denied-card"
-        style={[nearbyWidgetStyles.deniedCard, shadows.card]}
+        style={[recentListStyles.card, shadows.card]}
         onPress={() => Linking.openSettings()}
         activeOpacity={0.85}
       >
-        <Ionicons name="location-outline" size={20} color={colors.textMuted} />
-        <Text style={nearbyWidgetStyles.deniedText}>
-          Activa la ubicación para ver tiendas cercanas
-        </Text>
-        <Ionicons name="settings-outline" size={16} color={colors.textMuted} />
+        <View style={recentListStyles.row}>
+          <View style={[recentListStyles.iconWrap, { backgroundColor: colors.surfaceVariant }]}>
+            <Ionicons name="location-outline" size={18} color={colors.textMuted} />
+          </View>
+          <View style={recentListStyles.info}>
+            <Text style={recentListStyles.name}>Ubicación desactivada</Text>
+            <Text style={recentListStyles.meta}>Toca para activarla en ajustes</Text>
+          </View>
+          <Ionicons name="settings-outline" size={16} color={colors.textMuted} />
+        </View>
       </TouchableOpacity>
     );
   }
 
   return (
     <TouchableOpacity
-      style={[nearbyWidgetStyles.card, shadows.card]}
+      style={[recentListStyles.card, shadows.card]}
       onPress={onMapPress}
       activeOpacity={0.88}
     >
-      <Ionicons name="storefront-outline" size={22} color={colors.primary} />
-      <View style={nearbyWidgetStyles.info}>
-        <Text style={nearbyWidgetStyles.count}>
-          {count} tienda{count !== 1 ? "s" : ""} en tu radio
-        </Text>
-        <Text style={nearbyWidgetStyles.sub}>Ver en mapa →</Text>
+      <View style={recentListStyles.row}>
+        <View style={recentListStyles.iconWrap}>
+          <Ionicons name="storefront-outline" size={18} color={colors.primary} />
+        </View>
+        <View style={recentListStyles.info}>
+          <Text style={recentListStyles.name}>
+            {count} tienda{count !== 1 ? "s" : ""} en tu radio
+          </Text>
+          <Text style={recentListStyles.meta}>Ver en el mapa</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
       </View>
     </TouchableOpacity>
   );
@@ -474,7 +483,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
   const firstName = user?.name?.split(" ")[0] ?? "amigo";
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <SafeAreaView style={styles.safeArea} edges={[]}>
       <ScrollView
         testID="home-scroll"
         style={styles.scroll}
@@ -490,11 +499,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
       >
         {/* ── Header ─────────────────────────────────────────────────── */}
         <Animated.View
-          entering={FadeInDown.delay(0).springify().damping(20)}
-          style={styles.header}
+          entering={FadeInDown.delay(0).duration(200)}
+          style={[styles.header, { paddingTop: spacing.xs + insets.top }]}
         >
           <View style={styles.headerLeft}>
-            <Text style={styles.greeting}>{getGreeting()}, 👋</Text>
+            <Text style={styles.greeting}>{getGreeting()}</Text>
             <Text style={styles.userName}>{firstName}</Text>
           </View>
 
@@ -505,7 +514,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
             accessibilityRole="button"
             accessibilityLabel={`Notificaciones, ${unreadCount} sin leer`}
           >
-            <Ionicons name="notifications-outline" size={24} color={colors.text} />
+            <Ionicons name="notifications" size={22} color={colors.text} />
             {unreadCount > 0 && (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{badgeCount}</Text>
@@ -516,7 +525,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
 
         {/* ── SearchBar ──────────────────────────────────────────────── */}
         <Animated.View
-          entering={FadeInDown.delay(60).springify().damping(20)}
+          entering={FadeInDown.delay(60).duration(250)}
           style={styles.searchWrap}
         >
           <SearchBar
@@ -528,7 +537,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
 
         {/* ── Acciones rápidas ───────────────────────────────────────── */}
         <Animated.View
-          entering={FadeInDown.delay(120).springify().damping(20)}
+          entering={FadeInDown.delay(120).duration(250)}
           style={styles.section}
         >
           <Text style={styles.sectionTitle}>Acciones rápidas</Text>
@@ -546,7 +555,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
         {/* ── Widget 1: Notificaciones recientes ─────────────────────── */}
         {(recentNotifs.length > 0 || widgetLoading.notifications) && (
           <Animated.View
-            entering={FadeInDown.delay(200).springify().damping(20)}
+            entering={FadeInDown.delay(200).duration(250)}
             style={styles.section}
           >
             <View style={styles.sectionHeader}>
@@ -570,7 +579,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
 
         {/* ── Widget 2: Listas recientes ─────────────────────────────── */}
         <Animated.View
-          entering={FadeInDown.delay(260).springify().damping(20)}
+          entering={FadeInDown.delay(260).duration(250)}
           style={styles.section}
         >
           <View style={styles.sectionHeader}>
@@ -589,7 +598,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
               <SkeletonBox testID="skeleton-list-2" width="100%" height={56} borderRadius={12} />
             </>
           ) : recentLists.length === 0 ? (
-            <Text style={styles.emptyText}>Sin listas recientes. ¡Crea tu primera lista!</Text>
+            <View style={styles.emptyAlertsWrap}>
+              <Text style={styles.emptyText}>Sin listas recientes. ¡Crea tu primera lista!</Text>
+              <TouchableOpacity
+                style={styles.createAlertButton}
+                onPress={() => navigation.navigate("ListsTab" as never)}
+                accessibilityRole="button"
+                accessibilityLabel="Crear lista"
+              >
+                <Ionicons name="add-circle-outline" size={16} color={colors.primary} />
+                <Text style={styles.createAlertButtonText}>Crear lista</Text>
+              </TouchableOpacity>
+            </View>
           ) : (
             recentLists.map((list) => (
               <RecentListCard
@@ -603,7 +623,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
 
         {/* ── Widget 3: Tiendas cercanas ─────────────────────────────── */}
         <Animated.View
-          entering={FadeInDown.delay(320).springify().damping(20)}
+          entering={FadeInDown.delay(320).duration(250)}
           style={styles.section}
         >
           <Text style={styles.sectionTitle}>Cerca de ti</Text>
@@ -617,7 +637,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
 
         {/* ── Widget 4: Alertas de precio ────────────────────────────── */}
         <Animated.View
-          entering={FadeInDown.delay(380).springify().damping(20)}
+          entering={FadeInDown.delay(380).duration(250)}
           style={styles.section}
         >
           <View style={styles.sectionHeader}>
@@ -657,7 +677,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
 
         {/* ── Optimizer teaser ───────────────────────────────────────── */}
         <Animated.View
-          entering={FadeInDown.delay(440).springify().damping(20)}
+          entering={FadeInDown.delay(440).duration(250)}
           style={styles.section}
         >
           <TouchableOpacity
@@ -698,36 +718,40 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.xs,
   },
   headerLeft: {
     flex: 1,
   },
   greeting: {
     fontFamily: fontFamilies.body,
+    fontWeight: "400",
     fontSize: fontSize.sm,
     color: colors.textMuted,
     lineHeight: 18,
   },
   userName: {
     fontFamily: fontFamilies.display,
-    fontSize: fontSize["3xl"],
+    fontWeight: "700",
+    fontSize: fontSize["2xl"],
     color: colors.text,
-    lineHeight: Math.round(fontSize["3xl"] * 1.15),
-    letterSpacing: -0.5,
+    lineHeight: Math.round(fontSize["2xl"] * 1.15),
+    letterSpacing: -0.3,
   },
   bellButton: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.surfaceVariant,
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
   },
   badge: {
     position: "absolute",
-    top: 2,
-    right: 2,
+    top: 0,
+    right: 0,
     backgroundColor: colors.error ?? "#E53E3E",
     borderRadius: 8,
     minWidth: 16,
@@ -738,41 +762,47 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: fontFamilies.bodySemiBold,
+    fontWeight: "700",
     fontSize: 9,
     color: colors.white,
     lineHeight: 14,
   },
   searchWrap: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.sm,
+    marginTop: spacing.sm,
   },
   section: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
   sectionTitle: {
-    fontFamily: fontFamilies.display,
-    fontSize: fontSize.xl,
-    color: colors.text,
-    lineHeight: Math.round(fontSize.xl * 1.2),
-    marginBottom: spacing.sm,
+    fontFamily: fontFamilies.bodySemiBold,
+    fontWeight: "600",
+    fontSize: fontSize["13"],
+    color: colors.textMuted,
+    lineHeight: Math.round(fontSize.sm * 1.2),
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: spacing.xs,
   },
   sectionLink: {
     fontFamily: fontFamilies.bodyMedium,
-    fontSize: fontSize.sm,
+    fontWeight: "500",
+    fontSize: fontSize.md,
     color: colors.primary,
     lineHeight: 18,
   },
   emptyText: {
     fontFamily: fontFamilies.body,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.md,
     color: colors.textMuted,
     textAlign: "center",
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm,
   },
   emptyAlertsWrap: {
     alignItems: "center",
@@ -791,7 +821,8 @@ const styles = StyleSheet.create({
   },
   createAlertButtonText: {
     fontFamily: fontFamilies.bodyMedium,
-    fontSize: fontSize.sm,
+    fontWeight: "500",
+    fontSize: fontSize.md,
     color: colors.primary,
   },
 });
@@ -801,32 +832,32 @@ const styles = StyleSheet.create({
 const quickStyles = StyleSheet.create({
   grid: {
     flexDirection: "row",
-    flexWrap: "wrap",
     gap: spacing.sm,
   },
   tileWrap: {
-    width: "47.5%",
+    flex: 1,
   },
   tile: {
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    flexDirection: "row",
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xs,
     alignItems: "center",
-    gap: spacing.sm,
+    gap: 6,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
   },
   iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
   label: {
-    fontFamily: fontFamilies.bodySemiBold,
+    fontFamily: fontFamilies.bodyMedium,
+    fontWeight: "500",
     fontSize: fontSize.sm,
-    flex: 1,
+    textAlign: "center",
   },
 });
 
@@ -835,8 +866,8 @@ const quickStyles = StyleSheet.create({
 const recentListStyles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.sm,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
     marginBottom: spacing.xs,
@@ -849,7 +880,7 @@ const recentListStyles = StyleSheet.create({
   iconWrap: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 8,
     backgroundColor: colors.primaryTint,
     alignItems: "center",
     justifyContent: "center",
@@ -859,61 +890,18 @@ const recentListStyles = StyleSheet.create({
   },
   name: {
     fontFamily: fontFamilies.bodyMedium,
-    fontSize: fontSize.sm,
+    fontWeight: "500",
+    fontSize: fontSize.md,
     color: colors.text,
   },
   meta: {
     fontFamily: fontFamilies.body,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.sm,
     color: colors.textMuted,
-    marginTop: 2,
+    marginTop: 1,
   },
 });
 
-// ─── Estilos Tiendas cercanas ─────────────────────────────────────────────────
-
-const nearbyWidgetStyles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-  },
-  info: {
-    flex: 1,
-  },
-  count: {
-    fontFamily: fontFamilies.bodyMedium,
-    fontSize: fontSize.sm,
-    color: colors.text,
-  },
-  sub: {
-    fontFamily: fontFamilies.body,
-    fontSize: fontSize.xs,
-    color: colors.primary,
-    marginTop: 2,
-  },
-  deniedCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-  },
-  deniedText: {
-    fontFamily: fontFamilies.body,
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
-    flex: 1,
-  },
-});
 
 // ─── Estilos Notificaciones recientes ─────────────────────────────────────────
 
@@ -921,7 +909,8 @@ const notifCardStyles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
-    padding: spacing.sm,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
     flexDirection: "row",
     alignItems: "flex-start",
     marginBottom: spacing.xs,
@@ -933,13 +922,13 @@ const notifCardStyles = StyleSheet.create({
     borderLeftColor: colors.primary,
   },
   dot: {
-    width: 16,
+    width: 14,
     alignItems: "center",
     paddingTop: 4,
   },
   unreadDot: {
-    width: 8,
-    height: 8,
+    width: 7,
+    height: 7,
     borderRadius: 4,
     backgroundColor: colors.primary,
   },
@@ -948,14 +937,15 @@ const notifCardStyles = StyleSheet.create({
   },
   title: {
     fontFamily: fontFamilies.bodyMedium,
-    fontSize: fontSize.sm,
+    fontWeight: "500",
+    fontSize: fontSize["15"],
     color: colors.text,
   },
   bodyText: {
     fontFamily: fontFamilies.body,
     fontSize: fontSize.xs,
     color: colors.textMuted,
-    marginTop: 2,
+    marginTop: 1,
   },
 });
 
@@ -964,7 +954,7 @@ const notifCardStyles = StyleSheet.create({
 const priceAlertStyles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.md,
     padding: spacing.sm,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
@@ -980,14 +970,15 @@ const priceAlertStyles = StyleSheet.create({
   },
   name: {
     fontFamily: fontFamilies.bodyMedium,
-    fontSize: fontSize.sm,
+    fontWeight: "500",
+    fontSize: fontSize["15"],
     color: colors.text,
   },
   prices: {
     fontFamily: fontFamilies.body,
     fontSize: fontSize.xs,
     color: colors.textMuted,
-    marginTop: 2,
+    marginTop: 1,
   },
 });
 
@@ -996,8 +987,8 @@ const priceAlertStyles = StyleSheet.create({
 const teaserStyles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    padding: spacing.sm,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
@@ -1010,14 +1001,16 @@ const teaserStyles = StyleSheet.create({
   },
   title: {
     fontFamily: fontFamilies.bodyMedium,
-    fontSize: fontSize.sm,
+    fontWeight: "500",
+    fontSize: fontSize["15"],
     color: colors.textMuted,
   },
   badge: {
     fontFamily: fontFamilies.bodySemiBold,
+    fontWeight: "600",
     fontSize: fontSize.xs,
     color: colors.textMuted,
-    marginTop: 2,
+    marginTop: 1,
   },
 });
 

@@ -48,7 +48,7 @@ class TestShoppingListModel:
 
         user = UserFactory()
         sl1 = ShoppingList.objects.create(owner=user, name="Lista A")
-        sl2 = ShoppingList.objects.create(owner=user, name="Lista B")
+        ShoppingList.objects.create(owner=user, name="Lista B")
         # Touch sl1 to make it newer
         sl1.name = "Lista A updated"
         sl1.save()
@@ -102,9 +102,7 @@ class TestListCollaboratorModel:
         owner = UserFactory()
         collaborator = UserFactory()
         sl = ShoppingList.objects.create(owner=owner, name="Lista")
-        lc = ListCollaborator.objects.create(
-            shopping_list=sl, user=collaborator, invited_by=owner
-        )
+        lc = ListCollaborator.objects.create(shopping_list=sl, user=collaborator, invited_by=owner)
         assert lc.pk is not None
 
     def test_collaborator_unique_together(self):
@@ -116,9 +114,7 @@ class TestListCollaboratorModel:
         sl = ShoppingList.objects.create(owner=owner, name="Lista")
         ListCollaborator.objects.create(shopping_list=sl, user=collaborator, invited_by=owner)
         with pytest.raises(IntegrityError):
-            ListCollaborator.objects.create(
-                shopping_list=sl, user=collaborator, invited_by=owner
-            )
+            ListCollaborator.objects.create(shopping_list=sl, user=collaborator, invited_by=owner)
 
 
 class TestListTemplateModel:
@@ -129,9 +125,7 @@ class TestListTemplateModel:
 
         user = UserFactory()
         sl = ShoppingList.objects.create(owner=user, name="Lista fuente")
-        template = ListTemplate.objects.create(
-            owner=user, name="Mi plantilla", source_list=sl
-        )
+        template = ListTemplate.objects.create(owner=user, name="Mi plantilla", source_list=sl)
         assert template.pk is not None
         assert template.source_list == sl
 
@@ -213,9 +207,7 @@ class TestIsOwnerOrCollaboratorPermission:
         owner = UserFactory()
         product = ProductFactory()
         sl = ShoppingList.objects.create(owner=owner, name="Lista")
-        item = ShoppingListItem.objects.create(
-            shopping_list=sl, product=product, added_by=owner
-        )
+        item = ShoppingListItem.objects.create(shopping_list=sl, product=product, added_by=owner)
 
         request = MagicMock()
         request.user = owner

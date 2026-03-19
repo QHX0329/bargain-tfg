@@ -20,9 +20,7 @@ class IsVerifiedBusiness(BasePermission):
             return False
         from apps.business.models import BusinessProfile
 
-        return BusinessProfile.objects.filter(
-            user=request.user, is_verified=True
-        ).exists()
+        return BusinessProfile.objects.filter(user=request.user, is_verified=True).exists()
 
 
 class IsBusinessOwner(BasePermission):

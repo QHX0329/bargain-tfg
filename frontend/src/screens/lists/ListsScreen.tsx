@@ -300,7 +300,8 @@ export const ListsScreen: React.FC = () => {
   // ─── Loading skeleton ────────────────────────────────────────────────────
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={[]}>
+
         <View style={styles.header}>
           <Text style={styles.title}>Mis Listas</Text>
         </View>
@@ -450,7 +451,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
+    paddingTop: spacing.md,
     paddingBottom: spacing.md,
   },
   title: {

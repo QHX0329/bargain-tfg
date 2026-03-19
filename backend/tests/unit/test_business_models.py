@@ -130,9 +130,7 @@ class TestPromotionModel:
 
         assert promo.discount_type == "percentage"
 
-    def test_promotion_unique_constraint_raises_on_duplicate_active(
-        self, product, store
-    ):
+    def test_promotion_unique_constraint_raises_on_duplicate_active(self, product, store):
         """UniqueConstraint impide dos promociones activas para el mismo product+store."""
         from apps.business.models import Promotion
 

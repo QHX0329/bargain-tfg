@@ -12,7 +12,6 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -89,20 +88,13 @@ export const LoginScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={[]}>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={80}
         style={styles.keyboardView}
       >
-        <ScrollView
-          contentContainerStyle={[
-            styles.scrollContent,
-            isCompact && styles.scrollContentCompact,
-          ]}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
+        <View style={styles.inner}>
           <View style={[styles.header, isCompact && styles.headerCompact]}>
             <Image
               source={require("@/assets/logo.png")}
@@ -112,13 +104,11 @@ export const LoginScreen: React.FC = () => {
             <Text style={styles.subtitle}>Tu compra inteligente</Text>
           </View>
 
-          <View style={[styles.form, isCompact && styles.formCompact]}>
-            <View
-              style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}
-            >
+          <View style={styles.form}>
+            <View style={styles.inputGroup}>
               <Text style={styles.label}>Usuario</Text>
               <TextInput
-                style={[styles.input, isCompact && styles.inputCompact]}
+                style={styles.input}
                 placeholder="tu_usuario"
                 placeholderTextColor={colors.textMuted}
                 value={username}
@@ -129,12 +119,10 @@ export const LoginScreen: React.FC = () => {
               />
             </View>
 
-            <View
-              style={[styles.inputGroup, isCompact && styles.inputGroupCompact]}
-            >
+            <View style={styles.inputGroup}>
               <Text style={styles.label}>Contraseña</Text>
               <TextInput
-                style={[styles.input, isCompact && styles.inputCompact]}
+                style={styles.input}
                 placeholder="Tu contraseña"
                 placeholderTextColor={colors.textMuted}
                 value={password}
@@ -144,21 +132,12 @@ export const LoginScreen: React.FC = () => {
               />
             </View>
 
-            {error ? (
-              <Text style={styles.errorText}>{error}</Text>
-            ) : null}
-
-            {resetMessage ? (
-              <Text style={styles.successText}>{resetMessage}</Text>
-            ) : null}
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            {resetMessage ? <Text style={styles.successText}>{resetMessage}</Text> : null}
 
             <TouchableOpacity
               testID="login-submit-button"
-              style={[
-                styles.loginButton,
-                isCompact && styles.loginButtonCompact,
-                isLoading && styles.loginButtonDisabled,
-              ]}
+              style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
               onPress={handleLogin}
               disabled={isLoading}
               accessibilityState={{ disabled: isLoading }}
@@ -171,7 +150,7 @@ export const LoginScreen: React.FC = () => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.forgotLink, isCompact && styles.forgotLinkCompact]}
+              style={styles.forgotLink}
               onPress={handleForgotPassword}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               disabled={isLoading}
@@ -180,10 +159,7 @@ export const LoginScreen: React.FC = () => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[
-                styles.registerLink,
-                isCompact && styles.registerLinkCompact,
-              ]}
+              style={styles.registerLink}
               onPress={() => navigation.navigate("Register")}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               disabled={isLoading}
@@ -194,7 +170,7 @@ export const LoginScreen: React.FC = () => {
               </Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -208,14 +184,10 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
   },
-  scrollContent: {
-    flexGrow: 1,
+  inner: {
+    flex: 1,
     justifyContent: "center",
-    paddingVertical: spacing.xl,
-  },
-  scrollContentCompact: {
-    justifyContent: "flex-start",
-    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.xxl,
   },
   header: {
     alignItems: "center",
@@ -226,30 +198,21 @@ const styles = StyleSheet.create({
   },
   logoImage: {
     width: 300,
-    height: 200,
-    marginBottom: spacing.xl,
+    height: 180,
+    marginBottom: spacing.lg,
   },
   logoImageCompact: {
-    width: 220,
-    height: 140,
-    marginBottom: spacing.md,
+    width: 200,
+    height: 120,
+    marginBottom: spacing.sm,
   },
   subtitle: {
     ...textStyles.body,
     color: colors.textMuted,
-    marginTop: spacing.xs,
   },
-  form: {
-    paddingHorizontal: spacing.xxl,
-  },
-  formCompact: {
-    paddingHorizontal: spacing.xl,
-  },
+  form: {},
   inputGroup: {
     marginBottom: spacing.lg,
-  },
-  inputGroupCompact: {
-    marginBottom: spacing.md,
   },
   label: {
     ...textStyles.label,
@@ -265,9 +228,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     ...textStyles.body,
     color: colors.text,
-  },
-  inputCompact: {
-    paddingVertical: spacing.sm,
   },
   errorText: {
     ...textStyles.caption,
@@ -290,10 +250,6 @@ const styles = StyleSheet.create({
     minHeight: 44,
     justifyContent: "center",
   },
-  loginButtonCompact: {
-    marginTop: spacing.sm,
-    paddingVertical: spacing.md,
-  },
   loginButtonDisabled: {
     opacity: 0.7,
   },
@@ -307,21 +263,15 @@ const styles = StyleSheet.create({
     minHeight: 44,
     justifyContent: "center",
   },
-  forgotLinkCompact: {
-    marginTop: spacing.sm,
-  },
   forgotText: {
     ...textStyles.caption,
     color: colors.textMuted,
   },
   registerLink: {
-    marginTop: spacing.md,
+    marginTop: spacing.sm,
     alignItems: "center",
     minHeight: 44,
     justifyContent: "center",
-  },
-  registerLinkCompact: {
-    marginTop: spacing.sm,
   },
   registerText: {
     ...textStyles.body,

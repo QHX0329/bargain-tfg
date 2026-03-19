@@ -167,11 +167,11 @@ export const sizes = {
     lg: 56,
   },
   /** Altura de SearchBar */
-  searchBarHeight: 48,
-  /** Altura de BottomTabBar (sin safe area) */
-  tabBarHeight: 60,
+  searchBarHeight: 44,
+  /** Altura de BottomTabBar (sin safe area) — iOS estándar: 49pt */
+  tabBarHeight: 50,
   /** Altura de row de lista */
-  listItemHeight: 64,
+  listItemHeight: 56,
   /** Tamaño de icono estándar en tabs */
   tabIconSize: 24,
   /** Tamaño de avatar/logo de tienda en chips */

@@ -36,6 +36,7 @@ import { listService } from "@/api/listService";
 import type { ListCollaborator } from "@/api/listService";
 import { useListStore } from "@/store/listStore";
 import { SkeletonBox } from "@/components/ui/SkeletonBox";
+import { blurActiveElementOnWeb } from "@/utils/webA11y";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -213,6 +214,7 @@ export const ListDetailScreen: React.FC<Props> = ({ route, navigation }) => {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => {
+              blurActiveElementOnWeb();
               setCollabModalVisible(true);
               void loadCollaborators();
             }}

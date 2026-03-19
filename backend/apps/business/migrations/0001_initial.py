@@ -8,7 +8,6 @@ from django.db.models import Q
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -103,7 +102,10 @@ class Migration(migrations.Migration):
                 (
                     "discount_type",
                     models.CharField(
-                        choices=[("flat", "Descuento fijo (€)"), ("percentage", "Descuento porcentual (%)")],
+                        choices=[
+                            ("flat", "Descuento fijo (€)"),
+                            ("percentage", "Descuento porcentual (%)"),
+                        ],
                         max_length=20,
                         verbose_name="Tipo de descuento",
                     ),
@@ -119,9 +121,7 @@ class Migration(migrations.Migration):
                 ("start_date", models.DateField(verbose_name="Inicio de la promoción")),
                 (
                     "end_date",
-                    models.DateField(
-                        blank=True, null=True, verbose_name="Fin de la promoción"
-                    ),
+                    models.DateField(blank=True, null=True, verbose_name="Fin de la promoción"),
                 ),
                 (
                     "is_active",

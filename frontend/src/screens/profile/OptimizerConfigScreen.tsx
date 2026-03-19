@@ -217,7 +217,7 @@ export const OptimizerConfigScreen: React.FC = () => {
   const normalizedWeights = normalizeWeights(weightPrice, weightDist, weightTime);
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
+    <SafeAreaView style={styles.safe} edges={[]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>

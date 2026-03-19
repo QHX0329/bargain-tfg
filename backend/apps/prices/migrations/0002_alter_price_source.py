@@ -4,15 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('prices', '0001_initial'),
+        ("prices", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='price',
-            name='source',
-            field=models.CharField(choices=[('scraping', 'Scraping'), ('crowdsourcing', 'Crowdsourcing'), ('api', 'API oficial'), ('business', 'Portal PYME')], default='scraping', max_length=20, verbose_name='Fuente'),
+            model_name="price",
+            name="source",
+            field=models.CharField(
+                choices=[
+                    ("scraping", "Scraping"),
+                    ("crowdsourcing", "Crowdsourcing"),
+                    ("api", "API oficial"),
+                    ("business", "Portal PYME"),
+                ],
+                default="scraping",
+                max_length=20,
+                verbose_name="Fuente",
+            ),
         ),
     ]

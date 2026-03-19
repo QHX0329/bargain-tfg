@@ -176,13 +176,15 @@ class TestPgTrgm:
         from apps.products.models import Product
 
         Product.objects.create(name="Leche entera", normalized_name="leche entera", unit="l")
-        Product.objects.create(name="Leche semidesnatada", normalized_name="leche semidesnatada", unit="l")
+        Product.objects.create(
+            name="Leche semidesnatada", normalized_name="leche semidesnatada", unit="l"
+        )
         Product.objects.create(name="Zumo naranja", normalized_name="zumo naranja", unit="l")
 
         results = list(
-            Product.objects.annotate(
-                similarity=TrigramSimilarity("normalized_name", "leche")
-            ).filter(similarity__gte=0.1).order_by("-similarity")
+            Product.objects.annotate(similarity=TrigramSimilarity("normalized_name", "leche"))
+            .filter(similarity__gte=0.1)
+            .order_by("-similarity")
         )
 
         # Los productos de leche deben aparecer primero

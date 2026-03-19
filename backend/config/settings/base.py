@@ -139,7 +139,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-MEDIA_URL = "media/"
+MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # ── REST Framework ───────────────────────────────────
@@ -186,9 +186,19 @@ PASSWORD_RESET_TIMEOUT = 3600  # 1 hora
 
 # ── CORS ─────────────────────────────────────────────
 
-CORS_ALLOWED_ORIGINS = os.environ.get(
-    "CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:8081"
-).split(",")
+_default_cors_origins = (
+    "http://localhost:3000,"
+    "http://localhost:5173,"
+    "http://127.0.0.1:5173,"
+    "http://localhost:8081,"
+    "exp://localhost:8081"
+)
+
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("CORS_ALLOWED_ORIGINS", _default_cors_origins).split(",")
+    if origin.strip()
+]
 
 # ── Celery ───────────────────────────────────────────
 

@@ -1,8 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Animated,
   ActivityIndicator,
   FlatList,
   Modal,
+  PanResponder,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -211,6 +213,87 @@ export const ProductsCatalogScreen: React.FC = () => {
   const [selectedQuantity, setSelectedQuantity] = useState(1);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [quickQuantityByProductId, setQuickQuantityByProductId] = useState<Record<string, number>>({});
+
+  // ── Filter panel animation ────────────────────────────────────────────────
+  const FILTER_ANIM_MAX_HEIGHT = 320;
+  const filterAnim = useRef(new Animated.Value(1)).current;
+  const filterExpandedRef = useRef(true);
+  const filterCurrentValueRef = useRef(1);
+  const filterBaseValueRef = useRef(1);
+  const filterGestureOffsetRef = useRef(0);
+  const toggleFiltersRef = useRef((_expanded: boolean) => {});
+
+  const toggleFiltersAnimated = useCallback(
+    (toExpanded: boolean) => {
+      filterExpandedRef.current = toExpanded;
+      Animated.spring(filterAnim, {
+        toValue: toExpanded ? 1 : 0,
+        useNativeDriver: false,
+        damping: 26,
+        stiffness: 300,
+        mass: 0.6,
+      }).start();
+    },
+    [filterAnim],
+  );
+
+  useEffect(() => {
+    toggleFiltersRef.current = toggleFiltersAnimated;
+  }, [toggleFiltersAnimated]);
+
+  useEffect(() => {
+    const id = filterAnim.addListener(({ value }) => {
+      filterCurrentValueRef.current = value;
+    });
+    return () => filterAnim.removeListener(id);
+  }, [filterAnim]);
+
+  const filterPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gs) =>
+        Math.abs(gs.dy) > 8 && Math.abs(gs.dy) > Math.abs(gs.dx),
+      onPanResponderGrant: (_, gs) => {
+        filterAnim.stopAnimation();
+        filterBaseValueRef.current = filterCurrentValueRef.current;
+        filterGestureOffsetRef.current = gs.dy;
+      },
+      onPanResponderMove: (_, gs) => {
+        const adjustedDy = gs.dy - filterGestureOffsetRef.current;
+        const newVal = Math.max(0, Math.min(1,
+          filterBaseValueRef.current + adjustedDy / FILTER_ANIM_MAX_HEIGHT,
+        ));
+        filterAnim.setValue(newVal);
+      },
+      onPanResponderRelease: (_, gs) => {
+        const currentVal = filterCurrentValueRef.current;
+        let shouldExpand: boolean;
+        if (Math.abs(gs.vy) > 0.4) {
+          shouldExpand = gs.vy > 0;
+        } else {
+          shouldExpand = currentVal > 0.5;
+        }
+        toggleFiltersRef.current(shouldExpand);
+      },
+      onPanResponderTerminate: () => {
+        toggleFiltersRef.current(filterCurrentValueRef.current > 0.5);
+      },
+    }),
+  ).current;
+
+  const filterContentMaxHeight = filterAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 320],
+  });
+  const filterContentOpacity = filterAnim;
+  const filterHintMaxHeight = filterAnim.interpolate({
+    inputRange: [0, 0.4, 1],
+    outputRange: [24, 0, 0],
+  });
+  const filterHintOpacity = filterAnim.interpolate({
+    inputRange: [0, 0.3, 1],
+    outputRange: [1, 0, 0],
+  });
 
   const selectedCategoryName = useMemo(() => {
     if (selectedCategoryId === 'all') return null;
@@ -551,7 +634,7 @@ export const ProductsCatalogScreen: React.FC = () => {
   }, [selectedStoreId, baseFilteredProducts]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={styles.safeArea} edges={[]}>
       <View style={styles.container}>
         <View style={styles.searchWrap}>
           <SearchBar
@@ -562,70 +645,89 @@ export const ProductsCatalogScreen: React.FC = () => {
           />
         </View>
 
-        <View style={styles.filtersPanel}>
-          <Text style={styles.filterTitle}>Categoría</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chipsRow}
-          >
-            <FilterChip
-              label="Todas"
-              active={selectedCategoryId === 'all'}
-              onPress={() => setSelectedCategoryId('all')}
-            />
-            {allCategories.map((category) => (
-              <FilterChip
-                key={category.id}
-                label={category.name}
-                active={selectedCategoryId === category.id}
-                onPress={() => setSelectedCategoryId(category.id)}
-              />
-            ))}
-          </ScrollView>
+        <View style={styles.filtersPanel} {...filterPanResponder.panHandlers}>
+          <View style={styles.filtersHeaderButton}>
+            <Text style={styles.filtersHeaderTitle}>Filtros</Text>
+            <View style={styles.filtersHeaderRight}>
+              <Text style={styles.filtersHeaderCount}>{filteredProducts.length}</Text>
+            </View>
+          </View>
 
-          <Text style={styles.filterTitle}>Marca</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chipsRow}
+          <Animated.View
+            style={{ maxHeight: filterContentMaxHeight, opacity: filterContentOpacity, overflow: 'hidden' }}
           >
-            {brandOptions.map((brand) => (
+            <Text style={styles.filterTitle}>Categoría</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chipsRow}
+            >
               <FilterChip
-                key={brand}
-                label={brand === 'all' ? 'Todas' : brand}
-                active={selectedBrand === brand}
-                onPress={() => setSelectedBrand(brand)}
+                label="Todas"
+                active={selectedCategoryId === 'all'}
+                onPress={() => setSelectedCategoryId('all')}
               />
-            ))}
-          </ScrollView>
+              {allCategories.map((category) => (
+                <FilterChip
+                  key={category.id}
+                  label={category.name}
+                  active={selectedCategoryId === category.id}
+                  onPress={() => setSelectedCategoryId(category.id)}
+                />
+              ))}
+            </ScrollView>
 
-          <Text style={styles.filterTitle}>Tienda (dentro de tu radio)</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chipsRow}
+            <Text style={styles.filterTitle}>Marca</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chipsRow}
+            >
+              {brandOptions.map((brand) => (
+                <FilterChip
+                  key={brand}
+                  label={brand === 'all' ? 'Todas' : brand}
+                  active={selectedBrand === brand}
+                  onPress={() => setSelectedBrand(brand)}
+                />
+              ))}
+            </ScrollView>
+
+            <Text style={styles.filterTitle}>Tienda (dentro de tu radio)</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chipsRow}
+            >
+              <FilterChip
+                label="Todas"
+                active={selectedStoreId === 'all'}
+                onPress={() => setSelectedStoreId('all')}
+              />
+              {safeNearbyStores.map((store) => (
+                <FilterChip
+                  key={store.id}
+                  label={store.name}
+                  active={selectedStoreId === store.id}
+                  onPress={() => setSelectedStoreId(store.id)}
+                />
+              ))}
+            </ScrollView>
+
+            {locationDenied && (
+              <Text style={styles.helperText}>
+                Activa ubicación para cargar tiendas dentro de tu radio.
+              </Text>
+            )}
+          </Animated.View>
+
+          <Animated.View
+            style={{ maxHeight: filterHintMaxHeight, opacity: filterHintOpacity, overflow: 'hidden' }}
           >
-            <FilterChip
-              label="Todas"
-              active={selectedStoreId === 'all'}
-              onPress={() => setSelectedStoreId('all')}
-            />
-            {safeNearbyStores.map((store) => (
-              <FilterChip
-                key={store.id}
-                label={store.name}
-                active={selectedStoreId === store.id}
-                onPress={() => setSelectedStoreId(store.id)}
-              />
-            ))}
-          </ScrollView>
-
-          {locationDenied && (
-            <Text style={styles.helperText}>
-              Activa ubicación para cargar tiendas dentro de tu radio.
+            <Text style={styles.filtersCollapsedHint}>
+              Pulsa para mostrar categoría, marca y tienda.
             </Text>
-          )}
+          </Animated.View>
         </View>
 
         {isStoreFiltering && (
@@ -666,6 +768,11 @@ export const ProductsCatalogScreen: React.FC = () => {
             contentContainerStyle={
               filteredProducts.length === 0 ? styles.emptyContent : styles.listContent
             }
+            onScrollBeginDrag={() => {
+              if (filterExpandedRef.current) {
+                toggleFiltersRef.current(false);
+              }
+            }}
             onEndReached={handleLoadMoreProducts}
             onEndReachedThreshold={0.4}
             ListFooterComponent={
@@ -789,31 +896,57 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   searchWrap: {
-    paddingTop: spacing.sm,
-    marginBottom: spacing.sm,
+    paddingTop: 0,
+    marginBottom: spacing.md,
   },
   filtersPanel: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
-    padding: spacing.sm,
-    marginBottom: spacing.sm,
+    padding: spacing.md,
+    marginBottom: spacing.md,
     gap: spacing.xs,
+  },
+  filtersHeaderButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  filtersHeaderTitle: {
+    fontFamily: fontFamilies.bodySemiBold,
+    fontSize: fontSize.md,
+    color: colors.text,
+  },
+  filtersHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  filtersHeaderCount: {
+    fontFamily: fontFamilies.monoMedium,
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
+  },
+  filtersCollapsedHint: {
+    fontFamily: fontFamilies.body,
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
   },
   filterTitle: {
     fontFamily: fontFamilies.bodySemiBold,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.sm,
     color: colors.text,
-    marginTop: spacing.xs,
+    marginTop: spacing.sm,
   },
   chipsRow: {
     gap: spacing.xs,
     paddingRight: spacing.xs,
+    paddingVertical: spacing.xs,
   },
   chip: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     borderRadius: borderRadius.pill,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
@@ -825,7 +958,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontFamily: fontFamilies.bodyMedium,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.sm,
     color: colors.textMuted,
   },
   chipTextActive: {
@@ -867,16 +1000,16 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
-    padding: spacing.sm,
-    marginBottom: spacing.xs,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
   },
   productIconWrap: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: colors.primaryTint,
     alignItems: 'center',
     justifyContent: 'center',
@@ -886,25 +1019,25 @@ const styles = StyleSheet.create({
   },
   productName: {
     fontFamily: fontFamilies.bodyMedium,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.md,
     color: colors.text,
   },
   productMeta: {
     fontFamily: fontFamilies.body,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.sm,
     color: colors.textMuted,
-    marginTop: 2,
+    marginTop: 3,
   },
   productPriceMeta: {
     fontFamily: fontFamilies.bodySemiBold,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.sm,
     color: colors.primary,
-    marginTop: 4,
+    marginTop: 5,
   },
   addProductButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',

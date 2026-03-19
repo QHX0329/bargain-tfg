@@ -16,7 +16,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -152,9 +151,7 @@ class Migration(migrations.Migration):
                 ("brand", models.CharField(blank=True, max_length=100, verbose_name="Marca")),
                 (
                     "barcode",
-                    models.CharField(
-                        blank=True, max_length=20, verbose_name="Código de barras"
-                    ),
+                    models.CharField(blank=True, max_length=20, verbose_name="Código de barras"),
                 ),
                 ("image_url", models.URLField(blank=True, verbose_name="URL imagen")),
                 (

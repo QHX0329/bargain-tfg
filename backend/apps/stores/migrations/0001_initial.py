@@ -8,7 +8,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -17,59 +16,113 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='StoreChain',
+            name="StoreChain",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, unique=True, verbose_name='Nombre')),
-                ('slug', models.SlugField(max_length=100, unique=True, verbose_name='Slug')),
-                ('logo_url', models.URLField(blank=True, verbose_name='URL del logo')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("name", models.CharField(max_length=100, unique=True, verbose_name="Nombre")),
+                ("slug", models.SlugField(max_length=100, unique=True, verbose_name="Slug")),
+                ("logo_url", models.URLField(blank=True, verbose_name="URL del logo")),
             ],
             options={
-                'verbose_name': 'Cadena comercial',
-                'verbose_name_plural': 'Cadenas comerciales',
-                'ordering': ['name'],
+                "verbose_name": "Cadena comercial",
+                "verbose_name_plural": "Cadenas comerciales",
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='Store',
+            name="Store",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200, verbose_name='Nombre')),
-                ('address', models.CharField(max_length=300, verbose_name='Dirección')),
-                ('location', django.contrib.gis.db.models.fields.PointField(srid=4326, verbose_name='Ubicación')),
-                ('opening_hours', models.JSONField(blank=True, default=dict, verbose_name='Horario')),
-                ('is_local_business', models.BooleanField(default=False, verbose_name='Es comercio local')),
-                ('is_active', models.BooleanField(default=True, verbose_name='Activa')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('chain', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='stores', to='stores.storechain', verbose_name='Cadena')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("name", models.CharField(max_length=200, verbose_name="Nombre")),
+                ("address", models.CharField(max_length=300, verbose_name="Dirección")),
+                (
+                    "location",
+                    django.contrib.gis.db.models.fields.PointField(
+                        srid=4326, verbose_name="Ubicación"
+                    ),
+                ),
+                (
+                    "opening_hours",
+                    models.JSONField(blank=True, default=dict, verbose_name="Horario"),
+                ),
+                (
+                    "is_local_business",
+                    models.BooleanField(default=False, verbose_name="Es comercio local"),
+                ),
+                ("is_active", models.BooleanField(default=True, verbose_name="Activa")),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "chain",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="stores",
+                        to="stores.storechain",
+                        verbose_name="Cadena",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Tienda',
-                'verbose_name_plural': 'Tiendas',
-                'ordering': ['name'],
+                "verbose_name": "Tienda",
+                "verbose_name_plural": "Tiendas",
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='UserFavoriteStore',
+            name="UserFavoriteStore",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('store', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='favorited_by', to='stores.store', verbose_name='Tienda')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='favorite_stores', to=settings.AUTH_USER_MODEL, verbose_name='Usuario')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "store",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="favorited_by",
+                        to="stores.store",
+                        verbose_name="Tienda",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="favorite_stores",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Usuario",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Tienda favorita',
-                'verbose_name_plural': 'Tiendas favoritas',
-                'ordering': ['-created_at'],
+                "verbose_name": "Tienda favorita",
+                "verbose_name_plural": "Tiendas favoritas",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.AddIndex(
-            model_name='store',
-            index=django.contrib.postgres.indexes.GistIndex(fields=['location'], name='stores_store_location_gist'),
+            model_name="store",
+            index=django.contrib.postgres.indexes.GistIndex(
+                fields=["location"], name="stores_store_location_gist"
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='userfavoritestore',
-            unique_together={('user', 'store')},
+            name="userfavoritestore",
+            unique_together={("user", "store")},
         ),
     ]

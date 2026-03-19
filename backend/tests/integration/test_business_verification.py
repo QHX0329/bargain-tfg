@@ -36,9 +36,7 @@ class TestBusinessVerification:
         assert unverified_profile.is_verified is False
         assert unverified_profile.rejection_reason == "Documentación incompleta"
 
-    def test_non_admin_approve_returns_403(
-        self, api_client, business_user, unverified_profile
-    ):
+    def test_non_admin_approve_returns_403(self, api_client, business_user, unverified_profile):
         """Un usuario no-admin no puede aprobar un BusinessProfile."""
         api_client.force_authenticate(user=business_user)
         url = f"/api/v1/business/profiles/{unverified_profile.id}/approve/"
@@ -46,9 +44,7 @@ class TestBusinessVerification:
 
         assert response.status_code == 403
 
-    def test_non_admin_reject_returns_403(
-        self, api_client, business_user, unverified_profile
-    ):
+    def test_non_admin_reject_returns_403(self, api_client, business_user, unverified_profile):
         """Un usuario no-admin no puede rechazar un BusinessProfile."""
         api_client.force_authenticate(user=business_user)
         url = f"/api/v1/business/profiles/{unverified_profile.id}/reject/"

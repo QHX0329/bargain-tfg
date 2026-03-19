@@ -12,17 +12,16 @@ class TestDispatchPushNotification:
     """Tests para la tarea Celery dispatch_push_notification."""
 
     def _create_token(self, user, token_str="ExponentPushToken[abc]", device_id="dev-1"):
-        return UserPushToken.objects.create(
-            user=user, token=token_str, device_id=device_id
-        )
+        return UserPushToken.objects.create(user=user, token=token_str, device_id=device_id)
 
     def test_dispatch_respects_push_rate_limit(self, consumer_user):
         """El 11.° dispatch del día se omite (límite 10 por usuario/día)."""
         self._create_token(consumer_user)
 
-        with patch("apps.notifications.tasks.PushClient") as mock_client_cls, patch(
-            "apps.notifications.tasks.redis_lib"
-        ) as mock_redis_lib:
+        with (
+            patch("apps.notifications.tasks.PushClient") as mock_client_cls,
+            patch("apps.notifications.tasks.redis_lib") as mock_redis_lib,
+        ):
             mock_redis = MagicMock()
             mock_redis_lib.from_url.return_value = mock_redis
             # Simulate count = 11 (already at limit)
@@ -47,9 +46,10 @@ class TestDispatchPushNotification:
         """DeviceNotRegisteredError elimina el token y no falla el task."""
         token = self._create_token(consumer_user)
 
-        with patch("apps.notifications.tasks.PushClient") as mock_client_cls, patch(
-            "apps.notifications.tasks.redis_lib"
-        ) as mock_redis_lib:
+        with (
+            patch("apps.notifications.tasks.PushClient") as mock_client_cls,
+            patch("apps.notifications.tasks.redis_lib") as mock_redis_lib,
+        ):
             mock_redis = MagicMock()
             mock_redis_lib.from_url.return_value = mock_redis
             mock_redis.incr.return_value = 1
@@ -79,9 +79,10 @@ class TestDispatchPushNotification:
         """PushClient.publish se llama con el PushMessage correcto."""
         self._create_token(consumer_user, "ExponentPushToken[xyz]")
 
-        with patch("apps.notifications.tasks.PushClient") as mock_client_cls, patch(
-            "apps.notifications.tasks.redis_lib"
-        ) as mock_redis_lib:
+        with (
+            patch("apps.notifications.tasks.PushClient") as mock_client_cls,
+            patch("apps.notifications.tasks.redis_lib") as mock_redis_lib,
+        ):
             mock_redis = MagicMock()
             mock_redis_lib.from_url.return_value = mock_redis
             mock_redis.incr.return_value = 1
@@ -132,9 +133,10 @@ class TestDispatchPushNotification:
         """Cuando count==1 (primer dispatch del día), se llama r.expire para 24h."""
         self._create_token(consumer_user)
 
-        with patch("apps.notifications.tasks.PushClient") as mock_client_cls, patch(
-            "apps.notifications.tasks.redis_lib"
-        ) as mock_redis_lib:
+        with (
+            patch("apps.notifications.tasks.PushClient") as mock_client_cls,
+            patch("apps.notifications.tasks.redis_lib") as mock_redis_lib,
+        ):
             mock_redis = MagicMock()
             mock_redis_lib.from_url.return_value = mock_redis
             mock_redis.incr.return_value = 1

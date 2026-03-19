@@ -36,10 +36,24 @@ class PriceCompareView(APIView):
 
     @extend_schema(
         parameters=[
-            OpenApiParameter("product", int, required=True, description="ID del producto a comparar"),
-            OpenApiParameter("lat", float, required=False, description="Latitud del usuario (WGS-84); si se omite, devuelve precios de todas las tiendas"),
-            OpenApiParameter("lng", float, required=False, description="Longitud del usuario (WGS-84)"),
-            OpenApiParameter("radius", float, required=False, description=f"Radio de búsqueda en km (defecto: {DEFAULT_RADIUS_KM})"),
+            OpenApiParameter(
+                "product", int, required=True, description="ID del producto a comparar"
+            ),
+            OpenApiParameter(
+                "lat",
+                float,
+                required=False,
+                description="Latitud del usuario (WGS-84); si se omite, devuelve precios de todas las tiendas",
+            ),
+            OpenApiParameter(
+                "lng", float, required=False, description="Longitud del usuario (WGS-84)"
+            ),
+            OpenApiParameter(
+                "radius",
+                float,
+                required=False,
+                description=f"Radio de búsqueda en km (defecto: {DEFAULT_RADIUS_KM})",
+            ),
         ],
         responses=PriceCompareSerializer(many=True),
     )
@@ -89,9 +103,8 @@ class PriceCompareView(APIView):
             # Calcular distancias
             from django.contrib.gis.db.models.functions import Distance
 
-            stores_with_distance = (
-                Store.objects.filter(id__in=nearby_store_ids)
-                .annotate(distance=Distance("location", user_location))
+            stores_with_distance = Store.objects.filter(id__in=nearby_store_ids).annotate(
+                distance=Distance("location", user_location)
             )
             for s in stores_with_distance:
                 # Distance returns in degrees; convert to km via .m / 1000
@@ -172,8 +185,12 @@ class ListTotalView(APIView):
 
     @extend_schema(
         parameters=[
-            OpenApiParameter("list", int, required=True, description="ID de la lista de la compra"),
-            OpenApiParameter("store", int, required=True, description="ID de la tienda donde calcular el total"),
+            OpenApiParameter(
+                "list", int, required=True, description="ID de la lista de la compra"
+            ),
+            OpenApiParameter(
+                "store", int, required=True, description="ID de la tienda donde calcular el total"
+            ),
         ],
     )
     def get(self, request):
@@ -226,7 +243,9 @@ class ListTotalView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        items = ShoppingListItem.objects.filter(shopping_list=shopping_list).select_related("product")
+        items = ShoppingListItem.objects.filter(shopping_list=shopping_list).select_related(
+            "product"
+        )
 
         total = Decimal("0.00")
         missing_items: list[str] = []
@@ -241,7 +260,9 @@ class ListTotalView(APIView):
             if price_obj is None:
                 missing_items.append(item.product.name)
             else:
-                effective_price = price_obj.offer_price if price_obj.offer_price else price_obj.price
+                effective_price = (
+                    price_obj.offer_price if price_obj.offer_price else price_obj.price
+                )
                 total += effective_price * item.quantity
 
         return success_response(
@@ -302,7 +323,9 @@ class PriceAlertViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return PriceAlert.objects.filter(user=self.request.user, is_active=True).select_related("product")
+        return PriceAlert.objects.filter(user=self.request.user, is_active=True).select_related(
+            "product"
+        )
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

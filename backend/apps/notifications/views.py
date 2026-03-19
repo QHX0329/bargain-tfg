@@ -56,7 +56,11 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
     @extend_schema(
         request=None,
-        responses={200: inline_serializer("ReadAllResponse", fields={"marked_read": drf_serializers.IntegerField()})},
+        responses={
+            200: inline_serializer(
+                "ReadAllResponse", fields={"marked_read": drf_serializers.IntegerField()}
+            )
+        },
         description="Marca todas las notificaciones no leídas del usuario como leídas. Devuelve el número de notificaciones actualizadas.",
     )
     @action(detail=False, methods=["post"], url_path="read-all")
@@ -66,7 +70,11 @@ class NotificationViewSet(viewsets.ModelViewSet):
         return success_response({"marked_read": updated})
 
     @extend_schema(
-        responses={200: inline_serializer("UnreadCountResponse", fields={"count": drf_serializers.IntegerField()})},
+        responses={
+            200: inline_serializer(
+                "UnreadCountResponse", fields={"count": drf_serializers.IntegerField()}
+            )
+        },
         description="Devuelve el número de notificaciones no leídas. Usar para el badge de la app.",
     )
     @action(detail=False, methods=["get"], url_path="unread-count")
@@ -119,9 +127,7 @@ class PushTokenView(CreateAPIView):
             created=created,
         )
 
-        push_token_obj = UserPushToken.objects.get(
-            user=request.user, device_id=device_id
-        )
+        push_token_obj = UserPushToken.objects.get(user=request.user, device_id=device_id)
         data = {
             "id": push_token_obj.id,
             "token": push_token_obj.token,

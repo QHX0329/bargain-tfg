@@ -62,7 +62,16 @@ class PriceAlertSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PriceAlert
-        fields = ["id", "product", "product_name", "store", "target_price", "is_active", "triggered_at", "created_at"]
+        fields = [
+            "id",
+            "product",
+            "product_name",
+            "store",
+            "target_price",
+            "is_active",
+            "triggered_at",
+            "created_at",
+        ]
         read_only_fields = ["id", "product_name", "is_active", "triggered_at", "created_at"]
 
 
@@ -71,5 +80,15 @@ class CrowdsourcePriceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Price
-        fields = ["id", "product", "store", "price", "offer_price", "source", "confidence_weight", "is_stale", "verified_at"]
+        fields = [
+            "id",
+            "product",
+            "store",
+            "price",
+            "offer_price",
+            "source",
+            "confidence_weight",
+            "is_stale",
+            "verified_at",
+        ]
         read_only_fields = ["id", "source", "confidence_weight", "is_stale", "verified_at"]

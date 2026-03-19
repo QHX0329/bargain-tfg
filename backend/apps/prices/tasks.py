@@ -89,7 +89,10 @@ def check_price_alerts(self) -> dict[str, int]:
                 alert_id=alert.id,
             )
             # Dispatch push notification if user has push enabled and pref not off
-            if alert.user.push_notifications_enabled and alert.user.notify_price_alerts is not False:
+            if (
+                alert.user.push_notifications_enabled
+                and alert.user.notify_price_alerts is not False
+            ):
                 from apps.notifications.tasks import dispatch_push_notification
 
                 dispatch_push_notification.delay(

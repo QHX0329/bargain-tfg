@@ -146,10 +146,10 @@ class AddCollaboratorSerializer(serializers.Serializer):
     def validate_username(self, value: str) -> str:
         try:
             User.objects.get(username=value)
-        except User.DoesNotExist:
+        except User.DoesNotExist as exc:
             raise serializers.ValidationError(
                 f"No existe ningún usuario con el nombre '{value}'."
-            )
+            ) from exc
         return value
 
 

@@ -40,9 +40,7 @@ class TestPriceAlertTriggersNotification:
             is_stale=False,
         )
 
-        with patch(
-            "apps.notifications.tasks.dispatch_push_notification.delay"
-        ) as mock_delay:
+        with patch("apps.notifications.tasks.dispatch_push_notification.delay") as mock_delay:
             from apps.prices.tasks import check_price_alerts
 
             check_price_alerts()
@@ -78,9 +76,7 @@ class TestPriceAlertTriggersNotification:
             is_stale=False,
         )
 
-        with patch(
-            "apps.notifications.tasks.dispatch_push_notification.delay"
-        ) as mock_delay:
+        with patch("apps.notifications.tasks.dispatch_push_notification.delay") as mock_delay:
             from apps.prices.tasks import check_price_alerts
 
             check_price_alerts()
@@ -117,9 +113,7 @@ class TestPromoCreationTriggersNotification:
         client = APIClient()
         client.force_authenticate(user=verified_business_user)
 
-        with patch(
-            "apps.notifications.tasks.notify_new_promo_at_store.delay"
-        ) as mock_delay:
+        with patch("apps.notifications.tasks.notify_new_promo_at_store.delay") as mock_delay:
             resp = client.post(
                 "/api/v1/business/promotions/",
                 {
@@ -159,9 +153,12 @@ class TestSharedListNotificationTrigger:
             invited_by=consumer_user,
         )
 
-        with patch("apps.shopping_lists.views.redis_lib") as mock_redis_lib, patch(
-            "apps.notifications.tasks.send_shared_list_notification.apply_async"
-        ) as mock_apply_async:
+        with (
+            patch("apps.shopping_lists.views.redis_lib") as mock_redis_lib,
+            patch(
+                "apps.notifications.tasks.send_shared_list_notification.apply_async"
+            ) as mock_apply_async,
+        ):
             mock_redis = mock_redis_lib.from_url.return_value
             # Key not set — first trigger
             mock_redis.exists.return_value = False
@@ -181,7 +178,6 @@ class TestSharedListNotificationTrigger:
         """Si la clave lock ya existe en Redis, no se reprograma la notificación."""
         from apps.shopping_lists.models import ListCollaborator
 
-        product = ProductFactory()
         shopping_list = ShoppingListFactory(owner=consumer_user)
         collab_user = UserFactory()
         ListCollaborator.objects.create(
@@ -190,9 +186,12 @@ class TestSharedListNotificationTrigger:
             invited_by=consumer_user,
         )
 
-        with patch("apps.shopping_lists.views.redis_lib") as mock_redis_lib, patch(
-            "apps.notifications.tasks.send_shared_list_notification.apply_async"
-        ) as mock_apply_async:
+        with (
+            patch("apps.shopping_lists.views.redis_lib") as mock_redis_lib,
+            patch(
+                "apps.notifications.tasks.send_shared_list_notification.apply_async"
+            ) as mock_apply_async,
+        ):
             mock_redis = mock_redis_lib.from_url.return_value
             # Key already set
             mock_redis.exists.return_value = True

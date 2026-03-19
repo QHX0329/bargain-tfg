@@ -2,42 +2,16 @@ import React from 'react';
 import { Form, Input, Button, Card, Typography, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { apiClient, API_BASE_URL } from '../api/client';
+import { apiClient } from '../api/client';
+import { handleLogin } from '../services/auth';
 import { useBusinessStore } from '../store/businessStore';
 import type { BusinessProfile } from '../store/businessStore';
+import { extractBusinessProfiles } from '../utils/businessProfiles';
 
 const { Title } = Typography;
 
-/**
- * Pure async function — handles login logic independently of React rendering.
- * Accepts an axiosInstance for testability.
- * Throws on error.
- */
-export async function handleLogin(
-  email: string,
-  password: string,
-  axiosInstance: Pick<typeof axios, 'post'>,
-): Promise<void> {
-  const response = await axiosInstance.post(`${API_BASE_URL}/auth/token/`, {
-    username: email,
-    password,
-  });
-
-  const data = response.data as { access?: string; refresh?: string };
-  const accessToken = data.access;
-
-  if (!accessToken) {
-    throw new Error('No access token in response');
-  }
-
-  localStorage.setItem('access_token', accessToken);
-  if (data.refresh) {
-    localStorage.setItem('refresh_token', data.refresh);
-  }
-}
-
 interface LoginFormValues {
-  email: string;
+  username: string;
   password: string;
 }
 
@@ -48,24 +22,40 @@ const LoginPage: React.FC = () => {
 
   const onFinish = async (values: LoginFormValues) => {
     setLoading(true);
+
     try {
-      await handleLogin(values.email, values.password, axios);
-      const token = localStorage.getItem('access_token') ?? '';
-      setToken(token);
-
-      // Load business profile into store
-      const profileResponse = await apiClient.get<BusinessProfile[]>('/business/profiles/');
-      const profiles = profileResponse.data;
-      if (Array.isArray(profiles) && profiles.length > 0) {
-        setProfile(profiles[0]);
-      }
-
-      navigate('/');
+      await handleLogin(values.username, values.password, axios);
     } catch {
-      void message.error('Credenciales incorrectas');
-    } finally {
+      void message.error('Credenciales incorrectas. Revisa usuario y contraseña.');
       setLoading(false);
+      return;
     }
+
+    const token = localStorage.getItem('access_token') ?? '';
+    setToken(token);
+
+    let profiles: BusinessProfile[] = [];
+    try {
+      const profileResponse = await apiClient.get<BusinessProfile[] | { results?: BusinessProfile[] }>(
+        '/business/profiles/',
+      );
+      profiles = extractBusinessProfiles(profileResponse.data);
+    } catch {
+      void message.error('Inicio de sesión correcto, pero no se pudo cargar tu perfil de negocio.');
+      setLoading(false);
+      return;
+    }
+
+    if (profiles.length === 0) {
+      void message.warning('Inicio de sesión correcto, pero tu cuenta no tiene perfil de negocio asociado.');
+      setLoading(false);
+      return;
+    }
+
+    setProfile(profiles[0]);
+    navigate('/');
+
+    setLoading(false);
   };
 
   return (
@@ -81,7 +71,7 @@ const LoginPage: React.FC = () => {
       <Card style={{ width: 400, boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <Title level={2} style={{ margin: 0 }}>
-            BargAIn Business
+            BarGAIN Business
           </Title>
           <Typography.Text type="secondary">Portal de gestión para empresas PYME</Typography.Text>
         </div>
@@ -92,14 +82,13 @@ const LoginPage: React.FC = () => {
           autoComplete="off"
         >
           <Form.Item
-            label="Correo electrónico"
-            name="email"
+            label="Nombre de usuario"
+            name="username"
             rules={[
-              { required: true, message: 'Introduce tu correo electrónico' },
-              { type: 'email', message: 'Introduce un correo electrónico válido' },
+              { required: true, message: 'Introduce tu nombre de usuario' },
             ]}
           >
-            <Input placeholder="empresa@ejemplo.com" size="large" />
+            <Input placeholder="empresa_pyme" size="large" />
           </Form.Item>
 
           <Form.Item

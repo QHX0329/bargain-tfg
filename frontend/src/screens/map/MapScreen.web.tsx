@@ -132,6 +132,7 @@ export const MapScreen: React.FC = () => {
   const [stores, setStores] = useState<Store[]>([]);
   const [isFetchingStores, setIsFetchingStores] = useState(false);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+  const [storesPanelExpanded, setStoresPanelExpanded] = useState(true);
 
   const onLoad = useCallback((mapInstance: google.maps.Map) => {
     setMap(mapInstance);
@@ -315,9 +316,12 @@ export const MapScreen: React.FC = () => {
              }}
              onCloseClick={() => setSelectedStore(null)}
            >
-             <div style={{ padding: '4px', maxWidth: '200px' }}>
-               <h4 style={{ margin: '0 0 4px 0', fontFamily: 'inherit' }}>{selectedStore.name}</h4>
-               <p style={{ margin: '0', fontSize: '12px', color: '#666' }}>{selectedStore.address}</p>
+             <div style={infoWindowStyles.wrap}>
+               <h4 style={infoWindowStyles.title}>{selectedStore.name}</h4>
+               <p style={infoWindowStyles.meta}>
+                 {selectedStore.chain?.toUpperCase() ?? 'TIENDA'} · {selectedStore.isOpen ? 'ABIERTO' : 'CERRADO'}
+               </p>
+               <p style={infoWindowStyles.address}>{selectedStore.address}</p>
              </div>
            </InfoWindow>
         )}
@@ -341,7 +345,23 @@ export const MapScreen: React.FC = () => {
 
       {/* ── Panel inferior ───────────── */}
       <View style={styles.bottomPanel}>
-        {stores.length > 0 ? (
+        <TouchableOpacity
+          style={styles.panelHandleButton}
+          onPress={() => setStoresPanelExpanded((prev) => !prev)}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel={storesPanelExpanded ? 'Plegar panel de tiendas' : 'Desplegar panel de tiendas'}
+        >
+          <View style={styles.panelHandleGrip} />
+          <View style={styles.panelHandleMeta}>
+            <Text style={styles.panelTitle}>
+              {stores.length} tienda{stores.length !== 1 ? 's' : ''} en esta zona
+            </Text>
+            <Text style={styles.panelHandleChevron}>{storesPanelExpanded ? '▾' : '▴'}</Text>
+          </View>
+        </TouchableOpacity>
+
+        {!storesPanelExpanded ? null : stores.length > 0 ? (
           <>
             {selectedStore && (
               <TouchableOpacity
@@ -359,16 +379,13 @@ export const MapScreen: React.FC = () => {
                 <Text style={styles.storeProfileButtonText}>Ver perfil de tienda</Text>
               </TouchableOpacity>
             )}
-            <Text style={styles.panelTitle}>
-              {stores.length} tienda{stores.length !== 1 ? "s" : ""} en esta zona
-            </Text>
             <FlatList
               data={stores}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
-                <StoreCard 
-                  store={item} 
-                  onPress={handleStoreCardPress} 
+                <StoreCard
+                  store={item}
+                  onPress={handleStoreCardPress}
                   isSelected={selectedStore?.id === item.id}
                 />
               )}
@@ -448,18 +465,40 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderTopLeftRadius: borderRadius.lg,
     borderTopRightRadius: borderRadius.lg,
-    paddingTop: spacing.md,
+    paddingTop: spacing.sm,
     paddingBottom: spacing.lg,
     ...shadows.elevated,
-    minHeight: 130,
+    minHeight: 66,
     zIndex: 1000,
+  },
+  panelHandleButton: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  panelHandleGrip: {
+    alignSelf: 'center',
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.border,
+    marginBottom: spacing.sm,
+  },
+  panelHandleMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  panelHandleChevron: {
+    fontFamily: fontFamilies.bodySemiBold,
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
   },
   panelTitle: {
     fontFamily: fontFamilies.bodySemiBold,
     fontSize: fontSize.sm,
     color: colors.textMuted,
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
   storeProfileButton: {
     alignSelf: 'center',
@@ -546,3 +585,30 @@ const cardStyles = StyleSheet.create({
     backgroundColor: colors.textDisabled,
   },
 });
+
+const infoWindowStyles: Record<string, React.CSSProperties> = {
+  wrap: {
+    maxWidth: 220,
+    padding: '6px 8px',
+  },
+  title: {
+    margin: '0 0 3px 0',
+    fontSize: '14px',
+    lineHeight: '18px',
+    fontWeight: 600,
+    color: '#1F2937',
+  },
+  meta: {
+    margin: '0 0 3px 0',
+    fontSize: '11px',
+    lineHeight: '14px',
+    letterSpacing: '0.4px',
+    color: '#0E7490',
+  },
+  address: {
+    margin: 0,
+    fontSize: '12px',
+    lineHeight: '16px',
+    color: '#4B5563',
+  },
+};

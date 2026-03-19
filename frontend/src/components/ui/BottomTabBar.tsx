@@ -1,29 +1,18 @@
 /**
  * [C07] BottomTabBar — Barra de navegación inferior de BargAIn.
  *
- * Tabs: Home | Buscar | Lista | Ruta | Perfil
- *
- * Diseño "Mercado Mediterráneo Digital":
- *   - Superficie crema cerámica (colors.surface) con borde superior naranja
- *     ultra-fino cuando hay un tab activo.
- *   - Tab activo: icono + label naranja Triana con indicador pill animado.
- *   - Tab inactivo: gris tierra, sin label.
+ * Diseño iOS HIG nativo:
+ *   - Icono + label siempre visibles (Apple HIG §Tab Bars).
+ *   - Tab activo: icono + label con color primario.
+ *   - Tab inactivo: gris neutro, icon + label visibles.
  *   - Safe area respetada con react-native-safe-area-context.
- *   - Animación Reanimated 2: indicador deslizante y escala del icono activo.
- *
- * Uso con Expo Router (file-based routing):
- *   Pasar las props directamente desde el TabLayout de Expo Router.
- *
- * @example — standalone (para preview / Storybook)
- * <BottomTabBar
- *   tabs={TAB_DEFINITIONS}
- *   activeIndex={0}
- *   onTabPress={(index) => router.replace(tabs[index].route)}
- * />
+ *   - Animación sutil: escala del icono activo con spring physics.
+ *   - Fondo translúcido con blur (iOS) / sólido (Android).
  */
 
 import React, { useEffect } from "react";
 import {
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -35,61 +24,40 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  interpolate,
-  Extrapolation,
 } from "react-native-reanimated";
 import {
   colors,
-  textStyles,
   spacing,
-  borderRadius,
   sizes,
-  shadows,
 } from "@/theme";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
 export interface TabDefinition {
-  /** Identificador único del tab */
   key: string;
-  /** Ruta para Expo Router (e.g. '/(tabs)/home') */
   route: string;
-  /** Etiqueta visible cuando el tab está activo */
   label: string;
-  /** Icono en estado normal (componente React, e.g. Ionicons) */
   icon: React.ReactNode;
-  /** Icono en estado activo — si no se provee, usa `icon` */
   iconActive?: React.ReactNode;
-  /** Número de notificaciones pendientes (0 = sin badge) */
   badgeCount?: number;
-  /** accessibilityLabel personalizado */
   accessibilityLabel?: string;
 }
 
 export interface BottomTabBarProps {
-  /** Definición de los tabs */
   tabs: TabDefinition[];
-  /** Índice del tab actualmente seleccionado */
   activeIndex: number;
-  /** Callback al presionar un tab */
   onTabPress: (index: number) => void;
 }
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
-const INDICATOR_WIDTH = 32;
-const SPRING_CONFIG = {
-  damping: 18,
-  stiffness: 260,
-  mass: 0.9,
-};
 const ICON_SPRING = {
-  damping: 12,
-  stiffness: 300,
-  mass: 0.6,
+  damping: 14,
+  stiffness: 320,
+  mass: 0.7,
 };
 
-// ─── Componente de tab individual ─────────────────────────────────────────────
+// ─── Tab individual ───────────────────────────────────────────────────────────
 
 interface TabItemProps {
   tab: TabDefinition;
@@ -98,40 +66,30 @@ interface TabItemProps {
 }
 
 const TabItem: React.FC<TabItemProps> = ({ tab, isActive, onPress }) => {
-  const scale = useSharedValue(isActive ? 1.1 : 1);
-  const labelOpacity = useSharedValue(isActive ? 1 : 0);
-  const labelTranslateY = useSharedValue(isActive ? 0 : 4);
+  const scale = useSharedValue(isActive ? 1.08 : 1);
 
   useEffect(() => {
-    scale.value = withSpring(isActive ? 1.12 : 1, ICON_SPRING);
-    labelOpacity.value = withSpring(isActive ? 1 : 0, SPRING_CONFIG);
-    labelTranslateY.value = withSpring(isActive ? 0 : 4, SPRING_CONFIG);
-  }, [isActive, scale, labelOpacity, labelTranslateY]);
+    scale.value = withSpring(isActive ? 1.08 : 1, ICON_SPRING);
+  }, [isActive, scale]);
 
   const iconAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
-  const labelAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: labelOpacity.value,
-    transform: [{ translateY: labelTranslateY.value }],
-  }));
-
-  const iconColor = isActive ? colors.primary : colors.textMuted;
+  const labelColor = isActive ? colors.primary : colors.textMuted;
 
   return (
     <TouchableOpacity
       onPress={onPress}
       style={styles.tabItem}
-      activeOpacity={0.75}
+      activeOpacity={0.7}
       accessibilityRole="tab"
       accessibilityLabel={tab.accessibilityLabel ?? tab.label}
       accessibilityState={{ selected: isActive }}
     >
-      {/* Badge de notificación */}
+      {/* Icono con badge */}
       <View style={styles.iconWrapper}>
         <Animated.View style={iconAnimatedStyle}>
-          {/* Clona el icono inyectando el color correcto si es string */}
           {isActive && tab.iconActive ? tab.iconActive : tab.icon}
         </Animated.View>
 
@@ -147,58 +105,14 @@ const TabItem: React.FC<TabItemProps> = ({ tab, isActive, onPress }) => {
         )}
       </View>
 
-      {/* Label animado — solo visible en tab activo */}
-      <Animated.Text
-        style={[
-          textStyles.labelSmall,
-          styles.label,
-          { color: iconColor },
-          labelAnimatedStyle,
-        ]}
+      {/* Label — siempre visible (iOS HIG) */}
+      <Text
+        style={[styles.label, { color: labelColor }]}
         numberOfLines={1}
-        accessible={false}
-        importantForAccessibility="no"
       >
         {tab.label}
-      </Animated.Text>
+      </Text>
     </TouchableOpacity>
-  );
-};
-
-// ─── Indicador deslizante ────────────────────────────────────────────────────
-
-interface SlidingIndicatorProps {
-  activeIndex: number;
-  tabCount: number;
-}
-
-const SlidingIndicator: React.FC<SlidingIndicatorProps> = ({
-  activeIndex,
-  tabCount,
-}) => {
-  const tabWidth = useSharedValue(0);
-  const translateX = useSharedValue(0);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    const tabW = tabWidth.value;
-    const target = activeIndex * tabW + tabW / 2 - INDICATOR_WIDTH / 2;
-    translateX.value = withSpring(target, SPRING_CONFIG);
-
-    return {
-      transform: [{ translateX: translateX.value }],
-      opacity: interpolate(tabW, [0, 1], [0, 1], Extrapolation.CLAMP),
-    };
-  });
-
-  return (
-    <View
-      style={[styles.indicatorTrack, styles.pointerNone]}
-      onLayout={(e) => {
-        tabWidth.value = e.nativeEvent.layout.width / tabCount;
-      }}
-    >
-      <Animated.View style={[styles.indicator, animatedStyle]} />
-    </View>
   );
 };
 
@@ -215,19 +129,11 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({
     <View
       style={[
         styles.container,
-        { paddingBottom: Math.max(insets.bottom, spacing.sm) },
-        shadows.tabBar,
+        { paddingBottom: Math.max(insets.bottom, spacing.xs) },
       ]}
       accessibilityRole="tablist"
       accessibilityLabel="Navegación principal"
     >
-      {/* Línea decorativa superior con color activo */}
-      <View style={styles.topAccent} />
-
-      {/* Indicador deslizante */}
-      <SlidingIndicator activeIndex={activeIndex} tabCount={tabs.length} />
-
-      {/* Tabs */}
       <View style={styles.tabRow}>
         {tabs.map((tab, index) => (
           <TabItem
@@ -246,17 +152,21 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.surface,
+    backgroundColor: Platform.OS === "ios" ? "rgba(252, 248, 240, 0.94)" : colors.surface,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
-  },
-  topAccent: {
-    height: 2,
-    backgroundColor: colors.primary,
-    marginHorizontal: spacing.xl,
-    borderBottomLeftRadius: borderRadius.pill,
-    borderBottomRightRadius: borderRadius.pill,
-    opacity: 0.15,
+    // Sombra sutil hacia arriba (iOS)
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: -0.5 },
+        shadowOpacity: 0.1,
+        shadowRadius: 0,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
   tabRow: {
     flexDirection: "row",
@@ -269,6 +179,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: spacing.xs,
     gap: 2,
+    minHeight: 44,
   },
   iconWrapper: {
     position: "relative",
@@ -276,17 +187,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   label: {
+    fontSize: 10,
+    fontWeight: "500",
     textAlign: "center",
-    color: colors.primary,
-    letterSpacing: 0.2,
+    letterSpacing: 0.1,
   },
   badge: {
     position: "absolute",
     top: -4,
-    right: -6,
-    minWidth: sizes.notificationDot + 8,
-    height: sizes.notificationDot + 8,
-    borderRadius: borderRadius.pill,
+    right: -7,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
     backgroundColor: colors.error,
     paddingHorizontal: 3,
     alignItems: "center",
@@ -295,30 +207,10 @@ const styles = StyleSheet.create({
     borderColor: colors.surface,
   },
   badgeText: {
-    ...textStyles.labelSmall,
     color: colors.white,
     fontSize: 9,
+    fontWeight: "700",
     lineHeight: 11,
-  },
-  indicatorTrack: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 3,
-    flexDirection: "row",
-  },
-  pointerNone: {
-    pointerEvents: "none",
-  },
-  indicator: {
-    position: "absolute",
-    top: 0,
-    width: INDICATOR_WIDTH,
-    height: 3,
-    backgroundColor: colors.primary,
-    borderBottomLeftRadius: borderRadius.pill,
-    borderBottomRightRadius: borderRadius.pill,
   },
 });
 

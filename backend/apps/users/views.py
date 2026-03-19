@@ -136,10 +136,10 @@ class PasswordResetConfirmView(APIView):
         try:
             pk = force_str(urlsafe_base64_decode(uid))
             user = User.objects.get(pk=pk)
-        except (User.DoesNotExist, ValueError, TypeError, OverflowError):
+        except (User.DoesNotExist, ValueError, TypeError, OverflowError) as exc:
             raise serializers.ValidationError(
                 {"uid": "El enlace de restablecimiento no es válido."}
-            )
+            ) from exc
 
         if not PasswordResetTokenGenerator().check_token(user, token):
             raise serializers.ValidationError(

@@ -14,9 +14,11 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
+  Animated,
   ActivityIndicator,
   FlatList,
   Linking,
+  PanResponder,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -24,7 +26,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Location from "expo-location";
-import MapView, { Marker, type Region } from "react-native-maps";
+import MapView, { Callout, Marker, type Region } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -66,6 +68,16 @@ const CHAIN_INITIALS: Record<StoreChain, string> = {
   dia: "D",
   alcampo: "Al",
   local: "◎",
+};
+
+const CHAIN_LABELS: Record<StoreChain, string> = {
+  mercadona: 'Mercadona',
+  lidl: 'Lidl',
+  aldi: 'Aldi',
+  carrefour: 'Carrefour',
+  dia: 'Dia',
+  alcampo: 'Alcampo',
+  local: 'Comercio local',
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -190,6 +202,76 @@ export const MapScreen: React.FC = () => {
   const [stores, setStores] = useState<Store[]>([]);
   const [isFetchingStores, setIsFetchingStores] = useState(false);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+  // ── Panel animation ──────────────────────────────────────────────────────
+  const PANEL_ANIM_MAX_HEIGHT = 200;
+  const panelAnim = useRef(new Animated.Value(1)).current;
+  const panelExpandedRef = useRef(true);
+  const panelCurrentValueRef = useRef(1);
+  const panelBaseValueRef = useRef(1);
+  const panelGestureOffsetRef = useRef(0);
+  const togglePanelRef = useRef((_expanded: boolean) => {});
+
+  const togglePanelAnimated = useCallback(
+    (toExpanded: boolean) => {
+      panelExpandedRef.current = toExpanded;
+      Animated.spring(panelAnim, {
+        toValue: toExpanded ? 1 : 0,
+        useNativeDriver: false,
+        damping: 26,
+        stiffness: 300,
+        mass: 0.6,
+      }).start();
+    },
+    [panelAnim],
+  );
+
+  useEffect(() => {
+    togglePanelRef.current = togglePanelAnimated;
+  }, [togglePanelAnimated]);
+
+  useEffect(() => {
+    const id = panelAnim.addListener(({ value }) => {
+      panelCurrentValueRef.current = value;
+    });
+    return () => panelAnim.removeListener(id);
+  }, [panelAnim]);
+
+  const panelPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderGrant: (_, gs) => {
+        panelAnim.stopAnimation();
+        panelBaseValueRef.current = panelCurrentValueRef.current;
+        panelGestureOffsetRef.current = gs.dy;
+      },
+      onPanResponderMove: (_, gs) => {
+        const adjustedDy = gs.dy - panelGestureOffsetRef.current;
+        const newVal = Math.max(0, Math.min(1,
+          panelBaseValueRef.current - adjustedDy / PANEL_ANIM_MAX_HEIGHT,
+        ));
+        panelAnim.setValue(newVal);
+      },
+      onPanResponderRelease: (_, gs) => {
+        const currentVal = panelCurrentValueRef.current;
+        let shouldExpand: boolean;
+        if (Math.abs(gs.vy) > 0.4) {
+          shouldExpand = gs.vy < 0;
+        } else {
+          shouldExpand = currentVal > 0.5;
+        }
+        togglePanelRef.current(shouldExpand);
+      },
+      onPanResponderTerminate: () => {
+        togglePanelRef.current(panelCurrentValueRef.current > 0.5);
+      },
+    }),
+  ).current;
+
+  const panelContentMaxHeight = panelAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 200],
+  });
+  const panelContentOpacity = panelAnim;
 
   // ── Solicitar permiso y obtener ubicación ────────────────────────────────
 
@@ -315,7 +397,8 @@ export const MapScreen: React.FC = () => {
   // Permiso aún no resuelto
   if (permissionGranted === null) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={[]}>
+
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Obteniendo ubicación…</Text>
@@ -327,7 +410,8 @@ export const MapScreen: React.FC = () => {
   // Permiso denegado
   if (permissionGranted === false) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={[]}>
+
         <LocationDeniedCard />
       </SafeAreaView>
     );
@@ -350,6 +434,11 @@ export const MapScreen: React.FC = () => {
         showsUserLocation={true}
         showsMyLocationButton={true}
         onPress={() => setSelectedStore && setSelectedStore(null)}
+        onRegionChange={() => {
+          if (panelExpandedRef.current) {
+            togglePanelRef.current(false);
+          }
+        }}
       >
         {stores.map((store) => {
           const { latitude, longitude } = getStoreCoords(
@@ -357,14 +446,34 @@ export const MapScreen: React.FC = () => {
             userLat,
             userLng,
           );
+          const storeDistanceLabel =
+            store.distanceKm < 1
+              ? `${Math.round(store.distanceKm * 1000)} m`
+              : `${store.distanceKm.toFixed(1)} km`;
+          const calloutDescription = `${CHAIN_LABELS[store.chain]} · ${storeDistanceLabel} · ${
+            store.isOpen ? 'Abierto ahora' : 'Cerrado'
+          }`;
           return (
             <Marker
               key={store.id}
               coordinate={{ latitude, longitude }}
               title={store.name}
-              description={store.address}
+              description={calloutDescription}
+              pinColor={CHAIN_COLORS[store.chain]}
               onPress={() => setSelectedStore && setSelectedStore(store)}
-            />
+            >
+              <Callout tooltip={false}>
+                <View style={styles.markerCalloutContent}>
+                  <Text style={styles.markerCalloutTitle}>{store.name}</Text>
+                  <Text style={styles.markerCalloutMeta}>{calloutDescription}</Text>
+                  {store.address ? (
+                    <Text style={styles.markerCalloutAddress} numberOfLines={2}>
+                      {store.address}
+                    </Text>
+                  ) : null}
+                </View>
+              </Callout>
+            </Marker>
           );
         })}
       </MapView>
@@ -389,50 +498,61 @@ export const MapScreen: React.FC = () => {
 
       {/* ── Panel inferior: lista horizontal de tiendas ───────────── */}
       <View style={styles.bottomPanel}>
-        {stores.length > 0 ? (
-          <>
-            {selectedStore && (
-              <TouchableOpacity
-                style={styles.storeProfileButton}
-                onPress={() =>
-                  navigation.navigate("StoreProfile", {
-                    storeId: selectedStore.id,
-                    storeName: selectedStore.name,
-                    userLat,
-                    userLng,
-                  })
-                }
-                activeOpacity={0.9}
-              >
-                <Ionicons name="storefront-outline" size={16} color={colors.primary} />
-                <Text style={styles.storeProfileButtonText}>Ver perfil de tienda</Text>
-              </TouchableOpacity>
-            )}
+        <View
+          style={styles.panelHandleButton}
+          {...panelPanResponder.panHandlers}
+        >
+          <View style={styles.panelHandleGrip} />
+          <View style={styles.panelHandleMeta}>
             <Text style={styles.panelTitle}>
               {stores.length} tienda{stores.length !== 1 ? "s" : ""} en esta zona
             </Text>
-            <FlatList
-              data={stores}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <StoreCard 
-                  store={item} 
-                  onPress={handleStoreCardPress}
-                  isSelected={selectedStore?.id === item.id}
-                />
-              )}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.storeListContent}
-            />
-          </>
-        ) : !isFetchingStores ? (
-          <View style={styles.emptyStores}>
-            <Text style={styles.emptyStoresText}>
-              No se encontraron tiendas en el area visible del mapa
-            </Text>
           </View>
-        ) : null}
+        </View>
+
+        <Animated.View style={{ maxHeight: panelContentMaxHeight, opacity: panelContentOpacity, overflow: 'hidden' }}>
+          {stores.length > 0 ? (
+            <>
+              {selectedStore && (
+                <TouchableOpacity
+                  style={styles.storeProfileButton}
+                  onPress={() =>
+                    navigation.navigate("StoreProfile", {
+                      storeId: selectedStore.id,
+                      storeName: selectedStore.name,
+                      userLat,
+                      userLng,
+                    })
+                  }
+                  activeOpacity={0.9}
+                >
+                  <Ionicons name="storefront-outline" size={16} color={colors.primary} />
+                  <Text style={styles.storeProfileButtonText}>Ver perfil de tienda</Text>
+                </TouchableOpacity>
+              )}
+              <FlatList
+                data={stores}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <StoreCard
+                    store={item}
+                    onPress={handleStoreCardPress}
+                    isSelected={selectedStore?.id === item.id}
+                  />
+                )}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.storeListContent}
+              />
+            </>
+          ) : !isFetchingStores ? (
+            <View style={styles.emptyStores}>
+              <Text style={styles.emptyStoresText}>
+                No se encontraron tiendas en el area visible del mapa
+              </Text>
+            </View>
+          ) : null}
+        </Animated.View>
       </View>
     </View>
   );
@@ -498,17 +618,54 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderTopLeftRadius: borderRadius.lg,
     borderTopRightRadius: borderRadius.lg,
-    paddingTop: spacing.md,
+    paddingTop: spacing.sm,
     paddingBottom: spacing.lg,
     ...shadows.elevated,
-    minHeight: 130,
+  },
+  panelHandleButton: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  panelHandleGrip: {
+    alignSelf: 'center',
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.border,
+    marginBottom: spacing.sm,
+  },
+  panelHandleMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   panelTitle: {
     fontFamily: fontFamilies.bodySemiBold,
+    fontSize: fontSize.md,
+    color: colors.textMuted,
+    marginBottom: spacing.xs,
+  },
+  markerCalloutContent: {
+    maxWidth: 240,
+    padding: spacing.xs,
+  },
+  markerCalloutTitle: {
+    fontFamily: fontFamilies.bodySemiBold,
+    fontSize: fontSize.md,
+    color: colors.text,
+  },
+  markerCalloutMeta: {
+    fontFamily: fontFamilies.bodyMedium,
+    fontSize: fontSize.sm,
+    color: colors.primary,
+    marginTop: 2,
+  },
+  markerCalloutAddress: {
+    fontFamily: fontFamilies.body,
     fontSize: fontSize.sm,
     color: colors.textMuted,
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.sm,
+    marginTop: 2,
   },
   storeProfileButton: {
     marginHorizontal: spacing.md,
@@ -526,7 +683,7 @@ const styles = StyleSheet.create({
   },
   storeProfileButtonText: {
     fontFamily: fontFamilies.bodySemiBold,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.sm,
     color: colors.primary,
   },
   storeListContent: {
@@ -584,8 +741,8 @@ const cardStyles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
-    padding: spacing.sm,
-    width: 130,
+    padding: spacing.md,
+    width: 150,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
     position: "relative",
@@ -604,20 +761,20 @@ const cardStyles = StyleSheet.create({
   },
   storeName: {
     fontFamily: fontFamilies.bodyMedium,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.md,
     color: colors.text,
     lineHeight: 17,
     marginBottom: 4,
   },
   distanceText: {
     fontFamily: fontFamilies.monoMedium,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.md,
     color: colors.primary,
     lineHeight: 17,
   },
   timeText: {
     fontFamily: fontFamilies.body,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.sm,
     color: colors.textMuted,
     lineHeight: 15,
   },

@@ -4,25 +4,42 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('users', '0001_initial'),
+        ("users", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='notify_new_promos',
-            field=models.BooleanField(blank=True, default=None, help_text='None = activado por defecto (hereda el master switch)', null=True, verbose_name='Notif. nuevas promociones'),
+            model_name="user",
+            name="notify_new_promos",
+            field=models.BooleanField(
+                blank=True,
+                default=None,
+                help_text="None = activado por defecto (hereda el master switch)",
+                null=True,
+                verbose_name="Notif. nuevas promociones",
+            ),
         ),
         migrations.AddField(
-            model_name='user',
-            name='notify_price_alerts',
-            field=models.BooleanField(blank=True, default=None, help_text='None = activado por defecto (hereda el master switch)', null=True, verbose_name='Notif. alertas de precio'),
+            model_name="user",
+            name="notify_price_alerts",
+            field=models.BooleanField(
+                blank=True,
+                default=None,
+                help_text="None = activado por defecto (hereda el master switch)",
+                null=True,
+                verbose_name="Notif. alertas de precio",
+            ),
         ),
         migrations.AddField(
-            model_name='user',
-            name='notify_shared_list_changes',
-            field=models.BooleanField(blank=True, default=None, help_text='None = activado por defecto (hereda el master switch)', null=True, verbose_name='Notif. cambios en listas compartidas'),
+            model_name="user",
+            name="notify_shared_list_changes",
+            field=models.BooleanField(
+                blank=True,
+                default=None,
+                help_text="None = activado por defecto (hereda el master switch)",
+                null=True,
+                verbose_name="Notif. cambios en listas compartidas",
+            ),
         ),
     ]

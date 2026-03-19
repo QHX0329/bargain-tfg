@@ -187,7 +187,9 @@ class TestProfile:
 
     def test_profile_patch_weight_price(self, authenticated_client):
         response = authenticated_client.patch(
-            PROFILE_URL, {"weight_price": 70, "weight_distance": 15, "weight_time": 15}, format="json"
+            PROFILE_URL,
+            {"weight_price": 70, "weight_distance": 15, "weight_time": 15},
+            format="json",
         )
         assert response.status_code == 200
         assert response.data["success"] is True

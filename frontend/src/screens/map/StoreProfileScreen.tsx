@@ -49,7 +49,7 @@ function chainLabel(store: Store): string {
   return map[store.chain] ?? 'Tienda';
 }
 
-export const StoreProfileScreen: React.FC<Props> = ({ route }) => {
+export const StoreProfileScreen: React.FC<Props> = ({ route, navigation }) => {
   const { storeId, storeName, userLat, userLng } = route.params;
 
   const [store, setStore] = useState<Store | null>(null);
@@ -169,6 +169,15 @@ export const StoreProfileScreen: React.FC<Props> = ({ route }) => {
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           <View style={[styles.headerCard, shadows.card]}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Map')}
+              accessibilityRole="button"
+              accessibilityLabel="Volver"
+            >
+              <Ionicons name="chevron-back" size={18} color={colors.primary} />
+              <Text style={styles.backButtonText}>Volver</Text>
+            </TouchableOpacity>
             <View style={styles.headerTopRow}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.storeName}>{store.name ?? storeName ?? 'Tienda'}</Text>
@@ -267,6 +276,17 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     paddingBottom: spacing.xxl,
   },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    marginBottom: spacing.sm,
+  },
+  backButtonText: {
+    fontFamily: fontFamilies.bodyMedium,
+    fontSize: fontSize.md,
+    color: colors.primary,
+  },
   headerCard: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
@@ -282,12 +302,12 @@ const styles = StyleSheet.create({
   },
   storeName: {
     fontFamily: fontFamilies.bodySemiBold,
-    fontSize: fontSize.md,
+    fontSize: fontSize.xl,
     color: colors.text,
   },
   chainText: {
     fontFamily: fontFamilies.body,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.sm,
     color: colors.textMuted,
     marginTop: 2,
   },
@@ -304,13 +324,13 @@ const styles = StyleSheet.create({
   },
   addressText: {
     fontFamily: fontFamilies.body,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.md,
     color: colors.text,
     marginTop: spacing.sm,
   },
   distanceText: {
     fontFamily: fontFamilies.body,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.sm,
     color: colors.textMuted,
     marginTop: 2,
   },
@@ -322,19 +342,19 @@ const styles = StyleSheet.create({
   },
   hoursTitle: {
     fontFamily: fontFamilies.bodySemiBold,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.sm,
     color: colors.text,
     marginBottom: 4,
   },
   hoursText: {
     fontFamily: fontFamilies.body,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.sm,
     color: colors.textMuted,
-    lineHeight: 16,
+    lineHeight: 20,
   },
   productsTitle: {
     fontFamily: fontFamilies.bodySemiBold,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.md,
     color: colors.text,
     marginTop: spacing.sm,
   },
@@ -365,12 +385,12 @@ const styles = StyleSheet.create({
   },
   productName: {
     fontFamily: fontFamilies.bodyMedium,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.md,
     color: colors.text,
   },
   productMeta: {
     fontFamily: fontFamilies.body,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.sm,
     color: colors.textMuted,
     marginTop: 2,
   },
@@ -379,12 +399,12 @@ const styles = StyleSheet.create({
   },
   productPrice: {
     fontFamily: fontFamilies.bodySemiBold,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.md,
     color: colors.primary,
   },
   productSource: {
     fontFamily: fontFamilies.body,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.sm,
     color: colors.textMuted,
     marginTop: 2,
   },

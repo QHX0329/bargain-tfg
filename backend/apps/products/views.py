@@ -59,7 +59,11 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     @extend_schema(
         parameters=[
             OpenApiParameter("q", str, description="Búsqueda fuzzy por nombre (mín. 2 chars)"),
-            OpenApiParameter("barcode", str, description="Código de barras exacto (EAN-13); devuelve 404 si no existe"),
+            OpenApiParameter(
+                "barcode",
+                str,
+                description="Código de barras exacto (EAN-13); devuelve 404 si no existe",
+            ),
             OpenApiParameter("category", int, description="Filtrar por ID de categoría"),
             OpenApiParameter("brand", str, description="Filtrar por marca"),
         ]
@@ -96,8 +100,8 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         """Búsqueda exacta por código de barras. Lanza ProductNotFoundError si no existe."""
         try:
             product = Product.objects.get(barcode=barcode, is_active=True)
-        except Product.DoesNotExist:
-            raise ProductNotFoundError()
+        except Product.DoesNotExist as exc:
+            raise ProductNotFoundError() from exc
 
         serializer = ProductListSerializer(product)
         return Response({"count": 1, "next": None, "previous": None, "results": [serializer.data]})

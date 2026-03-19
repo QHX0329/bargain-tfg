@@ -16,9 +16,7 @@ class ProductFilter(django_filters.FilterSet):
 
     q = django_filters.CharFilter(method="filter_by_trigram", label="Búsqueda fuzzy")
     category = django_filters.NumberFilter(field_name="category__id", label="ID de categoría")
-    brand = django_filters.CharFilter(
-        field_name="brand", lookup_expr="icontains", label="Marca"
-    )
+    brand = django_filters.CharFilter(field_name="brand", lookup_expr="icontains", label="Marca")
     is_active = django_filters.BooleanFilter(field_name="is_active", label="Activo")
 
     class Meta:

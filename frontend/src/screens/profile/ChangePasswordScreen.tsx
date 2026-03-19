@@ -95,7 +95,8 @@ export const ChangePasswordScreen: React.FC<ChangePasswordScreenProps> = ({
   }, [oldPassword, newPassword, confirmPassword, navigation]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={[]}>
+
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}

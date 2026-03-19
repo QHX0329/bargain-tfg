@@ -19,6 +19,7 @@ from .serializers import (
     BusinessPriceSerializer,
     BusinessProfileAdminSerializer,
     BusinessProfileSerializer,
+    BusinessStoreSerializer,
     PromotionSerializer,
 )
 
@@ -71,7 +72,15 @@ class BusinessProfileViewSet(viewsets.ModelViewSet):
 
     @extend_schema(
         request=None,
-        responses={200: inline_serializer("ApproveResponse", fields={"id": drf_serializers.IntegerField(), "is_verified": drf_serializers.BooleanField()})},
+        responses={
+            200: inline_serializer(
+                "ApproveResponse",
+                fields={
+                    "id": drf_serializers.IntegerField(),
+                    "is_verified": drf_serializers.BooleanField(),
+                },
+            )
+        },
         description="Aprueba un BusinessProfile pendiente. Solo admins. Envía email de notificación al negocio.",
     )
     @action(detail=True, methods=["post"], url_path="approve")
@@ -89,8 +98,20 @@ class BusinessProfileViewSet(viewsets.ModelViewSet):
         return success_response({"id": profile.id, "is_verified": True})
 
     @extend_schema(
-        request=inline_serializer("RejectRequest", fields={"reason": drf_serializers.CharField(required=False, default="")}),
-        responses={200: inline_serializer("RejectResponse", fields={"id": drf_serializers.IntegerField(), "is_verified": drf_serializers.BooleanField(), "rejection_reason": drf_serializers.CharField()})},
+        request=inline_serializer(
+            "RejectRequest",
+            fields={"reason": drf_serializers.CharField(required=False, default="")},
+        ),
+        responses={
+            200: inline_serializer(
+                "RejectResponse",
+                fields={
+                    "id": drf_serializers.IntegerField(),
+                    "is_verified": drf_serializers.BooleanField(),
+                    "rejection_reason": drf_serializers.CharField(),
+                },
+            )
+        },
         description="Rechaza un BusinessProfile con motivo opcional. Solo admins. Envía email de notificación al negocio.",
     )
     @action(detail=True, methods=["post"], url_path="reject")
@@ -106,7 +127,9 @@ class BusinessProfileViewSet(viewsets.ModelViewSet):
 
         send_business_rejection_email.delay(profile.id, reason)
         logger.info("business_profile_rejected", profile_id=profile.id, reason=reason)
-        return success_response({"id": profile.id, "is_verified": False, "rejection_reason": reason})
+        return success_response(
+            {"id": profile.id, "is_verified": False, "rejection_reason": reason}
+        )
 
 
 class PromotionViewSet(viewsets.ModelViewSet):
@@ -140,13 +163,21 @@ class PromotionViewSet(viewsets.ModelViewSet):
         try:
             with transaction.atomic():
                 self.perform_create(serializer)
-        except IntegrityError:
-            raise PromotionConflictError()
+        except IntegrityError as exc:
+            raise PromotionConflictError() from exc
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @extend_schema(
         request=None,
-        responses={200: inline_serializer("DeactivateResponse", fields={"id": drf_serializers.IntegerField(), "is_active": drf_serializers.BooleanField()})},
+        responses={
+            200: inline_serializer(
+                "DeactivateResponse",
+                fields={
+                    "id": drf_serializers.IntegerField(),
+                    "is_active": drf_serializers.BooleanField(),
+                },
+            )
+        },
         description="Desactiva una promoción activa. Solo el negocio propietario.",
     )
     @action(detail=True, methods=["post"], url_path="deactivate")
@@ -168,7 +199,7 @@ class BusinessPriceViewSet(viewsets.ModelViewSet):
 
     serializer_class = BusinessPriceSerializer
     permission_classes = [IsAuthenticated, IsVerifiedBusiness]
-    http_method_names = ["get", "post", "head", "options"]
+    http_method_names = ["get", "post", "patch", "head", "options"]
 
     def get_queryset(self):
         try:
@@ -188,3 +219,19 @@ class BusinessPriceViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(
+        request=None,
+        responses=BusinessStoreSerializer(many=True),
+        description="Lista las tiendas activas asociadas al negocio autenticado.",
+    )
+    @action(detail=False, methods=["get"], url_path="stores")
+    def stores(self, request) -> Response:
+        """Devuelve tiendas activas del perfil de negocio verificado actual."""
+        profile = BusinessProfile.objects.filter(user=request.user, is_verified=True).first()
+        if profile is None:
+            return Response([], status=status.HTTP_200_OK)
+
+        stores_qs = profile.stores.filter(is_active=True).order_by("name")
+        serializer = BusinessStoreSerializer(stores_qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

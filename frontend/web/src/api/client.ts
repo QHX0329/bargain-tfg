@@ -40,7 +40,7 @@ if (apiClient?.interceptors?.response) {
   // Response interceptor: unwrap {success, data} and handle 401
   apiClient.interceptors.response.use(
     (response) => {
-      // Unwrap BarGAIn API envelope: { success: true, data: ... }
+      // Unwrap BarGAIN API envelope: { success: true, data: ... }
       if (
         response.data &&
         typeof response.data === 'object' &&

@@ -336,7 +336,7 @@ export const PriceCompareScreen: React.FC = () => {
   const bestIdx = prices.length > 0 ? 0 : -1;
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
+    <SafeAreaView style={styles.safe} edges={[]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>

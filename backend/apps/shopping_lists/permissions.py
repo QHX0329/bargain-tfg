@@ -14,11 +14,7 @@ class IsOwnerOrCollaborator(BasePermission):
     """
 
     def has_object_permission(self, request, view, obj) -> bool:
-        if hasattr(obj, "shopping_list"):
-            # ShoppingListItem o ListCollaborator
-            shopping_list = obj.shopping_list
-        else:
-            shopping_list = obj  # ShoppingList itself
+        shopping_list = obj.shopping_list if hasattr(obj, "shopping_list") else obj
 
         if request.user == shopping_list.owner:
             return True

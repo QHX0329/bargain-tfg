@@ -3,6 +3,7 @@
 from rest_framework import serializers
 
 from apps.prices.models import Price
+from apps.stores.models import Store
 
 from .models import BusinessProfile, Promotion
 
@@ -28,7 +29,14 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "user", "is_verified", "rejection_reason", "created_at", "updated_at"]
+        read_only_fields = [
+            "id",
+            "user",
+            "is_verified",
+            "rejection_reason",
+            "created_at",
+            "updated_at",
+        ]
 
 
 class BusinessProfileAdminSerializer(BusinessProfileSerializer):
@@ -78,8 +86,10 @@ class PromotionSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError(
                         "Solo puedes crear promociones para tus propias tiendas."
                     )
-            except BusinessProfile.DoesNotExist:
-                raise serializers.ValidationError("Perfil de negocio verificado no encontrado.")
+            except BusinessProfile.DoesNotExist as exc:
+                raise serializers.ValidationError(
+                    "Perfil de negocio verificado no encontrado."
+                ) from exc
         return attrs
 
 
@@ -124,6 +134,16 @@ class BusinessPriceSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError(
                         {"store": "Solo puedes gestionar precios de tus propias tiendas."}
                     )
-            except BusinessProfile.DoesNotExist:
-                raise serializers.ValidationError("Perfil de negocio verificado no encontrado.")
+            except BusinessProfile.DoesNotExist as exc:
+                raise serializers.ValidationError(
+                    "Perfil de negocio verificado no encontrado."
+                ) from exc
         return attrs
+
+
+class BusinessStoreSerializer(serializers.ModelSerializer):
+    """Serializer ligero para tiendas asociadas al negocio autenticado."""
+
+    class Meta:
+        model = Store
+        fields = ["id", "name", "address", "is_active"]

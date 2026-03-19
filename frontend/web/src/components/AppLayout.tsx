@@ -3,6 +3,7 @@ import { Layout, Menu, Button, Typography, theme } from 'antd';
 import {
   DashboardOutlined,
   ShoppingOutlined,
+  AppstoreAddOutlined,
   TagsOutlined,
   UserOutlined,
   LogoutOutlined,
@@ -30,6 +31,11 @@ const AppLayout: React.FC = () => {
       key: '/prices',
       icon: <ShoppingOutlined />,
       label: 'Precios',
+    },
+    {
+      key: '/products-upload',
+      icon: <AppstoreAddOutlined />,
+      label: 'Productos',
     },
     {
       key: '/promotions',
@@ -62,7 +68,7 @@ const AppLayout: React.FC = () => {
         >
           {!collapsed && (
             <Title level={5} style={{ color: 'white', margin: 0 }}>
-              BargAIn
+              BarGAIN
             </Title>
           )}
         </div>
@@ -86,7 +92,7 @@ const AppLayout: React.FC = () => {
           }}
         >
           <Title level={4} style={{ margin: 0 }}>
-            BargAIn Business
+            BarGAIN Business
           </Title>
           <Button
             type="text"

@@ -33,116 +33,788 @@ SEED_PREFIX = "seed_"
 # (name, brand, category_key, unit, unit_qty, barcode, base_price)
 PRODUCT_SPECS = [
     # Frutas y verduras
-    ("manzana golden", "Frutería del Norte", "fruit", "kg", Decimal("1.0"), "8400000000001", Decimal("1.85")),
-    ("manzana fuji", "Frutería del Norte", "fruit", "kg", Decimal("1.0"), "8400000000002", Decimal("2.10")),
-    ("pera conferencia", "Frutería del Norte", "fruit", "kg", Decimal("1.0"), "8400000000003", Decimal("1.95")),
-    ("plátano de canarias", "Platanera Sur", "fruit", "kg", Decimal("1.0"), "8400000000004", Decimal("2.20")),
-    ("naranja navel", "Cítricos Valencia", "fruit", "kg", Decimal("1.0"), "8400000000005", Decimal("1.29")),
-    ("mandarina clementina", "Cítricos Valencia", "fruit", "kg", Decimal("1.0"), "8400000000006", Decimal("1.49")),
-    ("uva blanca sin pepita", "Viñedos Almería", "fruit", "kg", Decimal("1.0"), "8400000000007", Decimal("2.75")),
+    (
+        "manzana golden",
+        "Frutería del Norte",
+        "fruit",
+        "kg",
+        Decimal("1.0"),
+        "8400000000001",
+        Decimal("1.85"),
+    ),
+    (
+        "manzana fuji",
+        "Frutería del Norte",
+        "fruit",
+        "kg",
+        Decimal("1.0"),
+        "8400000000002",
+        Decimal("2.10"),
+    ),
+    (
+        "pera conferencia",
+        "Frutería del Norte",
+        "fruit",
+        "kg",
+        Decimal("1.0"),
+        "8400000000003",
+        Decimal("1.95"),
+    ),
+    (
+        "plátano de canarias",
+        "Platanera Sur",
+        "fruit",
+        "kg",
+        Decimal("1.0"),
+        "8400000000004",
+        Decimal("2.20"),
+    ),
+    (
+        "naranja navel",
+        "Cítricos Valencia",
+        "fruit",
+        "kg",
+        Decimal("1.0"),
+        "8400000000005",
+        Decimal("1.29"),
+    ),
+    (
+        "mandarina clementina",
+        "Cítricos Valencia",
+        "fruit",
+        "kg",
+        Decimal("1.0"),
+        "8400000000006",
+        Decimal("1.49"),
+    ),
+    (
+        "uva blanca sin pepita",
+        "Viñedos Almería",
+        "fruit",
+        "kg",
+        Decimal("1.0"),
+        "8400000000007",
+        Decimal("2.75"),
+    ),
     ("fresas", "Fresón de Palos", "fruit", "kg", Decimal("0.5"), "8400000000008", Decimal("2.99")),
-    ("melocotón", "Frutas Murcia", "fruit", "kg", Decimal("1.0"), "8400000000009", Decimal("2.45")),
+    (
+        "melocotón",
+        "Frutas Murcia",
+        "fruit",
+        "kg",
+        Decimal("1.0"),
+        "8400000000009",
+        Decimal("2.45"),
+    ),
     ("sandía", "Frutas Murcia", "fruit", "unit", Decimal("5.0"), "8400000000010", Decimal("5.99")),
-    ("tomate rama", "Huerta Sevilla", "vegetables", "kg", Decimal("1.0"), "8400000000011", Decimal("1.59")),
-    ("tomate cherry", "Huerta Sevilla", "vegetables", "kg", Decimal("0.25"), "8400000000012", Decimal("2.49")),
-    ("lechuga iceberg", "Verduras del Campo", "vegetables", "unit", Decimal("1.0"), "8400000000013", Decimal("0.89")),
-    ("zanahoria", "Verduras del Campo", "vegetables", "kg", Decimal("1.0"), "8400000000014", Decimal("0.79")),
-    ("cebolla", "Verduras del Campo", "vegetables", "kg", Decimal("1.0"), "8400000000015", Decimal("0.65")),
-    ("ajo", "Verduras del Campo", "vegetables", "unit", Decimal("1.0"), "8400000000016", Decimal("0.49")),
-    ("patata", "Verduras del Campo", "vegetables", "kg", Decimal("2.0"), "8400000000017", Decimal("1.09")),
-    ("pimiento rojo", "Huerta Sevilla", "vegetables", "kg", Decimal("1.0"), "8400000000018", Decimal("1.89")),
-    ("brócoli", "Verduras del Campo", "vegetables", "unit", Decimal("1.0"), "8400000000019", Decimal("1.29")),
-    ("espinacas baby", "Verduras del Campo", "vegetables", "g", Decimal("150.0"), "8400000000020", Decimal("1.99")),
+    (
+        "tomate rama",
+        "Huerta Sevilla",
+        "vegetables",
+        "kg",
+        Decimal("1.0"),
+        "8400000000011",
+        Decimal("1.59"),
+    ),
+    (
+        "tomate cherry",
+        "Huerta Sevilla",
+        "vegetables",
+        "kg",
+        Decimal("0.25"),
+        "8400000000012",
+        Decimal("2.49"),
+    ),
+    (
+        "lechuga iceberg",
+        "Verduras del Campo",
+        "vegetables",
+        "unit",
+        Decimal("1.0"),
+        "8400000000013",
+        Decimal("0.89"),
+    ),
+    (
+        "zanahoria",
+        "Verduras del Campo",
+        "vegetables",
+        "kg",
+        Decimal("1.0"),
+        "8400000000014",
+        Decimal("0.79"),
+    ),
+    (
+        "cebolla",
+        "Verduras del Campo",
+        "vegetables",
+        "kg",
+        Decimal("1.0"),
+        "8400000000015",
+        Decimal("0.65"),
+    ),
+    (
+        "ajo",
+        "Verduras del Campo",
+        "vegetables",
+        "unit",
+        Decimal("1.0"),
+        "8400000000016",
+        Decimal("0.49"),
+    ),
+    (
+        "patata",
+        "Verduras del Campo",
+        "vegetables",
+        "kg",
+        Decimal("2.0"),
+        "8400000000017",
+        Decimal("1.09"),
+    ),
+    (
+        "pimiento rojo",
+        "Huerta Sevilla",
+        "vegetables",
+        "kg",
+        Decimal("1.0"),
+        "8400000000018",
+        Decimal("1.89"),
+    ),
+    (
+        "brócoli",
+        "Verduras del Campo",
+        "vegetables",
+        "unit",
+        Decimal("1.0"),
+        "8400000000019",
+        Decimal("1.29"),
+    ),
+    (
+        "espinacas baby",
+        "Verduras del Campo",
+        "vegetables",
+        "g",
+        Decimal("150.0"),
+        "8400000000020",
+        Decimal("1.99"),
+    ),
     # Lácteos
-    ("leche entera brick 1L", "Puleva", "dairy", "l", Decimal("1.0"), "8400000000021", Decimal("0.89")),
-    ("leche semidesnatada 1L", "Puleva", "dairy", "l", Decimal("1.0"), "8400000000022", Decimal("0.85")),
-    ("leche desnatada 1L", "Puleva", "dairy", "l", Decimal("1.0"), "8400000000023", Decimal("0.83")),
+    (
+        "leche entera brick 1L",
+        "Puleva",
+        "dairy",
+        "l",
+        Decimal("1.0"),
+        "8400000000021",
+        Decimal("0.89"),
+    ),
+    (
+        "leche semidesnatada 1L",
+        "Puleva",
+        "dairy",
+        "l",
+        Decimal("1.0"),
+        "8400000000022",
+        Decimal("0.85"),
+    ),
+    (
+        "leche desnatada 1L",
+        "Puleva",
+        "dairy",
+        "l",
+        Decimal("1.0"),
+        "8400000000023",
+        Decimal("0.83"),
+    ),
     ("leche sin lactosa", "Kaiku", "dairy", "l", Decimal("1.0"), "8400000000024", Decimal("1.29")),
-    ("yogur natural azucarado", "Danone", "dairy", "unit", Decimal("4.0"), "8400000000025", Decimal("1.39")),
-    ("yogur griego natural", "Fage", "dairy", "g", Decimal("500.0"), "8400000000026", Decimal("2.29")),
-    ("queso manchego curado", "García Baquero", "dairy", "g", Decimal("200.0"), "8400000000027", Decimal("3.49")),
-    ("queso fresco", "Hacendado", "dairy", "g", Decimal("400.0"), "8400000000028", Decimal("1.99")),
+    (
+        "yogur natural azucarado",
+        "Danone",
+        "dairy",
+        "unit",
+        Decimal("4.0"),
+        "8400000000025",
+        Decimal("1.39"),
+    ),
+    (
+        "yogur griego natural",
+        "Fage",
+        "dairy",
+        "g",
+        Decimal("500.0"),
+        "8400000000026",
+        Decimal("2.29"),
+    ),
+    (
+        "queso manchego curado",
+        "García Baquero",
+        "dairy",
+        "g",
+        Decimal("200.0"),
+        "8400000000027",
+        Decimal("3.49"),
+    ),
+    (
+        "queso fresco",
+        "Hacendado",
+        "dairy",
+        "g",
+        Decimal("400.0"),
+        "8400000000028",
+        Decimal("1.99"),
+    ),
     ("mantequilla", "Président", "dairy", "g", Decimal("250.0"), "8400000000029", Decimal("2.19")),
-    ("nata para cocinar", "Pascual", "dairy", "ml", Decimal("200.0"), "8400000000030", Decimal("0.99")),
+    (
+        "nata para cocinar",
+        "Pascual",
+        "dairy",
+        "ml",
+        Decimal("200.0"),
+        "8400000000030",
+        Decimal("0.99"),
+    ),
     # Panadería y cereales
     ("pan baguette", "Bimbo", "bakery", "unit", Decimal("1.0"), "8400000000031", Decimal("0.59")),
-    ("pan de molde integral", "Bimbo", "bakery", "g", Decimal("500.0"), "8400000000032", Decimal("1.89")),
+    (
+        "pan de molde integral",
+        "Bimbo",
+        "bakery",
+        "g",
+        Decimal("500.0"),
+        "8400000000032",
+        Decimal("1.89"),
+    ),
     ("pan tostado", "Wasa", "bakery", "g", Decimal("275.0"), "8400000000033", Decimal("2.29")),
-    ("croissant mantequilla", "La Bella Easo", "bakery", "unit", Decimal("4.0"), "8400000000034", Decimal("1.99")),
-    ("copos de avena", "Quaker", "cereals", "g", Decimal("500.0"), "8400000000035", Decimal("1.79")),
-    ("granola con frutas", "Jordans", "cereals", "g", Decimal("400.0"), "8400000000036", Decimal("3.49")),
-    ("arroz largo", "La Fallera", "cereals", "kg", Decimal("1.0"), "8400000000037", Decimal("1.29")),
-    ("pasta espagueti", "Gallo", "cereals", "g", Decimal("500.0"), "8400000000038", Decimal("0.79")),
-    ("pasta macarrón", "Gallo", "cereals", "g", Decimal("500.0"), "8400000000039", Decimal("0.79")),
+    (
+        "croissant mantequilla",
+        "La Bella Easo",
+        "bakery",
+        "unit",
+        Decimal("4.0"),
+        "8400000000034",
+        Decimal("1.99"),
+    ),
+    (
+        "copos de avena",
+        "Quaker",
+        "cereals",
+        "g",
+        Decimal("500.0"),
+        "8400000000035",
+        Decimal("1.79"),
+    ),
+    (
+        "granola con frutas",
+        "Jordans",
+        "cereals",
+        "g",
+        Decimal("400.0"),
+        "8400000000036",
+        Decimal("3.49"),
+    ),
+    (
+        "arroz largo",
+        "La Fallera",
+        "cereals",
+        "kg",
+        Decimal("1.0"),
+        "8400000000037",
+        Decimal("1.29"),
+    ),
+    (
+        "pasta espagueti",
+        "Gallo",
+        "cereals",
+        "g",
+        Decimal("500.0"),
+        "8400000000038",
+        Decimal("0.79"),
+    ),
+    (
+        "pasta macarrón",
+        "Gallo",
+        "cereals",
+        "g",
+        Decimal("500.0"),
+        "8400000000039",
+        Decimal("0.79"),
+    ),
     ("quinoa", "Mercadona", "cereals", "g", Decimal("400.0"), "8400000000040", Decimal("2.99")),
     # Carnes
-    ("pechuga de pollo", "El Pozo", "meat", "kg", Decimal("1.0"), "8400000000041", Decimal("5.99")),
+    (
+        "pechuga de pollo",
+        "El Pozo",
+        "meat",
+        "kg",
+        Decimal("1.0"),
+        "8400000000041",
+        Decimal("5.99"),
+    ),
     ("muslo de pollo", "El Pozo", "meat", "kg", Decimal("1.0"), "8400000000042", Decimal("3.49")),
-    ("carne picada mixta", "Campofrío", "meat", "kg", Decimal("0.5"), "8400000000043", Decimal("3.99")),
+    (
+        "carne picada mixta",
+        "Campofrío",
+        "meat",
+        "kg",
+        Decimal("0.5"),
+        "8400000000043",
+        Decimal("3.99"),
+    ),
     ("lomo de cerdo", "Campofrío", "meat", "kg", Decimal("1.0"), "8400000000044", Decimal("5.49")),
-    ("salchichas Frankfurt", "Revilla", "meat", "g", Decimal("300.0"), "8400000000045", Decimal("1.89")),
-    ("jamón cocido lonchas", "Campofrío", "meat", "g", Decimal("200.0"), "8400000000046", Decimal("2.49")),
+    (
+        "salchichas Frankfurt",
+        "Revilla",
+        "meat",
+        "g",
+        Decimal("300.0"),
+        "8400000000045",
+        Decimal("1.89"),
+    ),
+    (
+        "jamón cocido lonchas",
+        "Campofrío",
+        "meat",
+        "g",
+        Decimal("200.0"),
+        "8400000000046",
+        Decimal("2.49"),
+    ),
     ("jamón serrano", "5J", "meat", "g", Decimal("100.0"), "8400000000047", Decimal("3.99")),
     ("chorizos", "El Pozo", "meat", "g", Decimal("250.0"), "8400000000048", Decimal("2.19")),
-    ("bacon ahumado", "Campofrío", "meat", "g", Decimal("150.0"), "8400000000049", Decimal("2.29")),
-    ("pavo a la plancha lonchas", "Palacios", "meat", "g", Decimal("200.0"), "8400000000050", Decimal("2.19")),
+    (
+        "bacon ahumado",
+        "Campofrío",
+        "meat",
+        "g",
+        Decimal("150.0"),
+        "8400000000049",
+        Decimal("2.29"),
+    ),
+    (
+        "pavo a la plancha lonchas",
+        "Palacios",
+        "meat",
+        "g",
+        Decimal("200.0"),
+        "8400000000050",
+        Decimal("2.19"),
+    ),
     # Pescado
-    ("salmón fresco", "Mercado del Mar", "fish", "kg", Decimal("1.0"), "8400000000051", Decimal("12.99")),
-    ("merluza filetes", "Pescanova", "fish", "g", Decimal("400.0"), "8400000000052", Decimal("4.99")),
-    ("atún en aceite lata", "Calvo", "fish", "g", Decimal("80.0"), "8400000000053", Decimal("1.09")),
-    ("sardinas en tomate lata", "Calvo", "fish", "g", Decimal("120.0"), "8400000000054", Decimal("0.89")),
-    ("gambas congeladas", "Pescanova", "fish", "g", Decimal("400.0"), "8400000000055", Decimal("4.49")),
+    (
+        "salmón fresco",
+        "Mercado del Mar",
+        "fish",
+        "kg",
+        Decimal("1.0"),
+        "8400000000051",
+        Decimal("12.99"),
+    ),
+    (
+        "merluza filetes",
+        "Pescanova",
+        "fish",
+        "g",
+        Decimal("400.0"),
+        "8400000000052",
+        Decimal("4.99"),
+    ),
+    (
+        "atún en aceite lata",
+        "Calvo",
+        "fish",
+        "g",
+        Decimal("80.0"),
+        "8400000000053",
+        Decimal("1.09"),
+    ),
+    (
+        "sardinas en tomate lata",
+        "Calvo",
+        "fish",
+        "g",
+        Decimal("120.0"),
+        "8400000000054",
+        Decimal("0.89"),
+    ),
+    (
+        "gambas congeladas",
+        "Pescanova",
+        "fish",
+        "g",
+        Decimal("400.0"),
+        "8400000000055",
+        Decimal("4.49"),
+    ),
     # Bebidas
-    ("agua mineral 1.5L", "Font Vella", "water", "l", Decimal("1.5"), "8400000000056", Decimal("0.39")),
-    ("agua con gas 1L", "Vichy Catalán", "water", "l", Decimal("1.0"), "8400000000057", Decimal("0.89")),
-    ("agua mineral 5L", "Font Vella", "water", "l", Decimal("5.0"), "8400000000058", Decimal("0.99")),
-    ("zumo naranja 1L", "Don Simon", "drinks", "l", Decimal("1.0"), "8400000000059", Decimal("1.49")),
+    (
+        "agua mineral 1.5L",
+        "Font Vella",
+        "water",
+        "l",
+        Decimal("1.5"),
+        "8400000000056",
+        Decimal("0.39"),
+    ),
+    (
+        "agua con gas 1L",
+        "Vichy Catalán",
+        "water",
+        "l",
+        Decimal("1.0"),
+        "8400000000057",
+        Decimal("0.89"),
+    ),
+    (
+        "agua mineral 5L",
+        "Font Vella",
+        "water",
+        "l",
+        Decimal("5.0"),
+        "8400000000058",
+        Decimal("0.99"),
+    ),
+    (
+        "zumo naranja 1L",
+        "Don Simon",
+        "drinks",
+        "l",
+        Decimal("1.0"),
+        "8400000000059",
+        Decimal("1.49"),
+    ),
     ("zumo piña 1L", "Don Simon", "drinks", "l", Decimal("1.0"), "8400000000060", Decimal("1.49")),
-    ("refresco cola 2L", "Coca-Cola", "drinks", "l", Decimal("2.0"), "8400000000061", Decimal("1.89")),
-    ("refresco limón 2L", "Fanta", "drinks", "l", Decimal("2.0"), "8400000000062", Decimal("1.79")),
-    ("cerveza lager lata", "Cruzcampo", "drinks", "ml", Decimal("330.0"), "8400000000063", Decimal("0.69")),
-    ("vino tinto Rioja", "Marqués de Cáceres", "drinks", "ml", Decimal("750.0"), "8400000000064", Decimal("6.99")),
-    ("café molido natural", "Nescafé", "drinks", "g", Decimal("250.0"), "8400000000065", Decimal("4.29")),
+    (
+        "refresco cola 2L",
+        "Coca-Cola",
+        "drinks",
+        "l",
+        Decimal("2.0"),
+        "8400000000061",
+        Decimal("1.89"),
+    ),
+    (
+        "refresco limón 2L",
+        "Fanta",
+        "drinks",
+        "l",
+        Decimal("2.0"),
+        "8400000000062",
+        Decimal("1.79"),
+    ),
+    (
+        "cerveza lager lata",
+        "Cruzcampo",
+        "drinks",
+        "ml",
+        Decimal("330.0"),
+        "8400000000063",
+        Decimal("0.69"),
+    ),
+    (
+        "vino tinto Rioja",
+        "Marqués de Cáceres",
+        "drinks",
+        "ml",
+        Decimal("750.0"),
+        "8400000000064",
+        Decimal("6.99"),
+    ),
+    (
+        "café molido natural",
+        "Nescafé",
+        "drinks",
+        "g",
+        Decimal("250.0"),
+        "8400000000065",
+        Decimal("4.29"),
+    ),
     # Congelados
-    ("pizza margarita", "Casa Tarradellas", "frozen", "g", Decimal("350.0"), "8400000000066", Decimal("2.99")),
-    ("pizza carbonara", "Casa Tarradellas", "frozen", "g", Decimal("350.0"), "8400000000067", Decimal("3.49")),
-    ("patatas fritas congeladas", "Findus", "frozen", "g", Decimal("500.0"), "8400000000068", Decimal("1.99")),
-    ("croquetas jamón", "Findus", "frozen", "g", Decimal("500.0"), "8400000000069", Decimal("3.29")),
-    ("guisantes congelados", "Bonduelle", "frozen", "g", Decimal("400.0"), "8400000000070", Decimal("1.19")),
+    (
+        "pizza margarita",
+        "Casa Tarradellas",
+        "frozen",
+        "g",
+        Decimal("350.0"),
+        "8400000000066",
+        Decimal("2.99"),
+    ),
+    (
+        "pizza carbonara",
+        "Casa Tarradellas",
+        "frozen",
+        "g",
+        Decimal("350.0"),
+        "8400000000067",
+        Decimal("3.49"),
+    ),
+    (
+        "patatas fritas congeladas",
+        "Findus",
+        "frozen",
+        "g",
+        Decimal("500.0"),
+        "8400000000068",
+        Decimal("1.99"),
+    ),
+    (
+        "croquetas jamón",
+        "Findus",
+        "frozen",
+        "g",
+        Decimal("500.0"),
+        "8400000000069",
+        Decimal("3.29"),
+    ),
+    (
+        "guisantes congelados",
+        "Bonduelle",
+        "frozen",
+        "g",
+        Decimal("400.0"),
+        "8400000000070",
+        Decimal("1.19"),
+    ),
     # Conservas y condimentos
-    ("aceite de oliva virgen extra 1L", "Carbonell", "pantry", "l", Decimal("1.0"), "8400000000071", Decimal("4.99")),
-    ("aceite girasol 1L", "Koipesol", "pantry", "l", Decimal("1.0"), "8400000000072", Decimal("1.49")),
-    ("tomate frito bote", "Hacendado", "pantry", "g", Decimal("350.0"), "8400000000073", Decimal("0.79")),
-    ("tomate triturado lata", "Cirio", "pantry", "g", Decimal("400.0"), "8400000000074", Decimal("0.69")),
-    ("lentejas cocidas bote", "Ferrer", "pantry", "g", Decimal("400.0"), "8400000000075", Decimal("0.89")),
-    ("garbanzos cocidos bote", "Ferrer", "pantry", "g", Decimal("400.0"), "8400000000076", Decimal("0.89")),
-    ("sal fina 1kg", "La Salina", "pantry", "kg", Decimal("1.0"), "8400000000077", Decimal("0.39")),
-    ("azúcar blanquilla 1kg", "Azucarera", "pantry", "kg", Decimal("1.0"), "8400000000078", Decimal("0.99")),
-    ("vinagre de Jerez", "Ybarra", "pantry", "ml", Decimal("500.0"), "8400000000079", Decimal("1.29")),
-    ("miel multifloral", "La Colmena Real", "pantry", "g", Decimal("500.0"), "8400000000080", Decimal("4.49")),
+    (
+        "aceite de oliva virgen extra 1L",
+        "Carbonell",
+        "pantry",
+        "l",
+        Decimal("1.0"),
+        "8400000000071",
+        Decimal("4.99"),
+    ),
+    (
+        "aceite girasol 1L",
+        "Koipesol",
+        "pantry",
+        "l",
+        Decimal("1.0"),
+        "8400000000072",
+        Decimal("1.49"),
+    ),
+    (
+        "tomate frito bote",
+        "Hacendado",
+        "pantry",
+        "g",
+        Decimal("350.0"),
+        "8400000000073",
+        Decimal("0.79"),
+    ),
+    (
+        "tomate triturado lata",
+        "Cirio",
+        "pantry",
+        "g",
+        Decimal("400.0"),
+        "8400000000074",
+        Decimal("0.69"),
+    ),
+    (
+        "lentejas cocidas bote",
+        "Ferrer",
+        "pantry",
+        "g",
+        Decimal("400.0"),
+        "8400000000075",
+        Decimal("0.89"),
+    ),
+    (
+        "garbanzos cocidos bote",
+        "Ferrer",
+        "pantry",
+        "g",
+        Decimal("400.0"),
+        "8400000000076",
+        Decimal("0.89"),
+    ),
+    (
+        "sal fina 1kg",
+        "La Salina",
+        "pantry",
+        "kg",
+        Decimal("1.0"),
+        "8400000000077",
+        Decimal("0.39"),
+    ),
+    (
+        "azúcar blanquilla 1kg",
+        "Azucarera",
+        "pantry",
+        "kg",
+        Decimal("1.0"),
+        "8400000000078",
+        Decimal("0.99"),
+    ),
+    (
+        "vinagre de Jerez",
+        "Ybarra",
+        "pantry",
+        "ml",
+        Decimal("500.0"),
+        "8400000000079",
+        Decimal("1.29"),
+    ),
+    (
+        "miel multifloral",
+        "La Colmena Real",
+        "pantry",
+        "g",
+        Decimal("500.0"),
+        "8400000000080",
+        Decimal("4.49"),
+    ),
     # Snacks y dulces
     ("patatas chips", "Lay's", "snacks", "g", Decimal("135.0"), "8400000000081", Decimal("1.89")),
-    ("galletas María", "Fontaneda", "snacks", "g", Decimal("200.0"), "8400000000082", Decimal("0.89")),
-    ("galletas digestive", "McVitie's", "snacks", "g", Decimal("250.0"), "8400000000083", Decimal("1.99")),
-    ("chocolate negro 70%", "Lindt", "snacks", "g", Decimal("100.0"), "8400000000084", Decimal("1.89")),
-    ("barritas de cereales", "Nature Valley", "snacks", "g", Decimal("210.0"), "8400000000085", Decimal("2.49")),
+    (
+        "galletas María",
+        "Fontaneda",
+        "snacks",
+        "g",
+        Decimal("200.0"),
+        "8400000000082",
+        Decimal("0.89"),
+    ),
+    (
+        "galletas digestive",
+        "McVitie's",
+        "snacks",
+        "g",
+        Decimal("250.0"),
+        "8400000000083",
+        Decimal("1.99"),
+    ),
+    (
+        "chocolate negro 70%",
+        "Lindt",
+        "snacks",
+        "g",
+        Decimal("100.0"),
+        "8400000000084",
+        Decimal("1.89"),
+    ),
+    (
+        "barritas de cereales",
+        "Nature Valley",
+        "snacks",
+        "g",
+        Decimal("210.0"),
+        "8400000000085",
+        Decimal("2.49"),
+    ),
     # Higiene y limpieza
-    ("gel de ducha", "Palmolive", "hygiene", "ml", Decimal("750.0"), "8400000000086", Decimal("2.49")),
-    ("champú anticaspa", "Head & Shoulders", "hygiene", "ml", Decimal("400.0"), "8400000000087", Decimal("4.99")),
-    ("pasta de dientes", "Colgate", "hygiene", "ml", Decimal("75.0"), "8400000000088", Decimal("1.99")),
-    ("desodorante roll-on", "Dove", "hygiene", "ml", Decimal("50.0"), "8400000000089", Decimal("2.79")),
-    ("papel higiénico 12 rollos", "Scottex", "hygiene", "unit", Decimal("12.0"), "8400000000090", Decimal("3.99")),
-    ("detergente lavadora líquido", "Ariel", "hygiene", "ml", Decimal("1890.0"), "8400000000091", Decimal("8.99")),
-    ("lavavajillas líquido", "Fairy", "hygiene", "ml", Decimal("780.0"), "8400000000092", Decimal("2.99")),
+    (
+        "gel de ducha",
+        "Palmolive",
+        "hygiene",
+        "ml",
+        Decimal("750.0"),
+        "8400000000086",
+        Decimal("2.49"),
+    ),
+    (
+        "champú anticaspa",
+        "Head & Shoulders",
+        "hygiene",
+        "ml",
+        Decimal("400.0"),
+        "8400000000087",
+        Decimal("4.99"),
+    ),
+    (
+        "pasta de dientes",
+        "Colgate",
+        "hygiene",
+        "ml",
+        Decimal("75.0"),
+        "8400000000088",
+        Decimal("1.99"),
+    ),
+    (
+        "desodorante roll-on",
+        "Dove",
+        "hygiene",
+        "ml",
+        Decimal("50.0"),
+        "8400000000089",
+        Decimal("2.79"),
+    ),
+    (
+        "papel higiénico 12 rollos",
+        "Scottex",
+        "hygiene",
+        "unit",
+        Decimal("12.0"),
+        "8400000000090",
+        Decimal("3.99"),
+    ),
+    (
+        "detergente lavadora líquido",
+        "Ariel",
+        "hygiene",
+        "ml",
+        Decimal("1890.0"),
+        "8400000000091",
+        Decimal("8.99"),
+    ),
+    (
+        "lavavajillas líquido",
+        "Fairy",
+        "hygiene",
+        "ml",
+        Decimal("780.0"),
+        "8400000000092",
+        Decimal("2.99"),
+    ),
     ("lejía multiusos", "ACE", "hygiene", "l", Decimal("1.5"), "8400000000093", Decimal("1.29")),
-    ("bolsas de basura 30L", "Sanygard", "hygiene", "unit", Decimal("20.0"), "8400000000094", Decimal("1.49")),
-    ("papel de cocina 3 rollos", "Scottex", "hygiene", "unit", Decimal("3.0"), "8400000000095", Decimal("1.99")),
+    (
+        "bolsas de basura 30L",
+        "Sanygard",
+        "hygiene",
+        "unit",
+        Decimal("20.0"),
+        "8400000000094",
+        Decimal("1.49"),
+    ),
+    (
+        "papel de cocina 3 rollos",
+        "Scottex",
+        "hygiene",
+        "unit",
+        Decimal("3.0"),
+        "8400000000095",
+        Decimal("1.99"),
+    ),
     # Huevos y extras
-    ("huevos camperos L 12 uds", "Granja El Pinar", "dairy", "unit", Decimal("12.0"), "8400000000096", Decimal("2.79")),
-    ("mayonesa 450ml", "Hellmann's", "pantry", "ml", Decimal("450.0"), "8400000000097", Decimal("2.49")),
+    (
+        "huevos camperos L 12 uds",
+        "Granja El Pinar",
+        "dairy",
+        "unit",
+        Decimal("12.0"),
+        "8400000000096",
+        Decimal("2.79"),
+    ),
+    (
+        "mayonesa 450ml",
+        "Hellmann's",
+        "pantry",
+        "ml",
+        Decimal("450.0"),
+        "8400000000097",
+        Decimal("2.49"),
+    ),
     ("ketchup 560g", "Heinz", "pantry", "g", Decimal("560.0"), "8400000000098", Decimal("2.29")),
     ("mostaza Dijon", "Maille", "pantry", "g", Decimal("200.0"), "8400000000099", Decimal("1.79")),
-    ("salsa de soja", "Kikkoman", "pantry", "ml", Decimal("150.0"), "8400000000100", Decimal("2.99")),
+    (
+        "salsa de soja",
+        "Kikkoman",
+        "pantry",
+        "ml",
+        Decimal("150.0"),
+        "8400000000100",
+        Decimal("2.99"),
+    ),
 ]
 
 # Cadenas de supermercados realistas con slug, nombre y color (para el logo_url)
@@ -313,8 +985,30 @@ class Command(BaseCommand):
 
     def _upsert_role_users(self, user_model, role: str, total: int, stats: SeedStats):
         """Crea o actualiza usuarios seed del rol indicado."""
-        first_names = ["Ana", "Carlos", "María", "Javier", "Laura", "Pedro", "Sofía", "Diego", "Elena", "Marcos"]
-        last_names = ["García", "López", "Martínez", "Sánchez", "Pérez", "González", "Rodríguez", "Fernández", "Jiménez", "Díaz"]
+        first_names = [
+            "Ana",
+            "Carlos",
+            "María",
+            "Javier",
+            "Laura",
+            "Pedro",
+            "Sofía",
+            "Diego",
+            "Elena",
+            "Marcos",
+        ]
+        last_names = [
+            "García",
+            "López",
+            "Martínez",
+            "Sánchez",
+            "Pérez",
+            "González",
+            "Rodríguez",
+            "Fernández",
+            "Jiménez",
+            "Díaz",
+        ]
 
         for index in range(1, total + 1):
             username = f"seed_{role}_{index}"
@@ -458,7 +1152,9 @@ class Command(BaseCommand):
         stats.updated += int(not created)
         _ = proposal
 
-    def _seed_business_profiles(self, business_users_qs, stats: SeedStats) -> list[BusinessProfile]:
+    def _seed_business_profiles(
+        self, business_users_qs, stats: SeedStats
+    ) -> list[BusinessProfile]:
         """Crea perfiles business para usuarios con rol comercio."""
         profiles: list[BusinessProfile] = []
         for index, business_user in enumerate(business_users_qs, start=1):
@@ -479,7 +1175,9 @@ class Command(BaseCommand):
 
         return profiles
 
-    def _seed_stores(self, business_profiles: list[BusinessProfile], stats: SeedStats) -> list[Store]:
+    def _seed_stores(
+        self, business_profiles: list[BusinessProfile], stats: SeedStats
+    ) -> list[Store]:
         """Crea 15 tiendas de cadena + hasta 5 tiendas locales (total ≤ 20)."""
         base_lon = -5.9845  # Centro de Sevilla
         base_lat = 37.3891
@@ -509,7 +1207,7 @@ class Command(BaseCommand):
                 name=f"{SEED_PREFIX}{store_name}",
                 defaults={
                     "chain": chains[chain_idx],
-                    "address": f"Calle seed, Sevilla",
+                    "address": "Calle seed, Sevilla",
                     "location": Point(base_lon + lon_off, base_lat + lat_off, srid=4326),
                     "opening_hours": opening_hours_chain,
                     "is_local_business": False,
@@ -546,7 +1244,9 @@ class Command(BaseCommand):
 
         return stores
 
-    def _seed_user_favorite_stores(self, consumers_qs, stores: list[Store], stats: SeedStats) -> None:
+    def _seed_user_favorite_stores(
+        self, consumers_qs, stores: list[Store], stats: SeedStats
+    ) -> None:
         """Crea favoritos para consumidores seed en tiendas seed."""
         if not stores:
             return
@@ -598,8 +1298,14 @@ class Command(BaseCommand):
                 unit_price_val = price_val
                 # Oferta en 30% de los casos
                 has_offer = rng.random() < 0.30
-                offer_price = (price_val * Decimal("0.90")).quantize(Decimal("0.01")) if has_offer else None
-                offer_end = (timezone.now() + timezone.timedelta(days=rng.randint(3, 14))).date() if has_offer else None
+                offer_price = (
+                    (price_val * Decimal("0.90")).quantize(Decimal("0.01")) if has_offer else None
+                )
+                offer_end = (
+                    (timezone.now() + timezone.timedelta(days=rng.randint(3, 14))).date()
+                    if has_offer
+                    else None
+                )
 
                 _, created = Price.objects.update_or_create(
                     product=product,
@@ -644,7 +1350,9 @@ class Command(BaseCommand):
             stats.created += int(created)
             stats.updated += int(not created)
 
-    def _seed_shopping_lists(self, consumers_qs, products: list[Product], stats: SeedStats) -> None:
+    def _seed_shopping_lists(
+        self, consumers_qs, products: list[Product], stats: SeedStats
+    ) -> None:
         """Crea listas, items, colaboradores y plantillas seed."""
         consumers = list(consumers_qs[:4])
         if not consumers or not products:
@@ -653,9 +1361,24 @@ class Command(BaseCommand):
         # Lista de compra semanal típica (10 productos)
         weekly_products = products[:10]
         # Lista especial de limpieza (productos de higiene)
-        hygiene_products = [p for p in products if "seed_" in p.name and any(
-            kw in p.name for kw in ["papel higiénico", "gel de ducha", "pasta de dientes", "detergente", "lavavajillas", "lejía", "bolsas", "champú"]
-        )][:5]
+        hygiene_products = [
+            p
+            for p in products
+            if "seed_" in p.name
+            and any(
+                kw in p.name
+                for kw in [
+                    "papel higiénico",
+                    "gel de ducha",
+                    "pasta de dientes",
+                    "detergente",
+                    "lavavajillas",
+                    "lejía",
+                    "bolsas",
+                    "champú",
+                ]
+            )
+        ][:5]
 
         shopping_lists: list[ShoppingList] = []
         for index, consumer in enumerate(consumers, start=1):
@@ -729,10 +1452,18 @@ class Command(BaseCommand):
                 stats.updated += int(not created_item)
 
         # Plantilla 3: Desayuno completo
-        breakfast_keywords = ["leche", "yogur", "pan", "copos de avena", "zumo naranja", "mantequilla", "café molido"]
-        breakfast_products = [p for p in products if any(
-            kw in p.name for kw in breakfast_keywords
-        )][:8]
+        breakfast_keywords = [
+            "leche",
+            "yogur",
+            "pan",
+            "copos de avena",
+            "zumo naranja",
+            "mantequilla",
+            "café molido",
+        ]
+        breakfast_products = [
+            p for p in products if any(kw in p.name for kw in breakfast_keywords)
+        ][:8]
 
         if len(consumers) >= 3 and breakfast_products:
             template3, created = ListTemplate.objects.update_or_create(
@@ -752,7 +1483,9 @@ class Command(BaseCommand):
                 stats.created += int(created_item)
                 stats.updated += int(not created_item)
 
-    def _seed_promotions(self, products: list[Product], stores: list[Store], stats: SeedStats) -> None:
+    def _seed_promotions(
+        self, products: list[Product], stores: list[Store], stats: SeedStats
+    ) -> None:
         """Crea promociones activas para tiendas locales seed."""
         local_stores = [store for store in stores if store.is_local_business]
         if not products or not local_stores:

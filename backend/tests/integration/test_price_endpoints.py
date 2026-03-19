@@ -123,7 +123,9 @@ class TestPriceCompare:
         for entry in entries:
             assert "is_stale" in entry
 
-    def test_compare_excludes_stores_outside_radius(self, api_client, product, price_nearby, store_far):
+    def test_compare_excludes_stores_outside_radius(
+        self, api_client, product, price_nearby, store_far
+    ):
         """Tiendas fuera del radio no aparecen en los resultados."""
         Price.objects.create(
             product=product,
@@ -327,7 +329,9 @@ class TestPriceAlerts:
         response = api_client.post("/api/v1/prices/alerts/", data)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_destroy_alert_deactivates_not_deletes(self, authenticated_client, consumer_user, product):
+    def test_destroy_alert_deactivates_not_deletes(
+        self, authenticated_client, consumer_user, product
+    ):
         """DELETE desactiva la alerta en lugar de eliminarla de la BD."""
         alert = PriceAlert.objects.create(
             user=consumer_user,
@@ -344,7 +348,9 @@ class TestPriceAlerts:
         assert PriceAlert.objects.filter(pk=alert.pk).exists()
         assert alert.is_active is False
 
-    def test_list_alerts_only_own(self, authenticated_client, consumer_user, product, db, django_user_model):
+    def test_list_alerts_only_own(
+        self, authenticated_client, consumer_user, product, db, django_user_model
+    ):
         """El usuario solo ve sus propias alertas."""
         other_user = django_user_model.objects.create_user(
             username="other_alert_user",

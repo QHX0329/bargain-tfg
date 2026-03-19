@@ -61,9 +61,7 @@ def dispatch_push_notification(
             limit=PUSH_RATE_LIMIT,
         )
         # Still create the inbox record — just don't push
-        _create_notification_record(
-            user_id, notification_type, title, body, data, action_url
-        )
+        _create_notification_record(user_id, notification_type, title, body, data, action_url)
         return
 
     # ── Push dispatch ──────────────────────────────────────────────────────────
@@ -94,12 +92,10 @@ def dispatch_push_notification(
                 user_id=user_id,
                 error=str(exc),
             )
-            raise self.retry(exc=exc, countdown=60)
+            raise self.retry(exc=exc, countdown=60) from exc
 
     # ── DB inbox record ────────────────────────────────────────────────────────
-    _create_notification_record(
-        user_id, notification_type, title, body, data, action_url
-    )
+    _create_notification_record(user_id, notification_type, title, body, data, action_url)
 
 
 def _create_notification_record(
@@ -136,16 +132,14 @@ def notify_new_promo_at_store(self, promotion_id: int) -> None:
     from apps.business.models import Promotion
 
     try:
-        promotion = Promotion.objects.select_related("store", "product").get(
-            pk=promotion_id
-        )
+        promotion = Promotion.objects.select_related("store", "product").get(pk=promotion_id)
     except Promotion.DoesNotExist:
         logger.warning("notify_new_promo_promotion_not_found", promotion_id=promotion_id)
         return
 
-    users = promotion.store.favorited_by.filter(
-        push_notifications_enabled=True
-    ).exclude(notify_new_promos=False)
+    users = promotion.store.favorited_by.filter(push_notifications_enabled=True).exclude(
+        notify_new_promos=False
+    )
 
     product_name = promotion.product.name if promotion.product else "producto"
     promo_body = (
@@ -188,9 +182,9 @@ def send_shared_list_notification(self, list_id: int, actor_id: int) -> None:
     from apps.shopping_lists.models import ShoppingList
 
     try:
-        shopping_list = ShoppingList.objects.prefetch_related(
-            "listcollaborator_set__user"
-        ).get(pk=list_id)
+        shopping_list = ShoppingList.objects.prefetch_related("listcollaborator_set__user").get(
+            pk=list_id
+        )
     except ShoppingList.DoesNotExist:
         logger.warning("send_shared_list_notif_list_not_found", list_id=list_id)
         return

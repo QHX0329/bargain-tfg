@@ -109,7 +109,6 @@ const App: React.FC = () => {
               </RequireAuth>
             }
           >
-            <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/prices" element={<PricesPage />} />
             <Route path="/products-upload" element={<ProductsUploadPage />} />

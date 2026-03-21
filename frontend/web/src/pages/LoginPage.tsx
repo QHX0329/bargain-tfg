@@ -53,7 +53,7 @@ const LoginPage: React.FC = () => {
     }
 
     setProfile(profiles[0]);
-    navigate('/');
+    navigate('/dashboard');
 
     setLoading(false);
   };

@@ -15,34 +15,6 @@ const DEMO_VIDEO_URL =
   (typeof import.meta !== 'undefined' && (import.meta.env?.VITE_DEMO_VIDEO_URL as string | undefined)) ||
   '';
 
-const demoStoryboard = [
-  {
-    time: '00:00-00:05',
-    scene: 'Hero BarGAIN y propuesta de valor',
-    voiceover: 'BarGAIN optimiza tu compra combinando precio, distancia y tiempo en una sola decision.',
-  },
-  {
-    time: '00:05-00:12',
-    scene: 'Lista de compra + comparativa multi-tienda',
-    voiceover: 'Anade productos y compara precios en supermercados y comercios cercanos en tiempo real.',
-  },
-  {
-    time: '00:12-00:18',
-    scene: 'Mapa y ruta recomendada',
-    voiceover: 'El motor calcula la ruta optima con ahorro esperado y numero de paradas sugeridas.',
-  },
-  {
-    time: '00:18-00:26',
-    scene: 'Portal PYME: precios y promociones',
-    voiceover: 'Los comercios gestionan catalogo y promociones para competir con trazabilidad y control.',
-  },
-  {
-    time: '00:26-00:33',
-    scene: 'Stack tecnico y cierre',
-    voiceover: 'Django, PostGIS, React Native y Celery sostienen una arquitectura lista para escalar.',
-  },
-];
-
 const walkthrough = [
   {
     title: 'Savings Tracker',
@@ -138,22 +110,6 @@ const DemoPage: React.FC = () => {
         </motion.section>
 
         <motion.section {...reveal} className="mx-auto w-full max-w-7xl px-6 pb-16 lg:px-10">
-          <div className="rounded-3xl bg-white/[0.03] p-7 ring-1 ring-white/10">
-            <p className="text-xs uppercase tracking-[0.16em] text-indigo-300">Script de produccion</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight text-white">Guion por segundos + locucion</h2>
-            <div className="mt-6 space-y-3">
-              {demoStoryboard.map((item) => (
-                <article key={item.time} className="rounded-2xl bg-slate-900/70 p-5 ring-1 ring-white/10">
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-emerald-300">{item.time}</p>
-                  <p className="mt-2 text-sm font-semibold text-white">{item.scene}</p>
-                  <p className="mt-2 text-sm text-slate-300">{item.voiceover}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </motion.section>
-
-        <motion.section {...reveal} className="mx-auto w-full max-w-7xl px-6 pb-16 lg:px-10">
           <div className="grid gap-5 md:grid-cols-3">
             {walkthrough.map((item) => (
               <article key={item.title} className="rounded-3xl bg-slate-900/65 p-6 ring-1 ring-white/10">
@@ -216,15 +172,17 @@ const DemoPage: React.FC = () => {
             <article className="rounded-3xl bg-gradient-to-br from-indigo-400/20 to-fuchsia-500/15 p-7 ring-1 ring-indigo-300/25">
               <h3 className="text-2xl font-semibold tracking-tight text-white">Scale Commerce</h3>
               <p className="mt-3 text-sm text-indigo-50/90">Activa tu canal PYME y publica precios/promociones con trazabilidad.</p>
-              <a href={withBase('onboarding')} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-indigo-200 px-5 py-3 text-sm font-semibold text-indigo-950">
-                Merchant Onboarding <ArrowRight className="h-4 w-4" />
-              </a>
-              <a
-                href={withBase('docs')}
-                className="mt-3 inline-flex items-center gap-2 rounded-xl bg-white/10 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/20"
-              >
-                Merchant API Docs <ArrowRight className="h-4 w-4" />
-              </a>
+              <div className="mt-6 flex flex-col items-start gap-3">
+                <a href={withBase('onboarding')} className="inline-flex items-center gap-2 rounded-xl bg-indigo-200 px-5 py-3 text-sm font-semibold text-indigo-950">
+                  Merchant Onboarding <ArrowRight className="h-4 w-4" />
+                </a>
+                <a
+                  href={withBase('docs')}
+                  className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/20"
+                >
+                  Merchant API Docs <ArrowRight className="h-4 w-4" />
+                </a>
+              </div>
             </article>
           </div>
         </motion.section>

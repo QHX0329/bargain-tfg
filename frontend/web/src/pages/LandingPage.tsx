@@ -113,6 +113,8 @@ const revealProps = {
   transition: { duration: 0.7, ease: 'easeOut' },
 } as const;
 
+const withBase = (path: string): string => `${import.meta.env.BASE_URL}${path}`;
+
 const LandingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#060a12] text-slate-100 antialiased">
@@ -142,7 +144,7 @@ const LandingPage: React.FC = () => {
           </nav>
           <div className="flex items-center gap-3">
             <a
-              href="/login"
+              href={withBase('login')}
               className="hidden rounded-xl bg-white/5 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-white/10 lg:inline-flex"
             >
               Area negocio
@@ -177,7 +179,7 @@ const LandingPage: React.FC = () => {
             </p>
             <div className="flex flex-wrap items-center gap-4">
               <a
-                href="/demo"
+                href={withBase('demo')}
                 className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-400 to-emerald-500 px-6 py-3 text-sm font-semibold text-emerald-950 transition hover:brightness-110"
               >
                 Ver demo <Rocket className="h-4 w-4" />
@@ -424,7 +426,7 @@ const LandingPage: React.FC = () => {
                 Crea tu lista, compara rutas y decide con datos reales de precio, distancia y tiempo.
               </p>
               <a
-                href="/demo"
+                href={withBase('demo')}
                 className="mt-6 inline-flex items-center gap-2 rounded-xl bg-emerald-300 px-5 py-3 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-200"
               >
                 Acceder <ArrowRight className="h-4 w-4" />
@@ -440,7 +442,7 @@ const LandingPage: React.FC = () => {
                 Publica precios y promociones, aumenta conversion local y analiza competitividad en tu zona.
               </p>
               <a
-                href="/onboarding"
+                href={withBase('onboarding')}
                 className="mt-6 inline-flex items-center gap-2 rounded-xl bg-indigo-200 px-5 py-3 text-sm font-semibold text-indigo-950 transition hover:bg-indigo-100"
               >
                 Entrar como PYME <Building2 className="h-4 w-4" />

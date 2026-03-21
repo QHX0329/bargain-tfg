@@ -91,7 +91,7 @@ const App: React.FC = () => {
         },
       }}
     >
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <Routes>
           {/* Public route */}
           <Route path="/" element={<LandingPage />} />

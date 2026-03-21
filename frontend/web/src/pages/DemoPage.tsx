@@ -36,6 +36,8 @@ const reveal = {
   transition: { duration: 0.65, ease: 'easeOut' },
 } as const;
 
+const withBase = (path: string): string => `${import.meta.env.BASE_URL}${path}`;
+
 const DemoPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#060a12] text-slate-100 antialiased">
@@ -46,10 +48,10 @@ const DemoPage: React.FC = () => {
 
       <header className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/75 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 lg:px-10">
-          <a href="/" className="text-lg font-semibold tracking-tight text-white">BarGAIN Demo</a>
+          <a href={withBase('')} className="text-lg font-semibold tracking-tight text-white">BarGAIN Demo</a>
           <div className="flex items-center gap-3">
-            <a href="/onboarding" className="rounded-xl bg-white/5 px-4 py-2 text-sm font-medium text-slate-200">Onboarding comercios</a>
-            <a href="/login" className="rounded-xl bg-gradient-to-r from-emerald-400 to-emerald-500 px-4 py-2 text-sm font-semibold text-emerald-950">Entrar</a>
+            <a href={withBase('onboarding')} className="rounded-xl bg-white/5 px-4 py-2 text-sm font-medium text-slate-200">Onboarding comercios</a>
+            <a href={withBase('login')} className="rounded-xl bg-gradient-to-r from-emerald-400 to-emerald-500 px-4 py-2 text-sm font-semibold text-emerald-950">Entrar</a>
           </div>
         </div>
       </header>
@@ -142,14 +144,14 @@ const DemoPage: React.FC = () => {
             <article className="rounded-3xl bg-gradient-to-br from-emerald-400/20 to-emerald-700/15 p-7 ring-1 ring-emerald-300/25">
               <h3 className="text-2xl font-semibold tracking-tight text-white">Start Saving</h3>
               <p className="mt-3 text-sm text-emerald-50/90">Empieza como usuario y optimiza tu compra desde hoy.</p>
-              <a href="/login" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-emerald-300 px-5 py-3 text-sm font-semibold text-emerald-950">
+              <a href={withBase('login')} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-emerald-300 px-5 py-3 text-sm font-semibold text-emerald-950">
                 Get the App <ArrowRight className="h-4 w-4" />
               </a>
             </article>
             <article className="rounded-3xl bg-gradient-to-br from-indigo-400/20 to-fuchsia-500/15 p-7 ring-1 ring-indigo-300/25">
               <h3 className="text-2xl font-semibold tracking-tight text-white">Scale Commerce</h3>
               <p className="mt-3 text-sm text-indigo-50/90">Activa tu canal PYME y publica precios/promociones con trazabilidad.</p>
-              <a href="/onboarding" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-indigo-200 px-5 py-3 text-sm font-semibold text-indigo-950">
+              <a href={withBase('onboarding')} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-indigo-200 px-5 py-3 text-sm font-semibold text-indigo-950">
                 Merchant Onboarding <ArrowRight className="h-4 w-4" />
               </a>
               <a

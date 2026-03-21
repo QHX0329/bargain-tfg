@@ -55,6 +55,8 @@ const reveal = {
   transition: { duration: 0.65, ease: 'easeOut' },
 } as const;
 
+const withBase = (path: string): string => `${import.meta.env.BASE_URL}${path}`;
+
 const MerchantOnboardingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#060a12] text-slate-100 antialiased">
@@ -65,7 +67,7 @@ const MerchantOnboardingPage: React.FC = () => {
 
       <header className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/75 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 lg:px-10">
-          <a href="/" className="flex items-center gap-3 text-white">
+          <a href={withBase('')} className="flex items-center gap-3 text-white">
             <div className="grid h-9 w-9 place-items-center rounded-xl bg-emerald-400/20 text-emerald-300">
               <Store className="h-5 w-5" />
             </div>
@@ -77,7 +79,7 @@ const MerchantOnboardingPage: React.FC = () => {
             <a href="#faq" className="transition hover:text-emerald-300">FAQ</a>
           </div>
           <a
-            href="/login"
+            href={withBase('login')}
             className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-emerald-500 px-4 py-2 text-sm font-semibold text-emerald-950"
           >
             Empezar onboarding <ArrowRight className="h-4 w-4" />
@@ -97,10 +99,10 @@ const MerchantOnboardingPage: React.FC = () => {
               una puesta en marcha simple, segura y medible desde el primer dia.
             </p>
             <div className="flex flex-wrap gap-3">
-              <a href="/login" className="rounded-2xl bg-emerald-300 px-6 py-3 text-sm font-semibold text-emerald-950">
+              <a href={withBase('login')} className="rounded-2xl bg-emerald-300 px-6 py-3 text-sm font-semibold text-emerald-950">
                 Iniciar ahora
               </a>
-              <a href="/demo" className="rounded-2xl bg-white/5 px-6 py-3 text-sm font-semibold text-white ring-1 ring-white/15">
+              <a href={withBase('demo')} className="rounded-2xl bg-white/5 px-6 py-3 text-sm font-semibold text-white ring-1 ring-white/15">
                 Ver demo
               </a>
             </div>
@@ -185,7 +187,7 @@ const MerchantOnboardingPage: React.FC = () => {
             <h3 className="text-2xl font-semibold tracking-tight text-white">Empieza tu prueba gratuita</h3>
             <p className="mt-2 text-sm text-slate-200">Configura tu negocio en minutos y activa promociones desde el primer panel.</p>
             <div className="mt-5 flex flex-wrap gap-3">
-              <a href="/login" className="rounded-xl bg-emerald-300 px-5 py-3 text-sm font-semibold text-emerald-950">Start Your Free Trial</a>
+              <a href={withBase('login')} className="rounded-xl bg-emerald-300 px-5 py-3 text-sm font-semibold text-emerald-950">Start Your Free Trial</a>
               <a href="mailto:nicolasparrillageniz@gmail.com" className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/20">
                 <Mail className="h-4 w-4" /> Contactar soporte
               </a>
@@ -197,7 +199,7 @@ const MerchantOnboardingPage: React.FC = () => {
       <footer className="border-t border-white/10 py-8">
         <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-6 text-sm text-slate-400 lg:px-10">
           <p>Soporte: nicolasparrillageniz@gmail.com · Lun-Vie 09:00-18:00</p>
-          <a href="/" className="inline-flex items-center gap-2 text-emerald-300 hover:text-emerald-200">
+          <a href={withBase('')} className="inline-flex items-center gap-2 text-emerald-300 hover:text-emerald-200">
             <CheckCircle2 className="h-4 w-4" /> Volver al inicio
           </a>
         </div>

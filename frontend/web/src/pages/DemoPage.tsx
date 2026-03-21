@@ -15,6 +15,41 @@ const DEMO_VIDEO_URL =
   (typeof import.meta !== 'undefined' && (import.meta.env?.VITE_DEMO_VIDEO_URL as string | undefined)) ||
   '';
 
+const normalizeEmbedUrl = (rawUrl: string): string => {
+  if (!rawUrl.trim()) {
+    return '';
+  }
+
+  try {
+    const parsed = new URL(rawUrl.trim());
+    const host = parsed.hostname.replace(/^www\./, '');
+
+    // Convert YouTube watch/share links to iframe-safe embed URLs.
+    if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtu.be') {
+      let videoId = '';
+
+      if (host === 'youtu.be') {
+        videoId = parsed.pathname.replace(/^\//, '').split('/')[0] || '';
+      } else if (parsed.pathname === '/watch') {
+        videoId = parsed.searchParams.get('v') || '';
+      } else if (parsed.pathname.startsWith('/embed/')) {
+        videoId = parsed.pathname.split('/')[2] || '';
+      } else if (parsed.pathname.startsWith('/shorts/')) {
+        videoId = parsed.pathname.split('/')[2] || '';
+      }
+
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}`;
+      }
+    }
+
+    // If already an embeddable URL (or other provider with embed URL), keep it.
+    return rawUrl.trim();
+  } catch {
+    return rawUrl.trim();
+  }
+};
+
 const walkthrough = [
   {
     title: 'Savings Tracker',
@@ -43,7 +78,8 @@ const reveal = {
 const withBase = (path: string): string => `${import.meta.env.BASE_URL}${path}`;
 
 const DemoPage: React.FC = () => {
-  const hasDemoVideo = DEMO_VIDEO_URL.trim().length > 0;
+  const embedVideoUrl = normalizeEmbedUrl(DEMO_VIDEO_URL);
+  const hasDemoVideo = embedVideoUrl.length > 0;
 
   return (
     <div className="min-h-screen bg-[#060a12] text-slate-100 antialiased">
@@ -86,7 +122,7 @@ const DemoPage: React.FC = () => {
               {hasDemoVideo ? (
                 <iframe
                   className="h-full w-full rounded-2xl"
-                  src={DEMO_VIDEO_URL}
+                  src={embedVideoUrl}
                   title="BarGAIN Demo Video"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
@@ -172,7 +208,7 @@ const DemoPage: React.FC = () => {
             <article className="rounded-3xl bg-gradient-to-br from-indigo-400/20 to-fuchsia-500/15 p-7 ring-1 ring-indigo-300/25">
               <h3 className="text-2xl font-semibold tracking-tight text-white">Scale Commerce</h3>
               <p className="mt-3 text-sm text-indigo-50/90">Activa tu canal PYME y publica precios/promociones con trazabilidad.</p>
-              <div className="mt-6 flex flex-col items-start gap-3">
+              <div className="mt-6 flex flex-row items-start gap-3">
                 <a href={withBase('onboarding')} className="inline-flex items-center gap-2 rounded-xl bg-indigo-200 px-5 py-3 text-sm font-semibold text-indigo-950">
                   Merchant Onboarding <ArrowRight className="h-4 w-4" />
                 </a>

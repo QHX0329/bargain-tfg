@@ -4,6 +4,11 @@ export const API_BASE_URL: string =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL as string | undefined) ||
   'http://localhost:8000/api/v1';
 
+const LOGIN_URL =
+  typeof import.meta !== 'undefined'
+    ? `${import.meta.env.BASE_URL}login`
+    : '/login';
+
 // Create axios instance; axios.create may be undefined when fully mocked in tests
 type AxiosInstanceLike = typeof axios & {
   interceptors?: typeof axios.interceptors;
@@ -60,7 +65,7 @@ if (apiClient?.interceptors?.response) {
       ) {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
-        window.location.href = '/login';
+        window.location.href = LOGIN_URL;
       }
       return Promise.reject(error);
     },

@@ -125,6 +125,22 @@ Without this variable, the endpoint returns `{}` (silent fail) — no frontend c
 - Redis caching is in place — no risk of quota exhaustion during development
 - Temporary `docker-compose.migrate.yml` can be removed once port conflicts are resolved
 
+## Self-Check: PASSED
+
+All files verified present. All commits verified in git history.
+
+| Item | Status |
+|------|--------|
+| backend/apps/stores/models.py | FOUND |
+| backend/apps/stores/migrations/0003_store_google_place_id.py | FOUND |
+| backend/apps/stores/views.py | FOUND |
+| backend/config/settings/base.py | FOUND |
+| backend/tests/integration/test_store_endpoints.py | FOUND |
+| backend/tests/unit/test_stores.py | FOUND |
+| .planning/phases/04-frontend-advanced/04-01-SUMMARY.md | FOUND |
+| Commit 111298f | FOUND |
+| Commit cb89661 | FOUND |
+
 ---
 *Phase: 04-frontend-advanced*
 *Completed: 2026-03-23*

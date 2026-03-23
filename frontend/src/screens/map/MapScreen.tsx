@@ -10,6 +10,7 @@
  *  3. Si concedido: obtener coordenadas y llamar a storeService.getNearby().
  *  4. Renderizar MapView con Marker por cada tienda.
  *  5. Panel inferior con lista horizontal de tarjetas de tienda.
+ *  6. Barra de autocompletado Google Places (solo nativo, solo si API key presente).
  */
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -30,6 +31,11 @@ import MapView, { Callout, Marker, type Region } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import {
+  GooglePlacesAutocomplete,
+  type GooglePlaceData,
+  type GooglePlaceDetail,
+} from "react-native-google-places-autocomplete";
 
 import {
   borderRadius,
@@ -49,6 +55,9 @@ import type { Store, StoreChain } from "@/types/domain";
 /** Coordenadas de Sevilla centro como fallback en __DEV__ */
 const SEVILLE_COORDS = { lat: 37.3886, lng: -5.9823 };
 const EARTH_RADIUS_KM = 6371;
+
+const PLACES_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY ?? "";
+const placesEnabled = PLACES_KEY.length > 0;
 
 const CHAIN_COLORS: Record<StoreChain, string> = {
   mercadona: colors.chains.mercadona,
@@ -79,6 +88,16 @@ const CHAIN_LABELS: Record<StoreChain, string> = {
   alcampo: "Alcampo",
   local: "Comercio local",
 };
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface PlacesMarker {
+  placeId: string;
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -207,6 +226,12 @@ export const MapScreen: React.FC = () => {
   const [stores, setStores] = useState<Store[]>([]);
   const [isFetchingStores, setIsFetchingStores] = useState(false);
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+
+  // ── Google Places discovery markers state ────────────────────────────────
+  const [placesMarkers, setPlacesMarkers] = useState<PlacesMarker[]>([]);
+  const [selectedPlacesMarker, setSelectedPlacesMarker] =
+    useState<PlacesMarker | null>(null);
+
   // ── Panel animation ──────────────────────────────────────────────────────
   const PANEL_ANIM_MAX_HEIGHT = 200;
   const panelAnim = useRef(new Animated.Value(1)).current;
@@ -403,6 +428,66 @@ export const MapScreen: React.FC = () => {
     }
   }, []);
 
+  // ── Google Places autocomplete handler ───────────────────────────────────
+
+  const handlePlacesSelect = useCallback(
+    (data: GooglePlaceData, details: GooglePlaceDetail | null) => {
+      if (!details) return;
+
+      const lat = details.geometry.location.lat;
+      const lng = details.geometry.location.lng;
+      const placeId = data.place_id;
+
+      // Check if any DB store is within 50m of selected coordinates
+      const matchingStore = stores.find((store) => {
+        if (!store.location?.coordinates) return false;
+        const [storeLng, storeLat] = store.location.coordinates;
+        return haversineDistanceKm(lat, lng, storeLat, storeLng) < 0.05;
+      });
+
+      if (matchingStore) {
+        // DB match: pan map and select the existing store marker
+        setSelectedStore(matchingStore);
+        const { latitude, longitude } = getStoreCoords(
+          matchingStore,
+          userLat,
+          userLng,
+        );
+        mapRef.current?.animateToRegion(
+          { latitude, longitude, latitudeDelta: 0.01, longitudeDelta: 0.01 },
+          500,
+        );
+      } else {
+        // No DB match: add a grey discovery marker
+        const name = details.name ?? data.description;
+        const address = details.formatted_address ?? data.description;
+        const existing = placesMarkers.findIndex((m) => m.placeId === placeId);
+        if (existing === -1) {
+          setPlacesMarkers((prev) => [
+            ...prev,
+            { placeId, name, address, lat, lng },
+          ]);
+        }
+        setSelectedPlacesMarker({ placeId, name, address, lat, lng });
+        mapRef.current?.animateToRegion(
+          {
+            latitude: lat,
+            longitude: lng,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+          },
+          500,
+        );
+      }
+    },
+    [stores, placesMarkers, userLat, userLng],
+  );
+
+  const handleOpenGoogleMaps = useCallback(() => {
+    const url = `https://www.google.com/maps/search/?api=1&query=supermercado&center=${userLat},${userLng}`;
+    Linking.openURL(url).catch(() => {});
+  }, [userLat, userLng]);
+
   // ── Renderizado ──────────────────────────────────────────────────────────
 
   // Permiso aún no resuelto
@@ -442,7 +527,10 @@ export const MapScreen: React.FC = () => {
         initialRegion={initialRegion}
         showsUserLocation={true}
         showsMyLocationButton={true}
-        onPress={() => setSelectedStore && setSelectedStore(null)}
+        onPress={() => {
+          setSelectedStore(null);
+          setSelectedPlacesMarker(null);
+        }}
         onRegionChange={() => {
           if (panelExpandedRef.current) {
             togglePanelRef.current(false);
@@ -487,7 +575,103 @@ export const MapScreen: React.FC = () => {
             </Marker>
           );
         })}
+
+        {/* ── Discovery markers (grey pins from Places search) ──── */}
+        {placesMarkers.map((marker) => (
+          <Marker
+            key={marker.placeId}
+            coordinate={{ latitude: marker.lat, longitude: marker.lng }}
+            pinColor="#9CA3AF"
+            title={marker.name}
+            onPress={() => {
+              setSelectedPlacesMarker(marker);
+              setSelectedStore(null);
+            }}
+          />
+        ))}
       </MapView>
+
+      {/* ── Google Places autocomplete bar ────────────────────────── */}
+      {placesEnabled ? (
+        <View style={styles.autocompleteContainer} pointerEvents="box-none">
+          <GooglePlacesAutocomplete
+            placeholder="Buscar supermercado..."
+            fetchDetails={true}
+            query={{ key: PLACES_KEY, language: "es", types: "establishment" }}
+            onPress={handlePlacesSelect}
+            enablePoweredByContainer={false}
+            keyboardShouldPersistTaps="handled"
+            styles={{
+              container: {
+                flex: 0,
+              },
+              textInputContainer: {
+                backgroundColor: colors.surface,
+                borderRadius: borderRadius.pill,
+                paddingHorizontal: spacing.sm,
+                ...shadows.elevated,
+              },
+              textInput: {
+                fontFamily: fontFamilies.body,
+                fontSize: fontSize.md,
+                color: colors.text,
+                backgroundColor: "transparent",
+                borderRadius: borderRadius.pill,
+              },
+              listView: {
+                backgroundColor: colors.surface,
+                borderRadius: borderRadius.md,
+                marginTop: spacing.xs,
+                ...shadows.elevated,
+              },
+              row: {
+                backgroundColor: colors.surface,
+                paddingHorizontal: spacing.md,
+                paddingVertical: spacing.sm,
+              },
+              description: {
+                fontFamily: fontFamilies.body,
+                fontSize: fontSize.md,
+                color: colors.text,
+              },
+              separator: {
+                backgroundColor: colors.border,
+                height: StyleSheet.hairlineWidth,
+              },
+            }}
+            renderRightButton={() => (
+              <TouchableOpacity
+                style={styles.googleMapsButton}
+                onPress={handleOpenGoogleMaps}
+                accessibilityLabel="Buscar en Google Maps"
+              >
+                <Ionicons
+                  name="open-outline"
+                  size={18}
+                  color={colors.textMuted}
+                />
+              </TouchableOpacity>
+            )}
+          />
+          <TouchableOpacity
+            style={styles.googleMapsEscapeButton}
+            onPress={handleOpenGoogleMaps}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="map-outline" size={14} color={colors.primary} />
+            <Text style={styles.googleMapsEscapeText}>
+              Buscar en Google Maps
+            </Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.autocompleteDisabled} pointerEvents="none">
+          <Ionicons name="search" size={16} color={colors.textDisabled} />
+          <Text style={styles.autocompleteDisabledText}>
+            Busqueda avanzada no disponible
+          </Text>
+        </View>
+      )}
 
       {/* ── Botón: Buscar en esta zona ────────────────────────── */}
       <TouchableOpacity
@@ -504,6 +688,40 @@ export const MapScreen: React.FC = () => {
         <View style={styles.mapLoadingOverlay}>
           <ActivityIndicator size="small" color={colors.primary} />
           <Text style={styles.mapLoadingText}>Cargando tiendas…</Text>
+        </View>
+      )}
+
+      {/* ── Info card for selected Places discovery marker ────────── */}
+      {selectedPlacesMarker && (
+        <View style={[styles.placesInfoCard, shadows.elevated]}>
+          <View style={styles.placesInfoCardHeader}>
+            <Text style={styles.placesInfoCardName} numberOfLines={1}>
+              {selectedPlacesMarker.name}
+            </Text>
+            <TouchableOpacity
+              onPress={() => setSelectedPlacesMarker(null)}
+              accessibilityLabel="Cerrar"
+              style={styles.placesInfoCardClose}
+            >
+              <Ionicons name="close" size={18} color={colors.textMuted} />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.placesInfoCardAddress} numberOfLines={2}>
+            {selectedPlacesMarker.address}
+          </Text>
+          <TouchableOpacity
+            style={styles.placesInfoCardLink}
+            onPress={() => {
+              const url = `https://www.google.com/maps/search/?api=1&query=${selectedPlacesMarker.lat},${selectedPlacesMarker.lng}&query_place_id=${selectedPlacesMarker.placeId}`;
+              Linking.openURL(url).catch(() => {});
+            }}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="map-outline" size={14} color={colors.primary} />
+            <Text style={styles.placesInfoCardLinkText}>
+              Ver en Google Maps
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -617,9 +835,64 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     color: colors.text,
   },
+  // ── Autocomplete bar ──────────────────────────────────────────────────────
+  autocompleteContainer: {
+    position: "absolute",
+    top: spacing.md,
+    left: spacing.md,
+    right: spacing.md,
+    zIndex: 10,
+    elevation: 10,
+  },
+  autocompleteDisabled: {
+    position: "absolute",
+    top: spacing.md,
+    left: spacing.md,
+    right: spacing.md,
+    zIndex: 10,
+    elevation: 10,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    opacity: 0.6,
+    ...shadows.elevated,
+  },
+  autocompleteDisabledText: {
+    fontFamily: fontFamilies.body,
+    fontSize: fontSize.sm,
+    color: colors.textDisabled,
+  },
+  googleMapsButton: {
+    paddingHorizontal: spacing.xs,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  googleMapsEscapeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    marginTop: spacing.xs,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.pill,
+    alignSelf: "flex-end",
+    ...shadows.elevated,
+  },
+  googleMapsEscapeText: {
+    fontFamily: fontFamilies.bodyMedium,
+    fontSize: fontSize.sm,
+    color: colors.primary,
+  },
+  // ── Botón de zona ─────────────────────────────────────────────────────────
   searchAreaButton: {
     position: "absolute",
-    top: 80,
+    top: 140,
     alignSelf: "center",
     backgroundColor: colors.surface,
     borderRadius: borderRadius.pill,
@@ -634,6 +907,50 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     color: colors.primary,
   },
+  // ── Places info card (discovery markers) ──────────────────────────────────
+  placesInfoCard: {
+    position: "absolute",
+    bottom: 220,
+    left: spacing.md,
+    right: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    ...shadows.elevated,
+  },
+  placesInfoCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: spacing.xs,
+  },
+  placesInfoCardName: {
+    fontFamily: fontFamilies.bodySemiBold,
+    fontSize: fontSize.md,
+    color: colors.text,
+    flex: 1,
+    marginRight: spacing.xs,
+  },
+  placesInfoCardClose: {
+    padding: spacing.xs,
+  },
+  placesInfoCardAddress: {
+    fontFamily: fontFamilies.body,
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
+    marginBottom: spacing.sm,
+  },
+  placesInfoCardLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  placesInfoCardLinkText: {
+    fontFamily: fontFamilies.bodyMedium,
+    fontSize: fontSize.sm,
+    color: colors.primary,
+  },
+  // ── Panel inferior ────────────────────────────────────────────────────────
   bottomPanel: {
     position: "absolute",
     bottom: 0,

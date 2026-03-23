@@ -39,6 +39,20 @@ export interface Store {
   location?: { type: string; coordinates: [number, number] };
 }
 
+// ─── Google Places enrichment data (from backend proxy) ───────────────────────
+
+export interface PlacesOpeningHours {
+  openNow?: boolean;
+  weekdayDescriptions?: string[];
+}
+
+export interface PlacesDetail {
+  opening_hours?: PlacesOpeningHours | null;
+  rating?: number | null;
+  user_rating_count?: number | null;
+  website_url?: string | null;
+}
+
 // ─── Producto ─────────────────────────────────────────────────────────────────
 
 export type ProductUnit = "kg" | "g" | "l" | "ml" | "ud" | "pack";

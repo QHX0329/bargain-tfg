@@ -3,7 +3,7 @@
  */
 
 import { apiClient } from "./client";
-import type { Store } from "@/types/domain";
+import type { PlacesDetail, Store } from "@/types/domain";
 
 interface RawStoreChain {
   id?: number;
@@ -140,5 +140,19 @@ export const storeService = {
     );
 
     return Boolean(payload.is_favorite);
+  },
+
+  /** GET /stores/{id}/places-detail/ — Google Places enrichment */
+  getPlacesDetail: async (storeId: string): Promise<PlacesDetail | null> => {
+    try {
+      const payload = await apiClient.get<never, PlacesDetail>(
+        `/stores/${storeId}/places-detail/`,
+      );
+      // Backend returns {} when no Places data — treat as null
+      if (!payload || Object.keys(payload).length === 0) return null;
+      return payload;
+    } catch {
+      return null; // Silent fail per user decision
+    }
   },
 };

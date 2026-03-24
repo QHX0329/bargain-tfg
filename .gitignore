@@ -49,6 +49,8 @@ Thumbs.db
 .env
 .env.local
 .env.production
+google-services.json
+GoogleService-Info.plist
 
 # ── Testing ──────────────────────────────
 htmlcov/

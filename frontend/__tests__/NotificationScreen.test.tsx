@@ -324,12 +324,6 @@ describe("HomeScreen", () => {
 
 // ─── NotificationScreen Tests (Tests 6-11) ────────────────────────────────────
 
-const mockNavigation = {
-  navigate: jest.fn(),
-  setOptions: jest.fn(),
-  goBack: jest.fn(),
-};
-
 describe("NotificationScreen", () => {
   let alertSpy: jest.SpyInstance;
 
@@ -362,7 +356,7 @@ describe("NotificationScreen", () => {
   // Test 6: notifications grouped by Hoy/Ayer/Esta semana
   it("Test 6: NotificationScreen renders notifications grouped by day sections", async () => {
     const { getByText } = render(
-      <NotificationScreen navigation={mockNavigation as never} />,
+      <NotificationScreen />,
     );
 
     await waitFor(() => {
@@ -375,7 +369,7 @@ describe("NotificationScreen", () => {
   // Test 7: tapping a notification calls notificationService.markAsRead
   it("Test 7: tapping a notification calls notificationService.markAsRead(id)", async () => {
     const { getByTestId } = render(
-      <NotificationScreen navigation={mockNavigation as never} />,
+      <NotificationScreen />,
     );
 
     await waitFor(() => {
@@ -391,7 +385,7 @@ describe("NotificationScreen", () => {
   // Test 8: swipe-to-delete calls deleteNotification directly
   it("Test 8: swipe-to-delete calls notificationService.deleteNotification", async () => {
     const { getByTestId } = render(
-      <NotificationScreen navigation={mockNavigation as never} />,
+      <NotificationScreen />,
     );
 
     await waitFor(() => {
@@ -409,7 +403,7 @@ describe("NotificationScreen", () => {
   // Test 9: "Marcar todo leído" calls markAllAsRead
   it("Test 9: Marcar todo leído button calls notificationService.markAllAsRead()", async () => {
     const { getByTestId } = render(
-      <NotificationScreen navigation={mockNavigation as never} />,
+      <NotificationScreen />,
     );
 
     await waitFor(() => {
@@ -431,7 +425,7 @@ describe("NotificationScreen", () => {
     });
 
     const { getByText } = render(
-      <NotificationScreen navigation={mockNavigation as never} />,
+      <NotificationScreen />,
     );
 
     await waitFor(() => {
@@ -454,7 +448,7 @@ describe("NotificationScreen", () => {
       });
 
     const { getByTestId } = render(
-      <NotificationScreen navigation={mockNavigation as never} />,
+      <NotificationScreen />,
     );
 
     // Wait for initial load

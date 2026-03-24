@@ -3,7 +3,7 @@
  */
 
 import { apiClient } from "./client";
-import type { PlacesDetail, Store } from "@/types/domain";
+import type { PlacesDetail, PlacesPrediction, PlacesResolved, Store } from "@/types/domain";
 
 interface RawStoreChain {
   id?: number;
@@ -20,6 +20,7 @@ interface RawStore {
   location?: { type?: string; coordinates?: [number, number] } | null;
   opening_hours?: Record<string, string>;
   is_favorite?: boolean;
+  google_place_id?: string;
 }
 
 interface PaginatedResponse<T> {
@@ -69,6 +70,7 @@ function normalizeStore(raw: RawStore): Store {
     location,
     openingHours: raw.opening_hours,
     isFavorite: raw.is_favorite,
+    googlePlaceId: raw.google_place_id || undefined,
   };
 }
 
@@ -140,6 +142,39 @@ export const storeService = {
     );
 
     return Boolean(payload.is_favorite);
+  },
+
+  /** GET /stores/places-autocomplete/?input=X&lat=Y&lng=Z — proxy autocompletado */
+  placesAutocomplete: async (
+    input: string,
+    lat: number,
+    lng: number,
+  ): Promise<PlacesPrediction[]> => {
+    try {
+      const payload = await apiClient.get<never, { predictions: PlacesPrediction[] }>(
+        "/stores/places-autocomplete/",
+        { params: { input, lat, lng } },
+      );
+      return payload?.predictions ?? [];
+    } catch {
+      return [];
+    }
+  },
+
+  /** GET /stores/places-resolve/?place_id=X — resuelve Place ID a coordenadas */
+  placesResolve: async (
+    placeId: string,
+  ): Promise<PlacesResolved | null> => {
+    try {
+      const payload = await apiClient.get<never, PlacesResolved>(
+        "/stores/places-resolve/",
+        { params: { place_id: placeId } },
+      );
+      if (!payload || !payload.lat) return null;
+      return payload;
+    } catch {
+      return null;
+    }
   },
 
   /** GET /stores/{id}/places-detail/ — Google Places enrichment */

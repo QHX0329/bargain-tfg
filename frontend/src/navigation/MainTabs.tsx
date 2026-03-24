@@ -223,7 +223,7 @@ const Tab = createMaterialTopTabNavigator<MainTabParamList>();
 export const MainTabs: React.FC = () => {
   const tabs = useMemo(
     () =>
-      (Object.keys(TAB_ICONS) as Array<keyof MainTabParamList>).map((key) => {
+      (Object.keys(TAB_ICONS) as (keyof MainTabParamList)[]).map((key) => {
         const info = TAB_ICONS[key];
         return {
           key,
@@ -273,7 +273,10 @@ export const MainTabs: React.FC = () => {
     >
       <Tab.Screen name="HomeTab" component={HomeStackNavigator} />
       <Tab.Screen name="ListsTab" component={ListsStackNavigator} />
-      <Tab.Screen name="MapTab" component={MapStackNavigator} />
+      <Tab.Screen
+        name="MapTab"
+        component={MapStackNavigator}
+      />
       <Tab.Screen name="AssistantTab" component={AssistantStackNavigator} />
       <Tab.Screen name="ProfileTab" component={ProfileStackNavigator} />
     </Tab.Navigator>

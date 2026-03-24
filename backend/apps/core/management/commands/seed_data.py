@@ -826,28 +826,29 @@ CHAIN_SPECS = [
     ("Alcampo", "alcampo"),
 ]
 
-# (nombre tienda, chain_idx, lat_offset, lon_offset)
+# (nombre tienda, chain_idx, lat, lon, dirección, google_place_id | None)
+# Coordenadas exactas obtenidas de Google Places API (2026-03-24).
 CHAIN_STORE_SPECS = [
     # Mercadona (3 tiendas)
-    ("Mercadona Triana", 0, 0.0120, -0.0180),
-    ("Mercadona Nervión", 0, 0.0085, 0.0095),
-    ("Mercadona Macarena", 0, 0.0210, 0.0050),
+    ("Mercadona Triana", 0, 37.379742, -5.999756, "C. Salado, s/n, 41010 Sevilla", "ChIJi71i9xVsEg0Rts2Uj5zQPN0"),
+    ("Mercadona Kansas City", 0, 37.389591, -5.974207, "Av. de Kansas City, 32, 41007 Sevilla", "ChIJawDv6IpvEg0R792FYxdrA70"),
+    ("Mercadona Macarena", 0, 37.406521, -5.989578, "Don Fadrique, 63, 41009 Sevilla", "ChIJg0JmbPlrEg0RFBeG_v47BfU"),
     # Carrefour (3 tiendas)
-    ("Carrefour Express Centro", 1, -0.0045, -0.0090),
-    ("Carrefour Sevilla Este", 1, 0.0050, 0.0240),
-    ("Carrefour La Rinconada", 1, 0.0320, 0.0180),
+    ("Carrefour Express Centro", 1, 37.388378, -5.997026, "C. Zaragoza, 31, 41001 Sevilla", "ChIJidaK5tttEg0RSS_aEITaM9A"),
+    ("Carrefour Sevilla Este", 1, 37.407294, -5.939123, "C. José Jesús García Díaz, 1, 41020 Sevilla", "ChIJBcALJkRpEg0RrZhp0GvM9ns"),
+    ("Carrefour La Rinconada", 1, 37.4211, -5.9665, "La Rinconada, Sevilla", None),
     # Lidl (3 tiendas)
-    ("Lidl San Pablo", 2, 0.0175, 0.0110),
-    ("Lidl Bellavista", 2, -0.0200, 0.0060),
-    ("Lidl Camas", 2, 0.0080, -0.0310),
+    ("Lidl San Pablo", 2, 37.4066, -5.9735, "C. San Pablo, Sevilla", None),
+    ("Lidl Bellavista", 2, 37.333180, -5.969590, "Av. de Jerez, 6, 41014 Sevilla", "ChIJU_phYxFuEg0RFoMectqEUSo"),
+    ("Lidl San Juan", 2, 37.372740, -6.033980, "Ctra. de Tomares al Manchón, 10-B, San Juan de Aznalfarache", "ChIJMVbyGv1sEg0RN9YzZW7jHLU"),
     # Dia (3 tiendas)
-    ("Dia Los Remedios", 3, -0.0100, -0.0250),
-    ("Dia Heliópolis", 3, -0.0280, -0.0070),
-    ("Dia Pino Montano", 3, 0.0260, 0.0020),
+    ("Dia Los Remedios", 3, 37.3791, -6.0095, "Los Remedios, Sevilla", None),
+    ("Dia Heliópolis", 3, 37.3511, -5.9815, "Heliópolis, Sevilla", None),
+    ("Dia Pino Montano", 3, 37.4150, -5.9825, "Pino Montano, Sevilla", None),
     # Alcampo (3 tiendas)
-    ("Alcampo Hipercor", 4, 0.0040, 0.0170),
-    ("Alcampo Mairena", 4, 0.0490, 0.0380),
-    ("Alcampo Tomares", 4, -0.0010, -0.0440),
+    ("Alcampo Ronda Tamarguillo", 4, 37.370173, -5.966222, "Av. Ronda del Tamarguillo, 27, 41006 Sevilla", "ChIJvQUF5Y1uEg0R_9__R1JImFc"),
+    ("Alcampo Hipercor Sevilla Este", 4, 37.388158, -5.940073, "Ctra. Sevilla-Málaga, km 1, 41020 Sevilla", "ChIJPbdcQbtkEg0R05caK7wQXos"),
+    ("Alcampo Tomares", 4, 37.3881, -6.0285, "Tomares, Sevilla", None),
 ]
 
 
@@ -1179,8 +1180,6 @@ class Command(BaseCommand):
         self, business_profiles: list[BusinessProfile], stats: SeedStats
     ) -> list[Store]:
         """Crea 15 tiendas de cadena + hasta 5 tiendas locales (total ≤ 20)."""
-        base_lon = -5.9845  # Centro de Sevilla
-        base_lat = 37.3891
 
         # ── Cadenas ──────────────────────────────────────────────────────────
         chains: list[StoreChain] = []
@@ -1202,17 +1201,18 @@ class Command(BaseCommand):
             "lun-sab": "09:00-21:30",
             "dom": "09:00-15:00",
         }
-        for store_name, chain_idx, lat_off, lon_off in CHAIN_STORE_SPECS:
+        for store_name, chain_idx, lat, lon, address, place_id in CHAIN_STORE_SPECS:
             store, created = Store.objects.update_or_create(
                 name=f"{SEED_PREFIX}{store_name}",
                 defaults={
                     "chain": chains[chain_idx],
-                    "address": "Calle seed, Sevilla",
-                    "location": Point(base_lon + lon_off, base_lat + lat_off, srid=4326),
+                    "address": address,
+                    "location": Point(lon, lat, srid=4326),
                     "opening_hours": opening_hours_chain,
                     "is_local_business": False,
                     "business_profile": None,
                     "is_active": True,
+                    "google_place_id": place_id or "",
                 },
             )
             stats.created += int(created)
@@ -1221,6 +1221,8 @@ class Command(BaseCommand):
 
         # ── Tiendas locales (una por business profile, máx 5) ────────────────
         local_opening = {"lun-vie": "08:30-20:00", "sab": "09:00-14:00"}
+        local_base_lat = 37.3891
+        local_base_lon = -5.9845
         for index, profile in enumerate(business_profiles[:5], start=1):
             store, created = Store.objects.update_or_create(
                 name=f"{SEED_PREFIX}tienda_local_{index}",
@@ -1228,8 +1230,8 @@ class Command(BaseCommand):
                     "chain": None,
                     "address": f"Plaza Local Seed {index}, Sevilla",
                     "location": Point(
-                        base_lon - index * 0.008,
-                        base_lat + index * 0.006,
+                        local_base_lon - index * 0.008,
+                        local_base_lat + index * 0.006,
                         srid=4326,
                     ),
                     "opening_hours": local_opening,

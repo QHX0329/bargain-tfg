@@ -37,6 +37,8 @@ export interface Store {
    * Extraer: lat = coordinates[1], lng = coordinates[0]
    */
   location?: { type: string; coordinates: [number, number] };
+  /** Google Place ID vinculado en la BD (puede estar vacío) */
+  googlePlaceId?: string;
 }
 
 // ─── Google Places enrichment data (from backend proxy) ───────────────────────
@@ -51,6 +53,27 @@ export interface PlacesDetail {
   rating?: number | null;
   user_rating_count?: number | null;
   website_url?: string | null;
+}
+
+// ─── Google Places Autocomplete (backend proxy) ──────────────────────────────
+
+export interface PlacesPrediction {
+  place_id: string;
+  description: string;
+  structured: {
+    main_text: string;
+    secondary_text: string;
+  };
+}
+
+export interface PlacesResolved {
+  place_id: string;
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+  /** ID de tienda en BD que tiene este google_place_id (si existe) */
+  matched_store_id?: string;
 }
 
 // ─── Producto ─────────────────────────────────────────────────────────────────

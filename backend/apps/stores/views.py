@@ -93,7 +93,7 @@ class StoreViewSet(viewsets.ReadOnlyModelViewSet):
             BargainAPIException: Si faltan lat o lng en la acción list.
         """
         # Para detail/retrieve no aplicamos filtro geoespacial — sólo buscamos por PK.
-        if self.action in ("retrieve", "favorite", "places_detail"):
+        if self.action in ("retrieve", "favorite", "places_detail", "places_autocomplete", "places_resolve"):
             return Store.objects.filter(is_active=True).select_related("chain")
 
         request: Request = self.request
@@ -228,6 +228,192 @@ class StoreViewSet(viewsets.ReadOnlyModelViewSet):
         }
         cache.set(cache_key, normalized, timeout=60 * 60 * 24)
         return success_response(normalized)
+
+    @extend_schema(
+        summary="Autocompletado de Places",
+        description=(
+            "Proxy al endpoint Autocomplete de la nueva Google Places API. "
+            "Devuelve sugerencias de establecimientos cercanos a las coordenadas del usuario. "
+            "La API key permanece en el servidor."
+        ),
+        parameters=[
+            OpenApiParameter("input", str, required=True, description="Texto de búsqueda"),
+            OpenApiParameter("lat", float, required=True, description="Latitud del usuario"),
+            OpenApiParameter("lng", float, required=True, description="Longitud del usuario"),
+        ],
+        responses={
+            200: inline_serializer(
+                "PlacesAutocompleteResponse",
+                fields={
+                    "predictions": drf_serializers.ListField(
+                        child=drf_serializers.DictField()
+                    ),
+                },
+            )
+        },
+    )
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="places-autocomplete",
+        permission_classes=[IsAuthenticated],
+    )
+    def places_autocomplete(self, request: Request) -> Response:
+        """
+        Proxy de autocompletado Google Places (New API).
+
+        GET /api/v1/stores/places-autocomplete/?input=Mercadona&lat=37.38&lng=-5.98
+        """
+        input_text = request.query_params.get("input", "").strip()
+        if not input_text or len(input_text) < 2:
+            return success_response({"predictions": []})
+
+        lat = request.query_params.get("lat")
+        lng = request.query_params.get("lng")
+        if not lat or not lng:
+            return success_response({"predictions": []})
+
+        api_key = settings.GOOGLE_PLACES_API_KEY
+        if not api_key:
+            return success_response({"predictions": []})
+
+        try:
+            lat_f, lng_f = float(lat), float(lng)
+        except ValueError:
+            return success_response({"predictions": []})
+
+        # Cache por input + ubicación redondeada (3 decimales ≈ 111m)
+        cache_key = f"places_ac:{input_text.lower()}:{round(lat_f, 3)}:{round(lng_f, 3)}"
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return success_response({"predictions": cached})
+
+        try:
+            response = http_requests.post(
+                "https://places.googleapis.com/v1/places:autocomplete",
+                headers={
+                    "X-Goog-Api-Key": api_key,
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "input": input_text,
+                    "locationBias": {
+                        "circle": {
+                            "center": {"latitude": lat_f, "longitude": lng_f},
+                            "radius": 15000.0,
+                        }
+                    },
+                    "includedPrimaryTypes": ["supermarket", "grocery_store", "store"],
+                    "languageCode": "es",
+                },
+                timeout=5,
+            )
+            response.raise_for_status()
+            data = response.json()
+        except Exception:
+            return success_response({"predictions": []})
+
+        suggestions = data.get("suggestions", [])
+        predictions = []
+        for s in suggestions:
+            place = s.get("placePrediction", {})
+            if not place:
+                continue
+            predictions.append({
+                "place_id": place.get("placeId", ""),
+                "description": place.get("text", {}).get("text", ""),
+                "structured": {
+                    "main_text": place.get("structuredFormat", {})
+                    .get("mainText", {})
+                    .get("text", ""),
+                    "secondary_text": place.get("structuredFormat", {})
+                    .get("secondaryText", {})
+                    .get("text", ""),
+                },
+            })
+
+        cache.set(cache_key, predictions, timeout=60 * 60)  # 1h TTL
+        return success_response({"predictions": predictions})
+
+    @extend_schema(
+        summary="Detalle de un Place por ID",
+        description=(
+            "Proxy que obtiene lat/lng, nombre y dirección de un Place ID "
+            "de la nueva Google Places API. Usado tras seleccionar una sugerencia del autocompletado."
+        ),
+        parameters=[
+            OpenApiParameter("place_id", str, required=True, description="Google Place ID"),
+        ],
+        responses={
+            200: inline_serializer(
+                "PlaceDetailByIdResponse",
+                fields={
+                    "place_id": drf_serializers.CharField(),
+                    "name": drf_serializers.CharField(),
+                    "address": drf_serializers.CharField(),
+                    "lat": drf_serializers.FloatField(),
+                    "lng": drf_serializers.FloatField(),
+                },
+            )
+        },
+    )
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="places-resolve",
+        permission_classes=[IsAuthenticated],
+    )
+    def places_resolve(self, request: Request) -> Response:
+        """
+        Resuelve un Place ID a coordenadas + nombre + dirección.
+
+        GET /api/v1/stores/places-resolve/?place_id=ChIJ...
+        """
+        place_id = request.query_params.get("place_id", "").strip()
+        if not place_id:
+            return success_response({})
+
+        api_key = settings.GOOGLE_PLACES_API_KEY
+        if not api_key:
+            return success_response({})
+
+        cache_key = f"places_resolve:{place_id}"
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return success_response(cached)
+
+        try:
+            response = http_requests.get(
+                f"https://places.googleapis.com/v1/places/{place_id}",
+                headers={
+                    "X-Goog-Api-Key": api_key,
+                    "X-Goog-FieldMask": "displayName,formattedAddress,location",
+                },
+                timeout=5,
+            )
+            response.raise_for_status()
+            data = response.json()
+        except Exception:
+            return success_response({})
+
+        result = {
+            "place_id": place_id,
+            "name": data.get("displayName", {}).get("text", ""),
+            "address": data.get("formattedAddress", ""),
+            "lat": data.get("location", {}).get("latitude", 0),
+            "lng": data.get("location", {}).get("longitude", 0),
+        }
+
+        cache.set(cache_key, result, timeout=60 * 60 * 24)  # 24h TTL
+
+        # Check if a DB store matches this google_place_id (not cached — DB may change)
+        matched = Store.objects.filter(
+            google_place_id=place_id, is_active=True
+        ).values_list("pk", flat=True).first()
+        if matched is not None:
+            result["matched_store_id"] = str(matched)
+
+        return success_response(result)
 
     @extend_schema(
         request=None,

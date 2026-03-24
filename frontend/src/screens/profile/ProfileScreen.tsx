@@ -11,7 +11,7 @@
  * PATCH /auth/profile/me/preferences/. Los toggles se guardan inmediatamente.
  */
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Alert,
   Image,
@@ -153,7 +153,7 @@ export const ProfileScreen: React.FC = () => {
   const { profile, setProfile } = useProfileStore();
   const insets = useSafeAreaInsets();
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(profile == null);
 
   // Weights state (local — debounced to API)
   const [weightPrice, setWeightPrice] = useState(profile?.weightPrice ?? 50);
@@ -174,8 +174,10 @@ export const ProfileScreen: React.FC = () => {
   const [notifyNewPromos, setNotifyNewPromos] = useState(true);
   const [notifySharedListChanges, setNotifySharedListChanges] = useState(true);
 
-  const loadProfile = useCallback(async () => {
-    setIsLoading(true);
+  const loadProfile = useCallback(async (showSkeleton: boolean) => {
+    if (showSkeleton) {
+      setIsLoading(true);
+    }
     try {
       const p = await authService.getProfile();
       setProfile(p);
@@ -187,19 +189,18 @@ export const ProfileScreen: React.FC = () => {
     } catch {
       // Conservar valores del store si falla la carga
     } finally {
-      setIsLoading(false);
+      if (showSkeleton) {
+        setIsLoading(false);
+      }
     }
   }, [setProfile]);
 
   // ── Cargar perfil al montar ──────────────────────────────────────────────
 
-  useEffect(() => {
-    void loadProfile();
-  }, [loadProfile]);
-
   useFocusEffect(
     useCallback(() => {
-      void loadProfile();
+      // Mantener la UI previa evita desmontar el avatar remoto y elimina el flash.
+      void loadProfile(useProfileStore.getState().profile == null);
     }, [loadProfile]),
   );
 

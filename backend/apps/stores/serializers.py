@@ -31,6 +31,7 @@ class StoreListSerializer(serializers.ModelSerializer):
             "location",
             "is_local_business",
             "is_active",
+            "google_place_id",
         ]
 
     def get_distance_km(self, obj: Store) -> float | None:

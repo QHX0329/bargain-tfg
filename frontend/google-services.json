@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "837337497299",
+    "project_id": "bargain-2ecd0",
+    "storage_bucket": "bargain-2ecd0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:837337497299:android:25a1b765f6a33593f59e26",
+        "android_client_info": {
+          "package_name": "com.bargain.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBg_i7HkNk5CXD36382VIs7xNQ9V_Q4700"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -117,7 +117,7 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
         const ext = fileName.split(".").pop()?.toLowerCase() ?? "jpg";
         const mimeType = ext === "png" ? "image/png" : "image/jpeg";
         // React Native / Expo acepta este shape en FormData
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         formData.append("avatar", {
           uri: avatarUri,
           name: fileName,

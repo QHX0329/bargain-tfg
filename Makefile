@@ -4,7 +4,7 @@ help: ## Mostrar esta ayuda
 	@python -c "import re, pathlib; mf=pathlib.Path('Makefile'); rows=[]; [rows.append((m.group(1), m.group(2))) for line in mf.read_text(encoding='utf-8').splitlines() if (m:=re.match(r'^([a-zA-Z_-]+):.*?## (.*)$$', line))]; [print(f'{k:20} {v}') for k, v in sorted(rows)]"
 
 ip: ## Mostrar IP local y publica
-	@powershell -NoProfile -Command "$$local=(Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $$_.IPAddress -notlike '169.254*' -and $$_.IPAddress -ne '127.0.0.1' } | Select-Object -First 1 -ExpandProperty IPAddress); Write-Host ('IP local:   ' + $$local); $$public=(Invoke-RestMethod -Uri 'https://api.ipify.org?format=text'); Write-Host ('IP publica: ' + $$public)"
+	@powershell -NoProfile -Command "$$ips=Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $$_.IPAddress -notlike '169.254*' -and $$_.IPAddress -ne '127.0.0.1' -and $$_.AddressState -eq 'Preferred' }; $$local=($$ips | Where-Object { $$_.InterfaceAlias -eq 'Wi-Fi' -and $$_.IPAddress -like '192.168*' } | Select-Object -First 1 -ExpandProperty IPAddress); if (-not $$local) { $$local=($$ips | Where-Object { $$_.IPAddress -like '192.168*' } | Select-Object -First 1 -ExpandProperty IPAddress) }; if (-not $$local) { $$local=($$ips | Select-Object -First 1 -ExpandProperty IPAddress) }; Write-Host ('IP local:   ' + $$local); try { $$public=(Invoke-RestMethod -Uri 'https://api.ipify.org?format=text' -TimeoutSec 5); Write-Host ('IP publica: ' + $$public) } catch { Write-Host 'IP publica: no disponible' }"
 
 # ── Entorno ──────────────────────────────────────────
 
@@ -23,7 +23,7 @@ dev: ## Levantar backend (Docker)
 	@echo "💡 Ejecuta 'make frontend' en otra terminal para el frontend."
 
 frontend: ## Levantar frontend nativo (Expo)
-	cd frontend && npx expo start --web
+	cd frontend && npx expo start
 
 frontend-install: ## Instalar dependencias frontend nativas
 	cd frontend && npm install

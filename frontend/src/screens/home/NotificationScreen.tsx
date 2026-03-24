@@ -10,7 +10,7 @@
  * - Estado vacío y skeletons de carga
  */
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   Alert,
   Modal,
@@ -23,8 +23,8 @@ import {
   View,
 } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useFocusEffect } from "@react-navigation/native";
 
 import {
   borderRadius,
@@ -173,13 +173,9 @@ const NotificationRow: React.FC<NotificationRowProps> = ({
 
 // ─── Pantalla ─────────────────────────────────────────────────────────────────
 
-interface NotificationScreenProps {
-  navigation: NativeStackNavigationProp<HomeStackParamList>;
-}
-
-export const NotificationScreen: React.FC<NotificationScreenProps> = ({
-  navigation,
-}) => {
+export const NotificationScreen: React.FC = () => {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const {
     notifications,
     hasMore,
@@ -194,6 +190,12 @@ export const NotificationScreen: React.FC<NotificationScreenProps> = ({
   const [initialLoading, setInitialLoading] = useState(true);
   const [selectedNotif, setSelectedNotif] = useState<Notification | null>(null);
   const currentPage = useRef(1);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: "Notificaciones",
+    });
+  }, [navigation]);
 
   const loadFirstPage = useCallback(async () => {
     setInitialLoading(true);
@@ -215,21 +217,6 @@ export const NotificationScreen: React.FC<NotificationScreenProps> = ({
       Alert.alert("Error", "No se pudo marcar todas como leídas");
     }
   }, [markAllRead]);
-
-  // Header button: mark all read (also rendered as ListHeaderComponent for testability)
-  useEffect(() => {
-    navigation.setOptions({
-      title: "Notificaciones",
-      headerRight: () => (
-        <TouchableOpacity
-          onPress={handleMarkAllRead}
-          style={{ marginRight: spacing.sm }}
-        >
-          <Text style={headerStyles.markAllText}>Marcar todo leído</Text>
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation, handleMarkAllRead]);
 
   useEffect(() => {
     void loadFirstPage();
@@ -476,11 +463,14 @@ const rowStyles = StyleSheet.create({
   },
   body: {
     flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
   title: {
     fontFamily: fontFamilies.bodyMedium,
     fontSize: fontSize.sm,
     color: colors.text,
+    textAlign: "center",
   },
   titleRead: {
     color: colors.textMuted,
@@ -491,6 +481,7 @@ const rowStyles = StyleSheet.create({
     color: colors.textSecondary ?? colors.textMuted,
     marginTop: 2,
     lineHeight: 16,
+    textAlign: "center",
   },
   bodyRead: {
     opacity: 0.65,

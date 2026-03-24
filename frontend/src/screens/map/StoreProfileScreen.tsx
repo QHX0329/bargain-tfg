@@ -38,6 +38,16 @@ interface StoreProductOffer {
 
 const PRODUCT_SCAN_LIMIT = 60;
 
+function haversineDistanceKm(aLat: number, aLng: number, bLat: number, bLng: number): number {
+  const toRad = (v: number) => (v * Math.PI) / 180;
+  const dLat = toRad(bLat - aLat);
+  const dLng = toRad(bLng - aLng);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(aLat)) * Math.cos(toRad(bLat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * 6371 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
 function effectiveRowPrice(row: PriceCompare): number {
   const values = [row.promo_price, row.offer_price, row.price]
     .filter(Boolean)
@@ -168,6 +178,14 @@ export const StoreProfileScreen: React.FC<Props> = ({ route, navigation }) => {
     }
   }, [store]);
 
+  // Compute distance from user's location using store coordinates.
+  // The backend doesn't annotate distance for retrieve, so we do it here.
+  const distanceFromUser = useMemo<number | null>(() => {
+    if (!store?.location?.coordinates) return null;
+    const [lng, lat] = store.location.coordinates;
+    return haversineDistanceKm(userLat, userLng, lat, lng);
+  }, [store, userLat, userLng]);
+
   const openingHoursText = useMemo(() => {
     if (!store?.openingHours || Object.keys(store.openingHours).length === 0) {
       return "Horario no disponible";
@@ -257,16 +275,20 @@ export const StoreProfileScreen: React.FC<Props> = ({ route, navigation }) => {
               {store.address || "Dirección no disponible"}
             </Text>
             <Text style={styles.distanceText}>
-              Distancia:{" "}
-              {store.distanceKm
-                ? `${store.distanceKm.toFixed(1)} km`
-                : "No disponible"}
+              {distanceFromUser !== null
+                ? distanceFromUser < 1
+                  ? `${Math.round(distanceFromUser * 1000)} m · ≈${Math.max(1, Math.round(distanceFromUser * 3.5))} min`
+                  : `${distanceFromUser.toFixed(1)} km · ≈${Math.max(1, Math.round(distanceFromUser * 3.5))} min`
+                : "Distancia no disponible"}
             </Text>
 
-            <View style={styles.hoursBox}>
-              <Text style={styles.hoursTitle}>Horario</Text>
-              <Text style={styles.hoursText}>{openingHoursText}</Text>
-            </View>
+            {/* Horario de BD — se oculta cuando Places proporciona el suyo */}
+            {!placesDetail?.opening_hours && (
+              <View style={styles.hoursBox}>
+                <Text style={styles.hoursTitle}>Horario</Text>
+                <Text style={styles.hoursText}>{openingHoursText}</Text>
+              </View>
+            )}
 
             {/* ── Google Places enrichment sections ──────────────────── */}
             {isLoadingPlaces ? (

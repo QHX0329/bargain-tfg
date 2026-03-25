@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 05-02-PLAN.md (OCR endpoint)
-last_updated: "2026-03-25T20:39:41.685Z"
+stopped_at: Completed 05-03-PLAN.md (LLM assistant endpoint)
+last_updated: "2026-03-25T20:40:04.118Z"
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 21
-  completed_plans: 17
+  completed_plans: 18
 ---
 
 # Project State
@@ -17,7 +17,7 @@ progress:
 ## Current Position
 
 Phase: 05 (optimizer-scraping) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 
 ## Summary
 
@@ -48,10 +48,11 @@ Plan: 2 of 5
 - 04-02: DB-match threshold 50m for Places-to-store proximity; discovery markers are ephemeral client state only
 - 05-02: pytesseract at module level (not deferred import) to enable correct mock patching in tests
 - 05-02: 422 for OCRProcessingError (no text extracted), 400 for invalid image, 500 for unexpected errors
+- 05-03: claude-haiku-4-5-20251001 for LLM assistant; history truncated to messages[-20:] (10 turns); ScopedRateThrottle at 30/hour; AssistantError wraps all Anthropic SDK exceptions
 
 ## Last Session
 
-- **Stopped at:** Completed 05-02-PLAN.md (OCR endpoint)
+- **Stopped at:** Completed 05-03-PLAN.md (LLM assistant endpoint)
 - **Date:** 2026-03-25
 
 ---

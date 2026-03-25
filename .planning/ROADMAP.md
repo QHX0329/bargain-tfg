@@ -33,12 +33,12 @@ Plans:
 
 **Requirements:** [OPT-01, OPT-02, OPT-03, OPT-04, OCR-01, OCR-02, LLM-01, LLM-02, SCRAP-01, NFR-01]
 
-**Plans:** 1/5 plans executed
+**Plans:** 2/5 plans executed
 
 Plans:
 - [ ] 05-01-PLAN.md — Scrapy spiders (Mercadona/Carrefour/Lidl/DIA) + pipeline + Celery Beat schedule
 - [x] 05-02-PLAN.md — OCR backend endpoint (pytesseract + fuzzy matching)
-- [ ] 05-03-PLAN.md — LLM assistant endpoint (Claude API proxy + guardrails)
+- [x] 05-03-PLAN.md — LLM assistant endpoint (Claude API proxy + guardrails)
 - [ ] 05-04-PLAN.md — Optimizer algorithm (Graphhopper + OR-Tools + OptimizationResult model)
 - [ ] 05-05-PLAN.md — Frontend wiring (RouteScreen + OCRScreen + AssistantScreen to real endpoints)
 

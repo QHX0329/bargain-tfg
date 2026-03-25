@@ -8,6 +8,7 @@ Proporciona:
 
 import io
 
+import pytesseract
 import structlog
 from PIL import Image, ImageFilter, ImageOps
 from thefuzz import fuzz
@@ -33,8 +34,6 @@ def extract_text_from_image(image_bytes: bytes, lang: str = "spa+eng") -> list[s
     Raises:
         OCRProcessingError: Si no se pudo extraer ningún texto de la imagen.
     """
-    import pytesseract
-
     image = Image.open(io.BytesIO(image_bytes)).convert("L")
     image = ImageOps.autocontrast(image)
     image = image.filter(ImageFilter.SHARPEN)

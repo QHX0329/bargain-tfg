@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
 stopped_at: Completed 05-03-PLAN.md (LLM assistant endpoint)
-last_updated: "2026-03-25T20:40:04.118Z"
+last_updated: "2026-03-25T21:18:57.040Z"
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 21
-  completed_plans: 18
+  completed_plans: 20
 ---
 
 # Project State
@@ -17,7 +17,7 @@ progress:
 ## Current Position
 
 Phase: 05 (optimizer-scraping) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 
 ## Summary
 
@@ -49,11 +49,14 @@ Plan: 3 of 5
 - 05-02: pytesseract at module level (not deferred import) to enable correct mock patching in tests
 - 05-02: 422 for OCRProcessingError (no text extracted), 400 for invalid image, 500 for unexpected errors
 - 05-03: claude-haiku-4-5-20251001 for LLM assistant; history truncated to messages[-20:] (10 turns); ScopedRateThrottle at 30/hour; AssistantError wraps all Anthropic SDK exceptions
+- 05-04: Mock target for get_distance_matrix is apps.optimizer.services.distance (Python name resolution — mock where defined)
+- 05-04: OR-Tools stop_count dimension uses from_node != 0 to count store visits (not depot transitions)
+- 05-04: Graphhopper expects [lng, lat] order in matrix API payload (not [lat, lng])
 
 ## Last Session
 
-- **Stopped at:** Completed 05-03-PLAN.md (LLM assistant endpoint)
+- **Stopped at:** Completed 05-04-PLAN.md (Optimizer endpoint with OR-Tools + Graphhopper)
 - **Date:** 2026-03-25
 
 ---
-Last updated: 2026-03-23
+Last updated: 2026-03-25

@@ -333,3 +333,7 @@ GOOGLE_PLACES_API_KEY = os.environ.get("GOOGLE_PLACES_API_KEY", "")
 # ── Anthropic (Asistente LLM) ─────────────────────────
 
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+
+# ── Graphhopper (Routing) ─────────────────────────────
+
+GRAPHHOPPER_URL = os.environ.get("GRAPHHOPPER_URL", "http://graphhopper:8989")

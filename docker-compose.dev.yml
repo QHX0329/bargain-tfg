@@ -92,7 +92,25 @@ services:
       redis:
         condition: service_healthy
 
+  graphhopper:
+    image: israelhikingmap/graphhopper:latest
+    container_name: bargain-graphhopper
+    ports:
+      - "8989:8989"
+    volumes:
+      - graphhopper-data:/data
+    command: >
+      --url https://download.geofabrik.de/europe/spain/andalucia-latest.osm.pbf
+      --host 0.0.0.0 --port 8989
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8989/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+
 
 volumes:
   postgres_data:
   redis_data:
+  graphhopper-data:

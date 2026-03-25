@@ -164,6 +164,8 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "100/hour",
         "user": "1000/hour",
+        "assistant": "30/hour",
+        "ocr": "60/hour",
     },
     "EXCEPTION_HANDLER": "apps.core.exceptions.bargain_exception_handler",
 }
@@ -317,3 +319,7 @@ structlog.configure(
 # ── Google Places API ─────────────────────────────────
 
 GOOGLE_PLACES_API_KEY = os.environ.get("GOOGLE_PLACES_API_KEY", "")
+
+# ── Anthropic (Asistente LLM) ─────────────────────────
+
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")

@@ -36,7 +36,7 @@ Plans:
 **Plans:** 2/5 plans executed
 
 Plans:
-- [ ] 05-01-PLAN.md — Scrapy spiders (Mercadona/Carrefour/Lidl/DIA) + pipeline + Celery Beat schedule
+- [x] 05-01-PLAN.md — Scrapy spiders (Mercadona/Carrefour/Lidl/DIA) + pipeline + Celery Beat schedule
 - [x] 05-02-PLAN.md — OCR backend endpoint (pytesseract + fuzzy matching)
 - [x] 05-03-PLAN.md — LLM assistant endpoint (Claude API proxy + guardrails)
 - [ ] 05-04-PLAN.md — Optimizer algorithm (Graphhopper + OR-Tools + OptimizationResult model)

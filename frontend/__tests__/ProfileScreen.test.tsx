@@ -54,16 +54,19 @@ import type { UserProfile } from "../src/types/domain";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
-const mockProfile: UserProfile = {
+const mockProfile = {
   id: "u1",
+  username: "ana",
   email: "ana@example.com",
+  first_name: "Ana",
+  last_name: "García",
   name: "Ana García",
   searchRadiusKm: 5,
   maxStops: 3,
   weightPrice: 50,
   weightDistance: 30,
   weightTime: 20,
-};
+} as unknown as UserProfile;
 
 // ─── ProfileScreen Tests ──────────────────────────────────────────────────────
 

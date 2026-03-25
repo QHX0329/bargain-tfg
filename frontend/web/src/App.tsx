@@ -11,10 +11,10 @@ import PricesPage from './pages/PricesPage';
 import ProductsUploadPage from './pages/ProductsUploadPage';
 import PromotionsPage from './pages/PromotionsPage';
 import BusinessProfilePage from './pages/BusinessProfilePage';
-import LandingPage from './pages/LandingPage.tsx';
-import MerchantOnboardingPage from './pages/MerchantOnboardingPage.tsx';
-import DemoPage from './pages/DemoPage.tsx';
-import DocsPage from './pages/DocsPage.tsx';
+import LandingPage from './pages/LandingPage';
+import MerchantOnboardingPage from './pages/MerchantOnboardingPage';
+import DemoPage from './pages/DemoPage';
+import DocsPage from './pages/DocsPage';
 
 /** Auth guard: redirect to /login if no token in localStorage */
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {

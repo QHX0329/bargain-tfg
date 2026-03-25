@@ -14,8 +14,6 @@ import React, { useState } from "react";
 import {
   Alert,
   FlatList,
-  Platform,
-  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -27,7 +25,6 @@ import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   FadeIn,
   FadeInDown,
-  FadeOut,
   useSharedValue,
   useAnimatedStyle,
   withRepeat,

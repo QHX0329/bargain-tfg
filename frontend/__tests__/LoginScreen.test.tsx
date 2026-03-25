@@ -69,6 +69,10 @@ jest.mock("expo-status-bar", () => ({
   StatusBar: () => null,
 }));
 
+jest.mock("react-native-gesture-handler", () => ({
+  GestureHandlerRootView: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 // ─── Imports (after mocks) ────────────────────────────────────────────────────
 
 import React from "react";

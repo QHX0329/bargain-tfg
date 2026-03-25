@@ -19,7 +19,6 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -112,10 +111,9 @@ function generateMockResponse(message: string): string {
 
 interface MessageBubbleProps {
   message: AssistantMessage;
-  index: number;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message, index }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
   const isUser = message.role === "user";
   const time = new Date(message.timestamp).toLocaleTimeString("es-ES", {
     hour: "2-digit",
@@ -309,9 +307,7 @@ export const AssistantScreen: React.FC = () => {
           ref={listRef}
           data={messages}
           keyExtractor={(item) => item.id}
-          renderItem={({ item, index }) => (
-            <MessageBubble message={item} index={index} />
-          )}
+          renderItem={({ item }) => <MessageBubble message={item} />}
           contentContainerStyle={styles.messagesList}
           showsVerticalScrollIndicator={false}
           ListFooterComponent={

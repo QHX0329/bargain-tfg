@@ -3,7 +3,7 @@ import axios from 'axios';
 import { handleLogin } from '../services/auth';
 
 vi.mock('axios');
-const mockedAxios = axios as vi.Mocked<typeof axios>;
+const mockedAxios = vi.mocked(axios);
 
 describe('handleLogin', () => {
   it('resolves on successful login response', async () => {

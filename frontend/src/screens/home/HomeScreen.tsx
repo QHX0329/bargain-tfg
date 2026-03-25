@@ -84,6 +84,22 @@ const getGreeting = (): string => {
 
 // ── Acciones rápidas ──────────────────────────────────────────────────────────
 
+const getListUpdatedTimestamp = (list: ShoppingList): number => {
+  const candidate =
+    list.updatedAt ??
+    list.updated_at ??
+    list.createdAt ??
+    list.created_at ??
+    null;
+
+  if (!candidate) {
+    return 0;
+  }
+
+  const timestamp = new Date(candidate).getTime();
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+};
+
 interface QuickAction {
   id: string;
   label: string;
@@ -324,11 +340,7 @@ const PriceAlertCard: React.FC<{
 
 // ─── Pantalla principal ───────────────────────────────────────────────────────
 
-interface HomeScreenProps {
-  navigation?: NativeStackNavigationProp<HomeStackParamList>;
-}
-
-export const HomeScreen: React.FC<HomeScreenProps> = () => {
+export const HomeScreen: React.FC = () => {
   const { user } = useAuthStore();
   const { lists, setLists } = useListStore();
   const {
@@ -354,6 +366,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
   const insets = useSafeAreaInsets();
   const navigation =
     useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const parentNavigation =
+    typeof navigation.getParent === "function"
+      ? navigation.getParent<any>()
+      : null;
 
   const loadAll = useCallback(async () => {
     // Lists
@@ -509,10 +525,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
 
   // Recent lists: 2 most recently updated
   const recentLists = [...lists]
-    .sort(
-      (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-    )
+    .sort((a, b) => getListUpdatedTimestamp(b) - getListUpdatedTimestamp(a))
     .slice(0, 2);
 
   // Recent unread notifications: 3 most recent
@@ -530,10 +543,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
       color: colors.secondary,
       bg: colors.secondaryTint,
       onPress: () =>
-        navigation.navigate(
-          "ListsTab" as never,
-          { screen: "Templates" } as never,
-        ),
+        parentNavigation?.navigate("ListsTab", {
+          screen: "Templates",
+        }),
     },
     {
       id: "catalog",
@@ -666,7 +678,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Listas recientes</Text>
             <TouchableOpacity
-              onPress={() => navigation.navigate("ListsTab" as never)}
+              onPress={() => parentNavigation?.navigate("ListsTab")}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <Text style={styles.sectionLink}>Ver todas →</Text>
@@ -696,7 +708,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
               </Text>
               <TouchableOpacity
                 style={styles.createAlertButton}
-                onPress={() => navigation.navigate("ListsTab" as never)}
+                onPress={() => parentNavigation?.navigate("ListsTab")}
                 accessibilityRole="button"
                 accessibilityLabel="Crear lista"
               >
@@ -713,7 +725,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
               <RecentListCard
                 key={list.id}
                 list={list}
-                onPress={() => navigation.navigate("ListsTab" as never)}
+                onPress={() => parentNavigation?.navigate("ListsTab")}
               />
             ))
           )}
@@ -729,7 +741,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = () => {
             count={nearbyStores.length}
             isLoading={widgetLoading.stores}
             locationStatus={locationStatus}
-            onMapPress={() => navigation.navigate("MapTab" as never)}
+            onMapPress={() => parentNavigation?.navigate("MapTab")}
           />
         </Animated.View>
 

@@ -255,7 +255,7 @@ export const TemplatesScreen: React.FC = () => {
         message={`¿Seguro que quieres eliminar la plantilla "${deleteTarget?.name}"? Esta acción no se puede deshacer.`}
         confirmLabel={deleting ? "Eliminando…" : "Eliminar"}
         cancelLabel="Cancelar"
-        destructive
+        confirmVariant="danger"
         onConfirm={confirmDelete}
         onCancel={() => setDeleteTarget(null)}
       />

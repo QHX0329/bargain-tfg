@@ -178,12 +178,18 @@ export const StoreProfileScreen: React.FC<Props> = ({ route, navigation }) => {
     }
   }, [store]);
 
-  // Compute distance from user's location using store coordinates.
-  // The backend doesn't annotate distance for retrieve, so we do it here.
+  // Compute distance from user's location.
+  // Tier 1: haversine from PostGIS coordinates (precise).
+  // Tier 2: backend-annotated distanceKm from retrieve (when location field is absent).
   const distanceFromUser = useMemo<number | null>(() => {
-    if (!store?.location?.coordinates) return null;
-    const [lng, lat] = store.location.coordinates;
-    return haversineDistanceKm(userLat, userLng, lat, lng);
+    if (store?.location?.coordinates) {
+      const [lng, lat] = store.location.coordinates;
+      return haversineDistanceKm(userLat, userLng, lat, lng);
+    }
+    if (store?.distanceKm != null && store.distanceKm > 0) {
+      return store.distanceKm;
+    }
+    return null;
   }, [store, userLat, userLng]);
 
   const openingHoursText = useMemo(() => {
@@ -282,8 +288,8 @@ export const StoreProfileScreen: React.FC<Props> = ({ route, navigation }) => {
                 : "Distancia no disponible"}
             </Text>
 
-            {/* Horario de BD — se oculta cuando Places proporciona el suyo */}
-            {!placesDetail?.opening_hours && (
+            {/* Horario de BD — se oculta cuando Places está cargando o ya cargó datos */}
+            {placesDetail == null && !isLoadingPlaces && (
               <View style={styles.hoursBox}>
                 <Text style={styles.hoursTitle}>Horario</Text>
                 <Text style={styles.hoursText}>{openingHoursText}</Text>

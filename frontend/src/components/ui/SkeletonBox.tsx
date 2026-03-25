@@ -10,7 +10,7 @@
  */
 
 import React, { useEffect } from "react";
-import type { ViewStyle } from "react-native";
+import type { DimensionValue, StyleProp, ViewStyle } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -22,13 +22,13 @@ import { colors } from "@/theme/colors";
 
 export interface SkeletonBoxProps {
   /** Ancho del skeleton — número de píxeles o porcentaje como string */
-  width: number | string;
+  width: DimensionValue;
   /** Alto del skeleton en píxeles */
   height: number;
   /** Radio del borde (por defecto 8) */
   borderRadius?: number;
   /** Estilos adicionales */
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   /** testID para tests */
   testID?: string;
 }

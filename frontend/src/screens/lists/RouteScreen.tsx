@@ -15,7 +15,6 @@
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  FlatList,
   ScrollView,
   StyleSheet,
   Text,
@@ -26,10 +25,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   FadeInDown,
-  FadeInRight,
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
 } from "react-native-reanimated";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
@@ -43,7 +38,7 @@ import {
   spacing,
 } from "@/theme";
 import type { ListsStackParamList } from "@/navigation/types";
-import type { OptimizationResult, RouteStop } from "@/types/domain";
+import type { OptimizationResult } from "@/types/domain";
 
 type RouteP = RouteProp<ListsStackParamList, "Route">;
 
@@ -351,15 +346,6 @@ interface SavingsTabProps {
 }
 
 const SavingsTab: React.FC<SavingsTabProps> = ({ result }) => {
-  const savingsItems = result.stops.flatMap((stop) =>
-    stop.items.map((item) => ({
-      ...item,
-      storeName: stop.store.name,
-      storeChain: stop.store.chain,
-      originalPrice: item.latest_price ? item.latest_price * 1.15 : null,
-    })),
-  );
-
   return (
     <ScrollView
       style={{ flex: 1 }}
@@ -485,12 +471,11 @@ const SavingsTab: React.FC<SavingsTabProps> = ({ result }) => {
 export const RouteScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteP>();
-  const { listId, listName } = route.params;
+  const { listName } = route.params;
 
   const [activeTab, setActiveTab] = useState<"route" | "savings">("route");
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<OptimizationResult | null>(null);
-  const tabIndicatorLeft = useSharedValue(0);
 
   useEffect(() => {
     // Simulamos llamada a API con 1.2s de delay
@@ -501,13 +486,8 @@ export const RouteScreen: React.FC = () => {
     return () => clearTimeout(timer);
   }, [listName]);
 
-  const indicatorStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: tabIndicatorLeft.value }],
-  }));
-
-  const switchTab = (tab: "route" | "savings", x: number) => {
+  const switchTab = (tab: "route" | "savings") => {
     setActiveTab(tab);
-    tabIndicatorLeft.value = withTiming(x);
   };
 
   return (
@@ -536,7 +516,7 @@ export const RouteScreen: React.FC = () => {
       <View style={styles.tabs}>
         <TouchableOpacity
           style={styles.tab}
-          onPress={() => switchTab("route", 0)}
+          onPress={() => switchTab("route")}
         >
           <Ionicons
             name="map-outline"
@@ -554,7 +534,7 @@ export const RouteScreen: React.FC = () => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.tab}
-          onPress={() => switchTab("savings", 0)}
+          onPress={() => switchTab("savings")}
         >
           <Ionicons
             name="trending-down-outline"

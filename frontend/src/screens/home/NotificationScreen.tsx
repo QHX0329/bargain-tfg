@@ -478,7 +478,7 @@ const rowStyles = StyleSheet.create({
   bodyText: {
     fontFamily: fontFamilies.body,
     fontSize: fontSize.xs,
-    color: colors.textSecondary ?? colors.textMuted,
+    color: colors.textMuted,
     marginTop: 2,
     lineHeight: 16,
     textAlign: "center",

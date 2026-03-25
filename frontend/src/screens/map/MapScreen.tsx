@@ -18,6 +18,7 @@ import {
   Animated,
   ActivityIndicator,
   FlatList,
+  Keyboard,
   Linking,
   PanResponder,
   StyleSheet,
@@ -91,6 +92,8 @@ interface PlacesMarker {
   lat: number;
   lng: number;
 }
+
+type MarkerRef = React.ComponentRef<typeof Marker>;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -214,6 +217,8 @@ export const MapScreen: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<MapStackParamList, "Map">>();
   const mapRef = useRef<MapView>(null);
+  const storeMarkerRefs = useRef<Record<string, MarkerRef | null>>({});
+  const placesMarkerRefs = useRef<Record<string, MarkerRef | null>>({});
   const insets = useSafeAreaInsets();
 
   const [permissionGranted, setPermissionGranted] = useState<boolean | null>(
@@ -227,13 +232,33 @@ export const MapScreen: React.FC = () => {
 
   // ── Google Places autocomplete + discovery markers state ─────────────────
   const [placesMarkers, setPlacesMarkers] = useState<PlacesMarker[]>([]);
-  const [selectedPlacesMarker, setSelectedPlacesMarker] =
-    useState<PlacesMarker | null>(null);
+  const [, setSelectedPlacesMarker] = useState<PlacesMarker | null>(null);
   const [placesSearchText, setPlacesSearchText] = useState("");
   const [placesPredictions, setPlacesPredictions] = useState<PlacesPrediction[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isResolvingPlace, setIsResolvingPlace] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearSelectedPlacesMarker = useCallback(() => {
+    setSelectedPlacesMarker((current) => {
+      if (current) {
+        placesMarkerRefs.current[current.placeId]?.hideCallout?.();
+      }
+      return null;
+    });
+  }, []);
+
+  const showPlacesMarkerCallout = useCallback((placeId: string, delayMs = 0) => {
+    setTimeout(() => {
+      placesMarkerRefs.current[placeId]?.showCallout?.();
+    }, delayMs);
+  }, []);
+
+  const showStoreMarkerCallout = useCallback((storeId: string, delayMs = 0) => {
+    setTimeout(() => {
+      storeMarkerRefs.current[storeId]?.showCallout?.();
+    }, delayMs);
+  }, []);
 
   // ── Panel animation ──────────────────────────────────────────────────────
   const PANEL_ANIM_MAX_HEIGHT = 200;
@@ -378,6 +403,7 @@ export const MapScreen: React.FC = () => {
 
   const handleStoreCardPress = useCallback(
     (store: Store) => {
+      clearSelectedPlacesMarker();
       setSelectedStore(store);
       const { latitude, longitude } = getStoreCoords(store, userLat, userLng);
       const region: Region = {
@@ -388,7 +414,7 @@ export const MapScreen: React.FC = () => {
       };
       mapRef.current?.animateToRegion(region, 500);
     },
-    [userLat, userLng],
+    [clearSelectedPlacesMarker, userLat, userLng],
   );
 
   const handleSearchAreaPress = useCallback(async () => {
@@ -453,6 +479,11 @@ export const MapScreen: React.FC = () => {
 
   const handlePredictionSelect = useCallback(
     async (prediction: PlacesPrediction) => {
+      // Dismiss keyboard immediately so the full map is visible when the marker appears.
+      // Without this, the grey pin appears behind the keyboard and MapView.onPress
+      // (triggered by the keyboard-dismiss tap) clears selectedPlacesMarker.
+      Keyboard.dismiss();
+      setPlacesSearchText("");
       setPlacesPredictions([]);
       setIsSearchFocused(false);
       setIsResolvingPlace(true);
@@ -498,12 +529,14 @@ export const MapScreen: React.FC = () => {
       }
 
       if (matchingStore) {
+        clearSelectedPlacesMarker();
         setSelectedStore(matchingStore);
         // Use Google's coordinates (more accurate than DB seed coords)
         mapRef.current?.animateToRegion(
           { latitude: lat, longitude: lngVal, latitudeDelta: 0.01, longitudeDelta: 0.01 },
           500,
         );
+        showStoreMarkerCallout(String(matchingStore.id), 550);
       } else {
         const marker: PlacesMarker = {
           placeId: resolved.place_id,
@@ -520,9 +553,10 @@ export const MapScreen: React.FC = () => {
           { latitude: lat, longitude: lngVal, latitudeDelta: 0.01, longitudeDelta: 0.01 },
           500,
         );
+        showPlacesMarkerCallout(marker.placeId, 550);
       }
     },
-    [stores, userLat, userLng],
+    [clearSelectedPlacesMarker, showPlacesMarkerCallout, showStoreMarkerCallout, stores],
   );
 
   const handleOpenGoogleMaps = useCallback(() => {
@@ -572,7 +606,7 @@ export const MapScreen: React.FC = () => {
         showsMyLocationButton={true}
         onPress={() => {
           setSelectedStore(null);
-          setSelectedPlacesMarker(null);
+          clearSelectedPlacesMarker();
         }}
         onRegionChange={() => {
           if (panelExpandedRef.current) {
@@ -596,11 +630,17 @@ export const MapScreen: React.FC = () => {
           return (
             <Marker
               key={store.id}
+              ref={(ref) => {
+                storeMarkerRefs.current[String(store.id)] = ref;
+              }}
               coordinate={{ latitude, longitude }}
               title={store.name}
               description={calloutDescription}
               pinColor={CHAIN_COLORS[store.chain]}
-              onPress={() => setSelectedStore && setSelectedStore(store)}
+              onPress={() => {
+                clearSelectedPlacesMarker();
+                setSelectedStore(store);
+              }}
             >
               <Callout
                 tooltip={false}
@@ -636,6 +676,9 @@ export const MapScreen: React.FC = () => {
         {placesMarkers.map((marker) => (
           <Marker
             key={marker.placeId}
+            ref={(ref) => {
+              placesMarkerRefs.current[marker.placeId] = ref;
+            }}
             coordinate={{ latitude: marker.lat, longitude: marker.lng }}
             pinColor="#9CA3AF"
             title={marker.name}
@@ -771,39 +814,6 @@ export const MapScreen: React.FC = () => {
       )}
 
       {/* ── Info card for selected Places discovery marker ────────── */}
-      {selectedPlacesMarker && (
-        <View style={[styles.placesInfoCard, shadows.elevated]}>
-          <View style={styles.placesInfoCardHeader}>
-            <Text style={styles.placesInfoCardName} numberOfLines={1}>
-              {selectedPlacesMarker.name}
-            </Text>
-            <TouchableOpacity
-              onPress={() => setSelectedPlacesMarker(null)}
-              accessibilityLabel="Cerrar"
-              style={styles.placesInfoCardClose}
-            >
-              <Ionicons name="close" size={18} color={colors.textMuted} />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.placesInfoCardAddress} numberOfLines={2}>
-            {selectedPlacesMarker.address}
-          </Text>
-          <TouchableOpacity
-            style={styles.placesInfoCardLink}
-            onPress={() => {
-              Linking.openURL(
-                buildGoogleMapsPlaceUrl(selectedPlacesMarker),
-              ).catch(() => {});
-            }}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="map-outline" size={14} color={colors.primary} />
-            <Text style={styles.placesInfoCardLinkText}>
-              Ver en Google Maps
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
 
       {/* ── Panel inferior: lista horizontal de tiendas ───────────── */}
       <View style={styles.bottomPanel}>
@@ -990,48 +1000,6 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   // ── Places info card (discovery markers) ──────────────────────────────────
-  placesInfoCard: {
-    position: "absolute",
-    bottom: 220,
-    left: spacing.md,
-    right: spacing.md,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    ...shadows.elevated,
-  },
-  placesInfoCardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: spacing.xs,
-  },
-  placesInfoCardName: {
-    fontFamily: fontFamilies.bodySemiBold,
-    fontSize: fontSize.md,
-    color: colors.text,
-    flex: 1,
-    marginRight: spacing.xs,
-  },
-  placesInfoCardClose: {
-    padding: spacing.xs,
-  },
-  placesInfoCardAddress: {
-    fontFamily: fontFamilies.body,
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
-    marginBottom: spacing.sm,
-  },
-  placesInfoCardLink: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-  },
-  placesInfoCardLinkText: {
-    fontFamily: fontFamilies.bodyMedium,
-    fontSize: fontSize.sm,
-    color: colors.primary,
-  },
   // ── Panel inferior ────────────────────────────────────────────────────────
   bottomPanel: {
     position: "absolute",

@@ -65,6 +65,18 @@ interface PriceFormValues {
   offer_end_date?: dayjs.Dayjs;
 }
 
+interface DetectedBarcode {
+  rawValue?: string;
+}
+
+interface BarcodeDetectorInstance {
+  detect: (source: HTMLVideoElement) => Promise<DetectedBarcode[]>;
+}
+
+interface BarcodeDetectorConstructor {
+  new (options: { formats: string[] }): BarcodeDetectorInstance;
+}
+
 const PricesPage: React.FC = () => {
   const [prices, setPrices] = useState<PriceRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -219,17 +231,27 @@ const PricesPage: React.FC = () => {
       }
 
       // Check for BarcodeDetector API
-      if ('BarcodeDetector' in window) {
+      const barcodeDetector = (
+        window as Window & {
+          BarcodeDetector?: BarcodeDetectorConstructor;
+        }
+      ).BarcodeDetector;
+
+      if (barcodeDetector) {
         // Use BarcodeDetector API
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const detector = new (window as any).BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'] });
+        const detector = new barcodeDetector({
+          formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'],
+        });
         const scan = async () => {
           if (!videoRef.current) return;
           try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const barcodes = await detector.detect(videoRef.current) as any[];
+            const barcodes = await detector.detect(videoRef.current);
             if (barcodes.length > 0) {
-              const code = barcodes[0].rawValue as string;
+              const code = barcodes[0].rawValue;
+              if (!code) {
+                requestAnimationFrame(scan);
+                return;
+              }
               stopBarcodeScanner();
               await lookupByBarcode(code);
               return;

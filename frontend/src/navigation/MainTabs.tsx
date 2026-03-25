@@ -64,9 +64,16 @@ const MapStack = createNativeStackNavigator<MapStackParamList>();
 const AssistantStack = createNativeStackNavigator<AssistantStackParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 
+// Ancho en px desde el borde para activar el gesto lateral de volver.
+const STACK_BACK_SWIPE_EDGE_WIDTH = 18;
+
 const HomeStackNavigator: React.FC = () => (
   <HomeStack.Navigator
-    screenOptions={{ headerShown: false, animation: "slide_from_right" }}
+    screenOptions={{
+      headerShown: false,
+      animation: "slide_from_right",
+      gestureResponseDistance: { horizontal: STACK_BACK_SWIPE_EDGE_WIDTH },
+    }}
   >
     <HomeStack.Screen name="Home" component={HomeScreen} />
     <HomeStack.Screen
@@ -103,6 +110,7 @@ const ListsStackNavigator: React.FC = () => (
       headerStyle: { backgroundColor: colors.surface },
       headerTintColor: colors.text,
       animation: "slide_from_right",
+      gestureResponseDistance: { horizontal: STACK_BACK_SWIPE_EDGE_WIDTH },
     }}
   >
     <ListsStack.Screen
@@ -145,7 +153,11 @@ const ListsStackNavigator: React.FC = () => (
 
 const MapStackNavigator: React.FC = () => (
   <MapStack.Navigator
-    screenOptions={{ headerShown: false, animation: "slide_from_right" }}
+    screenOptions={{
+      headerShown: false,
+      animation: "slide_from_right",
+      gestureResponseDistance: { horizontal: STACK_BACK_SWIPE_EDGE_WIDTH },
+    }}
   >
     <MapStack.Screen name="Map" component={MapScreen} />
     <MapStack.Screen
@@ -158,7 +170,11 @@ const MapStackNavigator: React.FC = () => (
 
 const AssistantStackNavigator: React.FC = () => (
   <AssistantStack.Navigator
-    screenOptions={{ headerShown: false, animation: "slide_from_right" }}
+    screenOptions={{
+      headerShown: false,
+      animation: "slide_from_right",
+      gestureResponseDistance: { horizontal: STACK_BACK_SWIPE_EDGE_WIDTH },
+    }}
   >
     <AssistantStack.Screen name="Assistant" component={AssistantScreen} />
   </AssistantStack.Navigator>
@@ -170,6 +186,7 @@ const ProfileStackNavigator: React.FC = () => (
       headerStyle: { backgroundColor: colors.surface },
       headerTintColor: colors.text,
       animation: "slide_from_right",
+      gestureResponseDistance: { horizontal: STACK_BACK_SWIPE_EDGE_WIDTH },
     }}
   >
     <ProfileStack.Screen

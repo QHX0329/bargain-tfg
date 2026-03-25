@@ -22,19 +22,26 @@ const MapView = React.forwardRef(function MapView({ children, testID }, ref) {
 });
 MapView.displayName = "MapView";
 
-function Marker({ title, description }) {
+function Marker({ title, description, children }) {
   return React.createElement(
     View,
     { testID: `marker-${title}` },
     React.createElement(Text, null, title),
     description ? React.createElement(Text, null, description) : null,
+    children || null,
   );
 }
 Marker.displayName = "Marker";
 
+function Callout({ children }) {
+  return React.createElement(View, { testID: "mock-callout" }, children);
+}
+Callout.displayName = "Callout";
+
 module.exports = MapView;
 module.exports.default = MapView;
 module.exports.Marker = Marker;
+module.exports.Callout = Callout;
 module.exports.MapView = MapView;
 module.exports.PROVIDER_GOOGLE = "google";
 module.exports.PROVIDER_DEFAULT = null;

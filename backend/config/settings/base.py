@@ -234,6 +234,16 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(minute=30, hour=6),
         "args": ("carrefour",),
     },
+    "scrape-lidl-daily": {
+        "task": "apps.scraping.tasks.run_spider",
+        "schedule": crontab(minute=0, hour=7),
+        "args": ("lidl",),
+    },
+    "scrape-dia-daily": {
+        "task": "apps.scraping.tasks.run_spider",
+        "schedule": crontab(minute=30, hour=7),
+        "args": ("dia",),
+    },
     "deactivate-expired-promotions-hourly": {
         "task": "apps.business.tasks.deactivate_expired_promotions",
         "schedule": crontab(minute=5, hour="*"),

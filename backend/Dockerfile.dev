@@ -22,6 +22,9 @@ COPY requirements/base.txt requirements/base.txt
 COPY requirements/dev.txt requirements/dev.txt
 RUN pip install --no-cache-dir -r requirements/dev.txt
 
+# Install Playwright browser binaries (needed by scraping spiders)
+RUN playwright install --with-deps chromium
+
 # Code is mounted as a volume in development; no COPY needed here
 
 EXPOSE 8000

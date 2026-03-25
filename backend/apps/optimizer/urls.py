@@ -1,3 +1,9 @@
-"""URLs del módulo."""
+"""URLs del modulo optimizer."""
 
-urlpatterns = []
+from django.urls import path
+
+from .views import OptimizeView
+
+urlpatterns = [
+    path("", OptimizeView.as_view(), name="optimize"),
+]

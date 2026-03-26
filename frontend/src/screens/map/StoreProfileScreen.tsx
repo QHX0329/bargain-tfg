@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
   borderRadius,
@@ -203,28 +204,28 @@ export const StoreProfileScreen: React.FC<Props> = ({ route, navigation }) => {
 
   if (isLoading) {
     return (
-      <View style={styles.centered}>
+      <SafeAreaView style={styles.centered} edges={["top"]}>
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Cargando perfil de tienda...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (!store) {
     return (
-      <View style={styles.centered}>
+      <SafeAreaView style={styles.centered} edges={["top"]}>
         <Ionicons
           name="storefront-outline"
           size={36}
           color={colors.textMuted}
         />
         <Text style={styles.emptyText}>No se pudo cargar la tienda.</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <FlatList
         data={products}
         keyExtractor={(item) => item.product.id}
@@ -412,7 +413,7 @@ export const StoreProfileScreen: React.FC<Props> = ({ route, navigation }) => {
           </View>
         )}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -634,3 +635,9 @@ const styles = StyleSheet.create({
 });
 
 export default StoreProfileScreen;
+
+
+
+
+
+

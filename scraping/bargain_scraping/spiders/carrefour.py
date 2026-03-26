@@ -105,7 +105,8 @@ class CarrefourSpider(scrapy.Spider):
         from scrapy import Selector
 
         sel = Selector(text=html)
-        yield from self._extract_products(sel, response.url)
+        for item in self._extract_products(sel, response.url):
+            yield item
 
         # Paginación — buscar botón "siguiente"
         next_url = sel.css("[data-testid='next-page-link']::attr(href)").get()

@@ -25,6 +25,7 @@ import {
 import { Swipeable } from "react-native-gesture-handler";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
   borderRadius,
@@ -286,7 +287,7 @@ export const NotificationScreen: React.FC = () => {
   // Skeleton loading
   if (initialLoading) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={[]}>
         {[0, 1, 2, 3, 4].map((i) => (
           <SkeletonBox
             key={i}
@@ -297,21 +298,21 @@ export const NotificationScreen: React.FC = () => {
             style={{ marginBottom: spacing.xs, marginHorizontal: spacing.md }}
           />
         ))}
-      </View>
+      </SafeAreaView>
     );
   }
 
   // Empty state
   if (sections.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
+      <SafeAreaView style={styles.emptyContainer} edges={[]}>
         <Text style={styles.emptyText}>Sin notificaciones</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <>
+    <SafeAreaView style={styles.container} edges={[]}>
       <SectionList
         testID="notifications-list"
         sections={sections}
@@ -381,7 +382,7 @@ export const NotificationScreen: React.FC = () => {
           </Pressable>
         </Pressable>
       </Modal>
-    </>
+    </SafeAreaView>
   );
 };
 
@@ -566,3 +567,9 @@ const modalStyles = StyleSheet.create({
 });
 
 export default NotificationScreen;
+
+
+
+
+
+

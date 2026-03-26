@@ -41,7 +41,7 @@ audited: 2026-03-26
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 5-scraping-01 | 05-01 | 1 | SCRAP-01 | unit | `docker exec bargain-backend pytest tests/unit/test_scraping_pipeline.py` | ✅ | ⚠️ partial (pipeline DB tests need bargain_scraping mount) |
+| 5-scraping-01 | 05-01 | 1 | SCRAP-01 | unit | `docker exec bargain-backend pytest tests/unit/test_scraping_pipeline.py` | ✅ | ✅ green (6/6) |
 | 5-scraping-02 | 05-01 | 1 | SCRAP-01 | unit | `cd scraping && python -m pytest tests/unit/test_spider_mercadona.py -v` | ✅ | ✅ green (38/38) |
 | 5-ocr-01 | 05-02 | 1 | OCR-01 | unit | `docker exec bargain-backend pytest tests/unit/test_ocr.py -v` | ✅ | ✅ green (5 tests) |
 | 5-ocr-02 | 05-02 | 1 | OCR-02 | integration | `docker exec bargain-backend pytest tests/integration/test_ocr_api.py -v` | ✅ | ✅ green (4 tests) |

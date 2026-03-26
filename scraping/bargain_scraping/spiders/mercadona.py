@@ -57,17 +57,21 @@ class MercadonaSpider(scrapy.Spider):
         results = data if isinstance(data, list) else data.get("results", [])
 
         for category in results:
-            cat_id = category.get("id")
-            if not cat_id:
-                continue
+            parent_name = category.get("name", "")
+            for subcategory in category.get("categories", []):
+                cat_id = subcategory.get("id")
+                if not cat_id or subcategory.get("published") is False:
+                    continue
 
-            yield scrapy.Request(
-                url=PRODUCTS_URL.format(cat_id),
-                callback=self.parse_products,
-                errback=self.errback_handler,
-                headers={"Accept": "application/json"},
-                cb_kwargs={"category_name": category.get("name", "")},
-            )
+                yield scrapy.Request(
+                    url=PRODUCTS_URL.format(cat_id),
+                    callback=self.parse_products,
+                    errback=self.errback_handler,
+                    headers={"Accept": "application/json"},
+                    cb_kwargs={
+                        "category_name": subcategory.get("name") or parent_name,
+                    },
+                )
 
     def parse_products(self, response, category_name: str = ""):
         """Parsea los productos de una categoría y produce items."""
@@ -86,22 +90,27 @@ class MercadonaSpider(scrapy.Spider):
         if categories:
             for sub in categories:
                 for product in sub.get("products", []):
-                    item = self._extract_product(product, sub.get("name", category_name))
+                    item = self._extract_product(
+                        product,
+                        sub.get("name", category_name),
+                        response.url,
+                    )
                     if item:
                         yield item
         else:
             for product in data.get("products", []):
-                item = self._extract_product(product, category_name)
+                item = self._extract_product(product, category_name, response.url)
                 if item:
                     yield item
 
-    def _extract_product(self, product: dict, category_name: str):
+    def _extract_product(self, product: dict, category_name: str, source_url: str):
         """Extrae campos relevantes de un dict de producto de la API."""
         try:
-            display = product.get("display", {})
             price_instructions = product.get("price_instructions", {})
 
-            raw_price = price_instructions.get("unit_price") or price_instructions.get(
+            raw_price = price_instructions.get("bulk_price") or price_instructions.get(
+                "unit_price"
+            ) or price_instructions.get(
                 "bulk_price"
             )
             if raw_price is None:
@@ -117,7 +126,7 @@ class MercadonaSpider(scrapy.Spider):
             ean = product.get("ean") or None
 
             return ProductPriceItem(
-                product_name=display.get("name", product.get("display_name", "")),
+                product_name=product.get("display_name", "").strip(),
                 store_chain="Mercadona",
                 price=price,
                 unit_price=unit_price,
@@ -125,7 +134,8 @@ class MercadonaSpider(scrapy.Spider):
                 offer_end_date=None,
                 barcode=str(ean) if ean else None,
                 category_name=category_name,
-                url=response.url if hasattr(self, "_current_response") else "",
+                image_url=product.get("thumbnail") or "",
+                url=product.get("share_url") or source_url,
             )
         except Exception as exc:
             logger.warning("Error extrayendo producto", error=str(exc), product=product)

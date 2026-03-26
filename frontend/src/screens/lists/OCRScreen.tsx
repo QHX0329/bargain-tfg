@@ -234,7 +234,7 @@ export const OCRScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={[]}>
+    <SafeAreaView style={styles.safe} edges={["top"]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
@@ -598,3 +598,4 @@ const itemRowStyles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+

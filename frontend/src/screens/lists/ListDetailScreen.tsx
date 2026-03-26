@@ -28,6 +28,7 @@ import {
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { colors, spacing, textStyles, borderRadius } from "@/theme";
 import type { ListsStackParamList } from "@/navigation/types";
@@ -470,7 +471,7 @@ export const ListDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   ) : null;
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={[]}>
       {/* Items section */}
       {isLoading ? (
         skeletonItems
@@ -604,7 +605,7 @@ export const ListDetailScreen: React.FC<Props> = ({ route, navigation }) => {
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -810,3 +811,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
 });
+
+
+
+
+
+

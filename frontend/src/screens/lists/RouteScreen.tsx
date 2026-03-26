@@ -220,7 +220,7 @@ export const RouteScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={[]}>
+    <SafeAreaView style={styles.safe} edges={["top"]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
@@ -728,3 +728,4 @@ const weightStyles = StyleSheet.create({
     color: colors.white,
   },
 });
+

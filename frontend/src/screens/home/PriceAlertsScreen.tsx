@@ -14,6 +14,7 @@ import {
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
   colors,
@@ -250,7 +251,7 @@ export const PriceAlertsScreen: React.FC<Props> = ({ navigation }) => {
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={["top"]}>
         <View style={styles.loadingWrap}>
           <SkeletonBox
             width="100%"
@@ -271,12 +272,12 @@ export const PriceAlertsScreen: React.FC<Props> = ({ navigation }) => {
             style={styles.skeleton}
           />
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={[]}>
       <FlatList
         data={activeAlerts}
         keyExtractor={(item) => String(item.id)}
@@ -476,7 +477,7 @@ export const PriceAlertsScreen: React.FC<Props> = ({ navigation }) => {
           </Pressable>
         </Pressable>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -676,3 +677,9 @@ const styles = StyleSheet.create({
 });
 
 export default PriceAlertsScreen;
+
+
+
+
+
+

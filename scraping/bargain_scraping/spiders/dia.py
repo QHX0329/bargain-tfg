@@ -1,12 +1,6 @@
-"""
-Spider de DIA — extrae precios usando Playwright para rendering JS.
+"""Spider de DIA basado en estado embebido en el HTML (vike_pageContext)."""
 
-DIA España utiliza una SPA que carga los productos dinámicamente con JS.
-Se integra con scrapy-playwright para gestionar el navegador headless.
-
-URL base: https://www.dia.es/compra-online/
-"""
-
+import json
 import re
 from decimal import Decimal, InvalidOperation
 
@@ -17,172 +11,64 @@ from bargain_scraping.items import ProductPriceItem
 
 logger = structlog.get_logger(__name__)
 
-# URLs de listado de productos del supermercado DIA
-CATEGORY_URLS = [
-    "https://www.dia.es/compra-online/frutas-y-verduras/c/10",
-    "https://www.dia.es/compra-online/lacteos-y-huevos/c/11",
-    "https://www.dia.es/compra-online/carniceria/c/12",
-    "https://www.dia.es/compra-online/charcuteria/c/13",
-    "https://www.dia.es/compra-online/pescaderia/c/14",
-    "https://www.dia.es/compra-online/panaderia-y-bolleria/c/15",
-    "https://www.dia.es/compra-online/bebidas/c/16",
-    "https://www.dia.es/compra-online/conservas/c/17",
+START_URLS = [
+    "https://www.dia.es/",
+    "https://www.dia.es/search?q=leche",
+    "https://www.dia.es/search?q=pan",
+    "https://www.dia.es/search?q=fruta",
 ]
 
 
 class DiaSpider(scrapy.Spider):
-    """Spider para la tienda online de DIA con soporte Playwright."""
+    """Spider de DIA que extrae productos desde JSON SSR embebido."""
 
     name = "dia"
     allowed_domains = ["www.dia.es"]
 
     custom_settings = {
-        "DOWNLOAD_HANDLERS": {
-            "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
-            "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
-        },
-        "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
-        "DOWNLOAD_DELAY": 3,
-        "CONCURRENT_REQUESTS": 1,
-        "CONCURRENT_REQUESTS_PER_DOMAIN": 1,
-        "PLAYWRIGHT_BROWSER_TYPE": "chromium",
-        "PLAYWRIGHT_LAUNCH_OPTIONS": {
-            "headless": True,
-            "args": ["--no-sandbox", "--disable-setuid-sandbox"],
-        },
+        "DOWNLOAD_DELAY": 1,
+        "CONCURRENT_REQUESTS": 2,
+        "CONCURRENT_REQUESTS_PER_DOMAIN": 2,
     }
 
     def start_requests(self):
-        """Genera requests a las categorías usando Playwright."""
-        for url in CATEGORY_URLS:
+        """Genera requests a home y búsquedas públicas de DIA."""
+        for url in START_URLS:
             yield scrapy.Request(
                 url=url,
-                meta={
-                    "playwright": True,
-                    "playwright_include_page": True,
-                    "playwright_page_goto_kwargs": {"wait_until": "networkidle"},
-                },
-                callback=self.parse_category,
+                headers={"User-Agent": _browser_user_agent()},
+                callback=self.parse_page,
                 errback=self.errback_handler,
             )
 
-    async def parse_category(self, response):
-        """Parsea la página de categoría — extrae productos y sigue paginación."""
-        page = response.meta.get("playwright_page")
-
-        try:
-            # Aceptar cookies si aparecen
-            try:
-                await page.click("#onetrust-accept-btn-handler", timeout=3000)
-            except Exception:
-                pass
-
-            # Esperar a que carguen los productos
-            try:
-                await page.wait_for_selector(
-                    ".product-item, [data-component='product-tile']", timeout=10000
-                )
-            except Exception:
-                logger.warning("No se encontraron productos en DIA", url=response.url)
-                return
-
-            html = await page.content()
-
-        except Exception as exc:
-            logger.error(
-                "Error renderizando página de DIA con Playwright",
-                url=response.url,
-                error=str(exc),
-            )
+    def parse_page(self, response):
+        """Parsea el script vike_pageContext y mapea productos al item común."""
+        page_context = _extract_page_context(response.text)
+        if not page_context:
+            logger.warning("No se pudo extraer vike_pageContext en DIA", url=response.url)
             return
-        finally:
-            if page:
-                await page.close()
 
-        from scrapy import Selector
+        products = _extract_products_from_page_context(page_context)
+        if not products:
+            logger.warning("Sin productos en estado embebido de DIA", url=response.url)
+            return
 
-        sel = Selector(text=html)
-        yield from self._extract_products(sel, response.url)
+        seen_skus: set[str] = set()
+        for product in products:
+            item = _product_to_item(product, response.url)
+            if item is None:
+                continue
 
-        # Paginación
-        next_url = sel.css(
-            ".pagination__next::attr(href), [aria-label='Siguiente página']::attr(href)"
-        ).get()
-        if next_url:
-            yield scrapy.Request(
-                url=response.urljoin(next_url),
-                meta={
-                    "playwright": True,
-                    "playwright_include_page": True,
-                    "playwright_page_goto_kwargs": {"wait_until": "networkidle"},
-                },
-                callback=self.parse_category,
-                errback=self.errback_handler,
-            )
+            sku = str(item.get("barcode") or "")
+            if sku and sku in seen_skus:
+                continue
 
-    def _extract_products(self, sel, url: str):
-        """Extrae los items de producto del HTML renderizado."""
-        for card in sel.css(
-            ".product-item, [data-component='product-tile'], .product-tile"
-        ):
-            try:
-                name = (
-                    card.css(
-                        ".product-item__title::text, "
-                        "[data-component='product-name']::text, "
-                        ".product-name::text"
-                    ).get("")
-                ).strip()
-
-                if not name:
-                    continue
-
-                # Precio normal
-                price_text = (
-                    card.css(
-                        ".product-item__price--current::text, "
-                        "[data-component='product-price']::text, "
-                        ".price-current::text"
-                    ).get("")
-                ).strip()
-
-                price = _parse_price(price_text)
-                if price is None:
-                    continue
-
-                # Precio por unidad
-                unit_price_text = card.css(
-                    ".product-item__price-per-unit::text, "
-                    "[data-component='unit-price']::text"
-                ).get("")
-                unit_price = _parse_price(unit_price_text)
-
-                # Precio de oferta
-                offer_price_text = card.css(
-                    ".product-item__price--offer::text, "
-                    "[data-component='offer-price']::text, "
-                    ".price-offer::text"
-                ).get("")
-                offer_price = _parse_price(offer_price_text)
-
-                product_url = card.css("a::attr(href)").get("")
-
-                yield ProductPriceItem(
-                    product_name=name,
-                    store_chain="DIA",
-                    price=price,
-                    unit_price=unit_price,
-                    offer_price=offer_price,
-                    offer_end_date=None,
-                    barcode=None,
-                    category_name=None,
-                    url=response.urljoin(product_url) if product_url else url,
-                )
-            except Exception as exc:
-                logger.warning("Error extrayendo producto de DIA", error=str(exc))
+            if sku:
+                seen_skus.add(sku)
+            yield item
 
     def errback_handler(self, failure):
-        """Manejo de errores — anti-bot 403 y errores de red se loguan y se omiten."""
+        """Manejo de errores de red en DIA."""
         status = getattr(failure.value, "response", None)
         if status and hasattr(status, "status") and status.status == 403:
             logger.warning(
@@ -198,6 +84,126 @@ class DiaSpider(scrapy.Spider):
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
+
+def _browser_user_agent() -> str:
+    return (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    )
+
+
+def _extract_page_context(html_text: str) -> dict | None:
+    """Extrae y parsea el JSON del script id='vike_pageContext'."""
+    match = re.search(
+        r'<script id="vike_pageContext" type="application/json">(.*?)</script>',
+        html_text,
+        flags=re.DOTALL,
+    )
+    if not match:
+        return None
+
+    raw_json = match.group(1).strip()
+    try:
+        parsed = json.loads(raw_json)
+    except json.JSONDecodeError:
+        return None
+
+    return parsed if isinstance(parsed, dict) else None
+
+
+def _extract_products_from_page_context(page_context: dict) -> list[dict]:
+    """Obtiene productos de carruseles embebidos en INITIAL_STATE.home."""
+    initial_state = page_context.get("INITIAL_STATE")
+    if not isinstance(initial_state, dict):
+        return []
+
+    home_state = initial_state.get("home")
+    if not isinstance(home_state, dict):
+        return []
+
+    content = home_state.get("content")
+    if not isinstance(content, dict):
+        return []
+
+    sections = content.get("sections")
+    if not isinstance(sections, list):
+        return []
+
+    products: list[dict] = []
+    for section in sections:
+        if not isinstance(section, dict):
+            continue
+        section_content = section.get("content")
+        if not isinstance(section_content, list):
+            continue
+
+        for entry in section_content:
+            if not isinstance(entry, dict):
+                continue
+            entry_products = entry.get("products")
+            if isinstance(entry_products, list):
+                for product in entry_products:
+                    if isinstance(product, dict):
+                        products.append(product)
+
+    return products
+
+
+def _product_to_item(product: dict, fallback_url: str) -> ProductPriceItem | None:
+    """Mapea el producto de DIA al item común del pipeline."""
+    name = str(product.get("display_name") or "").strip()
+    if not name:
+        return None
+
+    prices = product.get("prices")
+    if not isinstance(prices, dict):
+        return None
+
+    current_price = _to_decimal(prices.get("price"))
+    regular_price = _to_decimal(prices.get("strikethrough_price"))
+    if current_price is None:
+        return None
+
+    is_promo = bool(prices.get("is_promo_price"))
+    offer_price = current_price if is_promo else None
+    base_price = regular_price if is_promo and regular_price is not None else current_price
+
+    unit_price = _to_decimal(prices.get("price_per_unit"))
+    sku = str(product.get("sku_id") or "").strip()
+    product_path = str(product.get("url") or "").strip()
+    product_url = response_urljoin(fallback_url, product_path)
+
+    return ProductPriceItem(
+        product_name=name,
+        store_chain="DIA",
+        price=base_price,
+        unit_price=unit_price,
+        offer_price=offer_price,
+        offer_end_date=None,
+        barcode=sku or None,
+        category_name=None,
+        url=product_url,
+    )
+
+
+def response_urljoin(base_url: str, path: str) -> str:
+    if not path:
+        return base_url
+    if path.startswith("http://") or path.startswith("https://"):
+        return path
+    return f"https://www.dia.es{path}" if path.startswith("/") else f"https://www.dia.es/{path}"
+
+
+def _to_decimal(value: object) -> Decimal | None:
+    if value is None:
+        return None
+    if isinstance(value, (int, float, str)):
+        try:
+            return Decimal(str(value))
+        except InvalidOperation:
+            return None
+    return None
 
 def _parse_price(text: str) -> Decimal | None:
     """Convierte texto de precio ('1,29 €') a Decimal o None."""

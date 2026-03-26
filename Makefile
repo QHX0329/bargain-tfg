@@ -85,7 +85,7 @@ createsuperuser: ## Crear superusuario de Django en Docker
 # ── Scraping ─────────────────────────────────────────
 
 scrape: ## Ejecutar todos los spiders de scraping
-	cd scraping && scrapy crawl mercadona && scrapy crawl carrefour
+	cd scraping && scrapy crawl mercadona && scrapy crawl carrefour && scrapy crawl dia && scrapy crawl lidl
 
 scrape-mercadona: ## Ejecutar spider de Mercadona
 	cd scraping && scrapy crawl mercadona

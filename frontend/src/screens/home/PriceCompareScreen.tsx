@@ -25,7 +25,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import * as Location from "expo-location";
@@ -262,6 +262,7 @@ const AlertModal: React.FC<AlertModalProps> = ({
 export const PriceCompareScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const insets = useSafeAreaInsets();
   const { productId, productName, product } = route.params as {
     productId: string;
     productName: string;
@@ -336,9 +337,8 @@ export const PriceCompareScreen: React.FC = () => {
   const bestIdx = prices.length > 0 ? 0 : -1;
 
   return (
-    <SafeAreaView style={styles.safe} edges={[]}>
-      {/* Header */}
-      <View style={styles.header}>
+    <SafeAreaView style={styles.container} edges={[]}>
+      <View style={[styles.header, { paddingTop: spacing.xs + insets.top }]}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.back}
@@ -368,7 +368,6 @@ export const PriceCompareScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Filtros */}
       <View style={styles.filters}>
         <TouchableOpacity
           style={[styles.filterChip, useLocation && styles.filterChipActive]}
@@ -475,7 +474,10 @@ export const PriceCompareScreen: React.FC = () => {
 // ─── Estilos ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",

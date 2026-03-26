@@ -31,7 +31,7 @@ Pendiente de cierre productivo.
 ## Puntos clave
 
 - Optimización multicriterio con OR-Tools.
-- OCR y matching contra catálogo.
+- OCR backend con Google Cloud Vision API y matching contra catálogo.
 - Asistente LLM con guardrails.
 - Integración con datos reales y pruebas específicas.
 

@@ -13,7 +13,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
-from tests.factories import ProductFactory, UserFactory
+from tests.factories import UserFactory
 
 User = get_user_model()
 pytestmark = pytest.mark.django_db
@@ -162,23 +162,22 @@ class TestListItems:
         self.client = auth_client(self.user)
         create_resp = self.client.post("/api/v1/lists/", {"name": "Lista"}, format="json")
         self.list_id = create_resp.json()["id"]
-        self.product = ProductFactory()
 
     def test_add_item(self):
         response = self.client.post(
             f"/api/v1/lists/{self.list_id}/items/",
-            {"product": self.product.pk, "quantity": 2},
+            {"name": "Leche entera", "quantity": 2},
             format="json",
         )
         assert response.status_code == 201
         data = response.json()
-        assert data["product"] == self.product.pk
+        assert data["name"] == "Leche entera"
         assert data["quantity"] == 2
 
     def test_update_item_quantity(self):
         add_resp = self.client.post(
             f"/api/v1/lists/{self.list_id}/items/",
-            {"product": self.product.pk, "quantity": 1},
+            {"name": "Leche entera", "quantity": 1},
             format="json",
         )
         item_id = add_resp.json()["id"]
@@ -193,7 +192,7 @@ class TestListItems:
     def test_check_item(self):
         add_resp = self.client.post(
             f"/api/v1/lists/{self.list_id}/items/",
-            {"product": self.product.pk},
+            {"name": "Leche entera"},
             format="json",
         )
         item_id = add_resp.json()["id"]
@@ -208,7 +207,7 @@ class TestListItems:
     def test_delete_item(self):
         add_resp = self.client.post(
             f"/api/v1/lists/{self.list_id}/items/",
-            {"product": self.product.pk},
+            {"name": "Leche entera"},
             format="json",
         )
         item_id = add_resp.json()["id"]
@@ -216,10 +215,10 @@ class TestListItems:
         assert response.status_code == 204
 
     def test_get_list_with_enriched_items(self):
-        """GET /lists/{id}/ should return items with product_name and category_name."""
+        """GET /lists/{id}/ debe devolver el texto del item."""
         self.client.post(
             f"/api/v1/lists/{self.list_id}/items/",
-            {"product": self.product.pk, "quantity": 2},
+            {"name": "Leche entera", "quantity": 2},
             format="json",
         )
         response = self.client.get(f"/api/v1/lists/{self.list_id}/")
@@ -228,21 +227,19 @@ class TestListItems:
         items = data.get("items", [])
         assert len(items) == 1
         item = items[0]
-        assert "product_name" in item
-        assert "category_name" in item
-        assert item["product_name"] == self.product.name
+        assert item["name"] == "Leche entera"
         assert item["quantity"] == 2
 
-    def test_duplicate_product_sums_quantity(self):
-        """Adding same product twice should increase existing item quantity."""
+    def test_duplicate_name_sums_quantity(self):
+        """Añadir el mismo texto dos veces incrementa la cantidad."""
         self.client.post(
             f"/api/v1/lists/{self.list_id}/items/",
-            {"product": self.product.pk, "quantity": 2},
+            {"name": "Leche entera", "quantity": 2},
             format="json",
         )
         response = self.client.post(
             f"/api/v1/lists/{self.list_id}/items/",
-            {"product": self.product.pk, "quantity": 3},
+            {"name": "  Leché entera  ", "quantity": 3},
             format="json",
         )
         assert response.status_code == 200
@@ -283,7 +280,6 @@ class TestCollaborators:
         assert response.status_code == 200
 
     def test_collaborator_can_add_items(self):
-        product = ProductFactory()
         self.owner_client.post(
             f"/api/v1/lists/{self.list_id}/collaborators/",
             {"username": self.collab.username},
@@ -291,13 +287,12 @@ class TestCollaborators:
         )
         response = self.collab_client.post(
             f"/api/v1/lists/{self.list_id}/items/",
-            {"product": product.pk},
+            {"name": "Huevos"},
             format="json",
         )
         assert response.status_code == 201
 
     def test_collaborator_can_edit_items(self):
-        product = ProductFactory()
         self.owner_client.post(
             f"/api/v1/lists/{self.list_id}/collaborators/",
             {"username": self.collab.username},
@@ -305,7 +300,7 @@ class TestCollaborators:
         )
         add_resp = self.owner_client.post(
             f"/api/v1/lists/{self.list_id}/items/",
-            {"product": product.pk, "quantity": 1},
+            {"name": "Huevos", "quantity": 1},
             format="json",
         )
         item_id = add_resp.json()["id"]
@@ -319,7 +314,6 @@ class TestCollaborators:
 
     def test_remove_collaborator_keeps_items(self):
         """Removing collaborator does NOT remove their items."""
-        product = ProductFactory()
         # Invite collaborator
         self.owner_client.post(
             f"/api/v1/lists/{self.list_id}/collaborators/",
@@ -329,7 +323,7 @@ class TestCollaborators:
         # Collaborator adds an item
         self.collab_client.post(
             f"/api/v1/lists/{self.list_id}/items/",
-            {"product": product.pk},
+            {"name": "Huevos"},
             format="json",
         )
         # Remove collaborator
@@ -394,17 +388,15 @@ class TestTemplates:
         self.client = auth_client(self.user)
         create_resp = self.client.post("/api/v1/lists/", {"name": "Lista original"}, format="json")
         self.list_id = create_resp.json()["id"]
-        self.product1 = ProductFactory()
-        self.product2 = ProductFactory()
         # Add items with varied quantities and checked states
         self.client.post(
             f"/api/v1/lists/{self.list_id}/items/",
-            {"product": self.product1.pk, "quantity": 5, "is_checked": True},
+            {"name": "Arroz largo", "quantity": 5, "is_checked": True},
             format="json",
         )
         self.client.post(
             f"/api/v1/lists/{self.list_id}/items/",
-            {"product": self.product2.pk, "quantity": 3},
+            {"name": "Pasta", "quantity": 3},
             format="json",
         )
 
@@ -418,8 +410,8 @@ class TestTemplates:
         data = response.json()
         assert data["name"] == "Mi plantilla"
 
-    def test_save_template_copies_products_only(self):
-        """Template items have the same products but the list state is irrelevant."""
+    def test_save_template_copies_item_names_only(self):
+        """Template items conservan solo el texto y reinician estado de lista."""
         save_resp = self.client.post(
             f"/api/v1/lists/{self.list_id}/save-template/",
             {"name": "Plantilla"},

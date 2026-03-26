@@ -149,7 +149,9 @@ const RouteStopRow: React.FC<{ stop: RouteStop; index: number }> = ({ stop, inde
       <View style={stopRowStyles.priceCol}>
         {stop.products.length > 0 && (
           <Text style={stopRowStyles.priceText}>
-            {stop.products.reduce((acc, p) => acc + p.price, 0).toFixed(2)} €
+            {stop.products
+              .reduce((acc, p) => acc + p.price * p.quantity, 0)
+              .toFixed(2)} €
           </Text>
         )}
       </View>

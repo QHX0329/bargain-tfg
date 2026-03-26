@@ -134,10 +134,11 @@ export interface ProductPriceSummary {
 
 export interface ShoppingListItem {
   id: string;
-  /** FK al producto (ID) — backend devuelve el ID numérico */
-  product: string | Product;
+  /** Texto libre persistido en la lista */
+  name: string;
+  /** Alias de compatibilidad con respuestas antiguas o mixtas */
   product_name?: string;
-  category_name?: string;
+  normalized_name?: string;
   quantity: number;
   /** Backend devuelve is_checked (snake_case) */
   is_checked?: boolean;
@@ -247,8 +248,8 @@ export interface UserProfile {
 
 export interface ListTemplateItem {
   id: string;
-  product: string;
-  product_name?: string;
+  name: string;
+  normalized_name?: string;
   ordering: number;
 }
 

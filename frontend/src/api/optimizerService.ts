@@ -21,9 +21,16 @@ export interface OptimizeRequest {
 }
 
 export interface RouteStopProduct {
-  product_id: number;
-  name: string;
+  query_text: string;
+  quantity: number;
+  matched_product_id: number;
+  matched_product_name: string;
+  matched_store_id: number;
+  matched_store_name: string;
+  matched_chain: string;
   price: number;
+  similarity_score: number;
+  candidate_rank: number;
 }
 
 export interface RouteStop {

@@ -3,15 +3,13 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies for PostGIS and Tesseract
+# Install system dependencies for PostGIS
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gdal-bin \
     libgdal-dev \
     libgeos-dev \
     libproj-dev \
-    tesseract-ocr \
-    tesseract-ocr-spa \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

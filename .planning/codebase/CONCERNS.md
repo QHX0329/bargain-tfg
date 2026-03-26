@@ -53,9 +53,9 @@
 
 **OCR Pipeline Missing:**
 - Issue: No OCR service implementation; tickets/receipts cannot be processed
-- Files: `backend/apps/ocr/` - urls.py exists but no models, serializers, views, or Tesseract integration
+- Files: `backend/apps/ocr/` - urls.py exists but no models, serializers, views, or integración estable con Google Vision API
 - Impact: F4-15/F4-16 (capture and edit) screens have no backend support
-- Fix approach: F5-10 implements Tesseract service, F5-11 adds fuzzy matching to catalog
+- Fix approach: F5-10 implements Google Vision API service, F5-11 adds fuzzy matching to catalog
 
 ## Known Bugs
 
@@ -120,7 +120,7 @@
 - Recommendations: When F5-10 is implemented:
   - Validate file type (image/* only) and size (<10MB)
   - Scan with antivirus/malware detection
-  - Sanitize Tesseract output (prevent code injection in fuzzy matching)
+  - Sanitize OCR output before fuzzy matching and downstream processing
 
 **Scraping Spiders Can Hammer Target Servers:**
 - Risk: Scrapy configured without rate limiting or user-agent rotation

@@ -66,7 +66,7 @@
 - structlog 24.0.x - Structured JSON logging
 
 **AI/ML:**
-- pytesseract >=0.3.13 - Tesseract OCR wrapper
+- Google Cloud Vision API - OCR provider approved in ADR-007 (legacy code path still references pytesseract)
 - ortools 9.10.x - OR-Tools for route optimization
 - thefuzz[speedup] 0.22.x - Fuzzy string matching (for product normalization)
 

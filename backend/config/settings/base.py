@@ -329,10 +329,13 @@ structlog.configure(
 # ── Google Places API ─────────────────────────────────
 
 GOOGLE_PLACES_API_KEY = os.environ.get("GOOGLE_PLACES_API_KEY", "")
+GOOGLE_CLOUD_VISION_API_KEY = os.environ.get("GOOGLE_CLOUD_VISION_API_KEY", "")
+GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY", "")
 
-# ── Anthropic (Asistente LLM) ─────────────────────────
+# ── Gemini (Asistente LLM) ────────────────────────────
 
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash-lite")
 
 # ── Graphhopper (Routing) ─────────────────────────────
 

@@ -17,7 +17,9 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -60,18 +62,7 @@ const ItemRow: React.FC<ItemRowProps> = ({
   onIncreaseQuantity,
   onDecreaseQuantity,
 }) => {
-  // Backend enriched GET returns product_name; POST returns product as integer FK.
-  // Support both shapes.
-  const productName =
-    item.product_name ??
-    (typeof item.product === "object" && item.product !== null
-      ? (item.product as { name?: string }).name
-      : undefined) ??
-    "Producto";
-  const productUnit =
-    typeof item.product === "object" && item.product !== null
-      ? (item.product as { unit?: string }).unit
-      : undefined;
+  const productName = item.name ?? item.product_name ?? "Producto";
   // Backend uses is_checked (snake_case); domain type alias is isChecked.
   const isChecked = item.isChecked ?? item.is_checked ?? false;
 
@@ -122,7 +113,6 @@ const ItemRow: React.FC<ItemRowProps> = ({
         </Text>
         <Text style={styles.itemMeta}>
           {`x${item.quantity}`}
-          {productUnit ? ` · ${productUnit}` : ""}
           {item.note ? ` · ${item.note}` : ""}
         </Text>
       </View>
@@ -180,6 +170,9 @@ export const ListDetailScreen: React.FC<Props> = ({ route, navigation }) => {
   const { activeList, setActiveList, updateListItem } = useListStore();
 
   const [isLoading, setIsLoading] = useState(true);
+  const [addPanelVisible, setAddPanelVisible] = useState(false);
+  const [quickAddName, setQuickAddName] = useState('');
+  const [isQuickAdding, setIsQuickAdding] = useState(false);
   const [collabModalVisible, setCollabModalVisible] = useState(false);
   const [collaborators, setCollaborators] = useState<ListCollaborator[]>([]);
   const [collabUsername, setCollabUsername] = useState("");
@@ -330,13 +323,10 @@ export const ListDetailScreen: React.FC<Props> = ({ route, navigation }) => {
         const serverItem = await listService.updateItem(listId, item.id, {
           is_checked: !currentChecked,
         });
-        // Merge: keep enriched fields (product_name, etc.) from the local item;
-        // take is_checked and quantity from the server response.
         updateListItem(listId, {
           ...item,
           ...serverItem,
-          product_name: item.product_name ?? serverItem.product_name,
-          category_name: item.category_name ?? serverItem.category_name,
+          name: serverItem.name ?? item.name,
           isChecked: serverItem.is_checked ?? !currentChecked,
           is_checked: serverItem.is_checked ?? !currentChecked,
         });
@@ -384,8 +374,7 @@ export const ListDetailScreen: React.FC<Props> = ({ route, navigation }) => {
         updateListItem(listId, {
           ...item,
           ...serverItem,
-          product_name: item.product_name ?? serverItem.product_name,
-          category_name: item.category_name ?? serverItem.category_name,
+          name: serverItem.name ?? item.name,
         });
       } catch {
         updateListItem(listId, item);
@@ -417,8 +406,7 @@ export const ListDetailScreen: React.FC<Props> = ({ route, navigation }) => {
         updateListItem(listId, {
           ...item,
           ...serverItem,
-          product_name: item.product_name ?? serverItem.product_name,
-          category_name: item.category_name ?? serverItem.category_name,
+          name: serverItem.name ?? item.name,
         });
       } catch {
         updateListItem(listId, item);
@@ -427,6 +415,23 @@ export const ListDetailScreen: React.FC<Props> = ({ route, navigation }) => {
     },
     [handleDeleteItem, listId, updateListItem],
   );
+
+  // ─── Quick add by name ────────────────────────────────────────────────────
+  const handleQuickAdd = useCallback(async () => {
+    const name = quickAddName.trim();
+    if (!name) return;
+    setIsQuickAdding(true);
+    try {
+      await listService.addItem(listId, { name, quantity: 1 });
+      setQuickAddName('');
+      setAddPanelVisible(false);
+      await loadList();
+    } catch {
+      Alert.alert('Error', 'No se pudo añadir el producto.');
+    } finally {
+      setIsQuickAdding(false);
+    }
+  }, [quickAddName, listId, loadList]);
 
   const renderItem = makeRenderItem(
     handleToggleItem,
@@ -488,7 +493,7 @@ export const ListDetailScreen: React.FC<Props> = ({ route, navigation }) => {
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Text style={styles.emptyText}>
-                Añade productos desde el boton + del catalogo
+                Añade productos desde el botón + del catálogo
               </Text>
             </View>
           }
@@ -498,15 +503,78 @@ export const ListDetailScreen: React.FC<Props> = ({ route, navigation }) => {
       <TouchableOpacity
         testID="fab-open-product-catalog"
         style={styles.catalogFab}
-        onPress={() =>
-          navigation.navigate("ProductsCatalog", { listId, listName })
-        }
+        onPress={() => setAddPanelVisible(true)}
         activeOpacity={0.9}
         accessibilityRole="button"
-        accessibilityLabel="Añadir productos desde catalogo"
+        accessibilityLabel="Añadir producto"
       >
         <Ionicons name="add" size={26} color={colors.white} />
       </TouchableOpacity>
+
+      {/* Panel: añadir producto */}
+      <Modal
+        visible={addPanelVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setAddPanelVisible(false)}
+      >
+        <KeyboardAvoidingView
+          style={styles.panelOverlay}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <TouchableOpacity
+            style={StyleSheet.absoluteFillObject}
+            activeOpacity={1}
+            onPress={() => setAddPanelVisible(false)}
+          />
+          <TouchableOpacity activeOpacity={1} style={styles.panelSheet}>
+            <View style={styles.panelHandle} />
+            <Text style={styles.panelTitle}>Añadir producto</Text>
+
+            {/* Opción 1: texto libre */}
+            <View style={styles.quickAddRow}>
+              <TextInput
+                style={styles.quickAddInput}
+                placeholder="Nombre del producto..."
+                placeholderTextColor={colors.textMuted}
+                value={quickAddName}
+                onChangeText={setQuickAddName}
+                returnKeyType="done"
+                onSubmitEditing={handleQuickAdd}
+                autoFocus
+              />
+              <TouchableOpacity
+                style={[styles.quickAddBtn, !quickAddName.trim() && styles.quickAddBtnDisabled]}
+                onPress={handleQuickAdd}
+                disabled={isQuickAdding || !quickAddName.trim()}
+              >
+                {isQuickAdding
+                  ? <ActivityIndicator size="small" color={colors.white} />
+                  : <Ionicons name="checkmark" size={18} color={colors.white} />}
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.panelDivider}>
+              <View style={styles.panelDividerLine} />
+              <Text style={styles.panelDividerText}>o</Text>
+              <View style={styles.panelDividerLine} />
+            </View>
+
+            {/* Opción 2: buscar en catálogo */}
+            <TouchableOpacity
+              style={styles.catalogOption}
+              onPress={() => {
+                setAddPanelVisible(false);
+                navigation.navigate("ProductsCatalog", { listId, listName });
+              }}
+            >
+              <Ionicons name="cube-outline" size={20} color={colors.primary} />
+              <Text style={styles.catalogOptionText}>Buscar en el catálogo</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </KeyboardAvoidingView>
+      </Modal>
 
       <Modal
         visible={collabModalVisible}
@@ -809,6 +877,91 @@ const styles = StyleSheet.create({
     color: colors.error ?? "#E53E3E",
     paddingHorizontal: spacing.md,
     marginTop: spacing.xs,
+  },
+  // ─── Add panel ────────────────────────────────────────────────────────────
+  panelOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    justifyContent: "flex-end",
+  },
+  panelSheet: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: borderRadius.lg,
+    borderTopRightRadius: borderRadius.lg,
+    padding: spacing.md,
+    paddingBottom: spacing.xxl,
+  },
+  panelHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.border,
+    alignSelf: "center",
+    marginBottom: spacing.md,
+  },
+  panelTitle: {
+    ...textStyles.bodyLarge,
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
+  quickAddRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  quickAddInput: {
+    flex: 1,
+    backgroundColor: colors.background,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+    color: colors.text,
+    ...textStyles.body,
+    minHeight: 44,
+  },
+  quickAddBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  quickAddBtnDisabled: {
+    backgroundColor: colors.textDisabled,
+  },
+  panelDivider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: spacing.md,
+    gap: spacing.sm,
+  },
+  panelDividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.divider,
+  },
+  panelDividerText: {
+    ...textStyles.bodySmall,
+    color: colors.textMuted,
+  },
+  catalogOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    minHeight: 48,
+  },
+  catalogOptionText: {
+    flex: 1,
+    ...textStyles.bodyMedium,
+    color: colors.primary,
   },
 });
 

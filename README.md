@@ -55,11 +55,15 @@ BarGAIN actúa como un **orquestador inteligente de la cesta de la compra** medi
 | Backend       | Django 5 + Django REST Framework      |
 | Base de datos | PostgreSQL 16 + PostGIS               |
 | Frontend      | React Native (Expo) + React web companion |
-| IA/ML         | Claude API + Tesseract (backend) + Tesseract.js (frontend) + OR-Tools |
+| IA/ML         | Claude API + Google Cloud Vision API (OCR backend) + OR-Tools |
 | Scraping      | Scrapy + Playwright                   |
 | Async         | Celery + Redis                        |
 | CI/CD         | GitHub Actions                        |
 | Infra         | Docker + Docker Compose (dev híbrido) + Render |
+
+Nota sobre OCR:
+- La decisión de diseño vigente adopta Google Cloud Vision API como proveedor OCR backend.
+- El repositorio aún conserva implementación legado basada en Tesseract mientras se completa la migración técnica en F5.
 
 ## 🗺️ Roadmap Resumido
 
@@ -69,7 +73,7 @@ BarGAIN actúa como un **orquestador inteligente de la cesta de la compra** medi
 | F2 — Infraestructura | ✅ | Backend en Docker, frontend nativo en host (ADR-002) |
 | F3 — Core Backend | ✅ | Módulos de dominio + API + tests + docs OpenAPI |
 | F4 — Frontend | 🔄 | UX y flujos principales operativos, quedan integraciones avanzadas |
-| F5 — IA/Optimización/Scraping | ⬜ | OCR real, optimizer multicriterio y scraping productivo |
+| F5 — IA/Optimización/Scraping | ⬜ | Migración OCR a Google Vision, optimizer multicriterio y scraping productivo |
 | F6 — Cierre | ⬜ | E2E, deploy staging final, memoria y defensa |
 
 ## 🚀 Inicio Rápido

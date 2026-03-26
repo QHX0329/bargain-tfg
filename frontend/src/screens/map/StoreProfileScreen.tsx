@@ -204,7 +204,7 @@ export const StoreProfileScreen: React.FC<Props> = ({ route, navigation }) => {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.centered} edges={["top"]}>
+      <SafeAreaView style={styles.centered} edges={[]}>
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Cargando perfil de tienda...</Text>
       </SafeAreaView>
@@ -213,7 +213,7 @@ export const StoreProfileScreen: React.FC<Props> = ({ route, navigation }) => {
 
   if (!store) {
     return (
-      <SafeAreaView style={styles.centered} edges={["top"]}>
+      <SafeAreaView style={styles.centered} edges={[]}>
         <Ionicons
           name="storefront-outline"
           size={36}
@@ -225,7 +225,7 @@ export const StoreProfileScreen: React.FC<Props> = ({ route, navigation }) => {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={styles.container} edges={[]}>
       <FlatList
         data={products}
         keyExtractor={(item) => item.product.id}

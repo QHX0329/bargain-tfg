@@ -27,10 +27,10 @@ playwright>=1.44,<2.0
 scrapy-playwright>=0.0.34,<1.0
 
 # ── AI / ML ──────────────────────────────
-anthropic>=0.30,<1.0
-pytesseract>=0.3.13,<1.0
+google-genai>=0.8,<2.0
 ortools>=9.10,<10.0
 thefuzz[speedup]>=0.22,<1.0
+pypdf>=4.2,<6.0
 
 # ── Utilities ────────────────────────────
 python-decouple>=3.8,<4.0

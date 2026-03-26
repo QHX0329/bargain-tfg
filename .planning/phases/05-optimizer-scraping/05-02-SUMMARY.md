@@ -2,13 +2,13 @@
 phase: 05-optimizer-scraping
 plan: 02
 subsystem: backend/ocr
-tags: [ocr, pytesseract, fuzzy-matching, drf, api]
+tags: [ocr, legacy-tesseract, fuzzy-matching, drf, api]
 dependency_graph:
   requires: [apps.core.exceptions.OCRProcessingError, apps.products.models.Product]
   provides: [POST /api/v1/ocr/scan/]
   affects: [apps.ocr]
 tech_stack:
-  added: [pytesseract, thefuzz, Pillow.ImageOps, Pillow.ImageFilter]
+  added: [legacy-pytesseract, thefuzz, Pillow.ImageOps, Pillow.ImageFilter]
   patterns: [APIView with MultiPartParser, token_sort_ratio fuzzy matching, structlog logging]
 key_files:
   created:
@@ -20,7 +20,7 @@ key_files:
   modified:
     - backend/apps/ocr/urls.py
 decisions:
-  - pytesseract imported at module level (not deferred) to enable correct mock patching in tests
+  - legado: pytesseract imported at module level (not deferred) to enable correct mock patching in tests
   - Fuzzy match threshold 80 means product names must closely match query — test fixtures adjusted to short exact names
   - 422 returned for OCRProcessingError (no text extracted), 400 for missing/invalid image, 500 for unexpected errors
 metrics:
@@ -33,7 +33,11 @@ metrics:
 
 # Phase 05 Plan 02: OCR Endpoint Summary
 
-**One-liner:** pytesseract OCR endpoint with Pillow preprocessing and thefuzz token_sort_ratio fuzzy product matching at 80% confidence threshold.
+> Editorial note (2026-03-26): este resumen describe la implementación histórica del endpoint OCR
+> basada en pytesseract. La decisión vigente del proyecto está documentada en ADR-007 y sustituye
+> ese enfoque por Google Vision API como proveedor OCR objetivo.
+
+**One-liner:** Legacy OCR endpoint based on pytesseract with Pillow preprocessing and thefuzz token_sort_ratio fuzzy product matching at 80% confidence threshold.
 
 ## What Was Built
 
@@ -84,6 +88,7 @@ metrics:
 
 ## Known Stubs
 
-None — the endpoint is fully wired. pytesseract is available in the Docker container and will process real images in production. Tests use mocks to avoid tesseract binary dependency in test environment.
+None — this historical summary reflects the legacy pytesseract endpoint. ADR-007 supersedes the
+provider choice with Google Vision API for the target architecture.
 
 ## Self-Check: PASSED

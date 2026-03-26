@@ -1,5 +1,8 @@
 # Phase 5: Optimizer, Scraping, OCR, LLM - Discussion Log
 
+> Editorial note (2026-03-26): esta discusión se inició con un enfoque OCR basado en pytesseract.
+> La decisión vigente del proyecto está documentada en ADR-007 y selecciona Google Vision API.
+
 > **Audit trail only.** Do not use as input to planning, research, or execution agents.
 > Decisions captured in CONTEXT.md — this log preserves the discussion.
 
@@ -75,7 +78,7 @@ No other corrections — all other assumptions confirmed on first pass.
 
 ## Codebase Context Applied
 
-- OR-Tools, pytesseract, thefuzz, anthropic already in requirements — no installation needed
+- OR-Tools, thefuzz y anthropic ya estaban en requirements; el OCR queda redirigido a Google Vision API por ADR-007
 - OCRProcessingError and AssistantUnavailable already in core/exceptions.py
 - SkeletonBox component available for loading states
 - All 4 backend apps are empty stubs ready for implementation

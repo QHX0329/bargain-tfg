@@ -46,7 +46,7 @@ Plan: 4 of 5
 - 04-01: google_place_id nullable to keep existing stores unaffected
 - 04-02: Autocomplete type=establishment (not supermarket) — supermarket is not a valid autocomplete collection type per library docs
 - 04-02: DB-match threshold 50m for Places-to-store proximity; discovery markers are ephemeral client state only
-- 05-02: pytesseract at module level (not deferred import) to enable correct mock patching in tests
+- 05-02: legado OCR documentado con pytesseract; ADR-007 aprueba migración a Google Vision API para F5/F6
 - 05-02: 422 for OCRProcessingError (no text extracted), 400 for invalid image, 500 for unexpected errors
 - 05-03: claude-haiku-4-5-20251001 for LLM assistant; history truncated to messages[-20:] (10 turns); ScopedRateThrottle at 30/hour; AssistantError wraps all Anthropic SDK exceptions
 - 05-04: Mock target for get_distance_matrix is apps.optimizer.services.distance (Python name resolution — mock where defined)

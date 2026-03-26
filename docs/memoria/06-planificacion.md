@@ -149,7 +149,7 @@ El proyecto BargAIn se planifica con una duración estimada de **20 semanas** (5
 | Integración OSRM/Google Directions para distancias reales | 3      | S14    | Servicio externo                |
 | Tests del optimizador (casos borde, rendimiento)          | 3      | S15    | Tests especializados            |
 | **OCR Backend**                                           |        |        |                                 |
-| Servicio de procesamiento de imágenes (Tesseract)         | 3      | S15    | `apps/ocr/services.py`          |
+| Servicio de procesamiento de imágenes (Google Vision API) | 3      | S15    | `apps/ocr/services.py`          |
 | Matching fuzzy de texto OCR contra catálogo               | 2      | S16    | Integración                     |
 | **Asistente LLM**                                         |        |        |                                 |
 | Integración Claude API con contexto de compra             | 3      | S16    | `apps/assistant/services.py`    |

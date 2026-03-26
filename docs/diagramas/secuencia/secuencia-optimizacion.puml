@@ -19,17 +19,17 @@ participant "OSRM /\nGoogle Maps" as maps
 user -> app : Selecciona lista\ny pulsa "Optimizar"
 activate app
 
-app -> api : POST /api/v1/optimize/\n{list_id, location, weights}
+app -> api : POST /api/v1/optimize/\n{shopping_list_id, lat, lng,\nmax_distance_km, max_stops,\nw_precio, w_distancia, w_tiempo}
 activate api
 
-api -> api : Validar JWT\ny parámetros
+api -> api : Validar JWT, serializer\ny propiedad de la lista
 
-api -> optimizer : optimize_route(\nlist, location, weights)
+api -> optimizer : optimize_shopping_list(\nshopping_list_id, lat, lng,\nmax_distance_km, max_stops, weights)
 activate optimizer
 
-optimizer -> db : SELECT products\nFROM shopping_list_items\nWHERE list_id = ?
+optimizer -> db : SELECT items de texto\n(name, normalized_name, quantity)\nFROM shopping_list_items\nWHERE shopping_list_id = ?\nAND is_checked = false
 activate db
-db --> optimizer : Lista de productos (N)
+db --> optimizer : Lista de items textuales (N)
 deactivate db
 
 optimizer -> db : SELECT stores\nFROM stores\nWHERE ST_DWithin(\nlocation, user_point,\nradius_km * 1000)
@@ -37,49 +37,54 @@ activate db
 db --> optimizer : Tiendas candidatas (M)
 deactivate db
 
-optimizer -> db : SELECT prices\nFROM prices\nWHERE product_id IN (?)\nAND store_id IN (?)\nAND verified_at > NOW() - 48h
-activate db
-db --> optimizer : Matriz precios\n(N productos × M tiendas)
-deactivate db
+loop Para cada item textual
+    optimizer -> db : SELECT top productos\npor TrigramSimilarity(normalized_name, item)\nLIMIT 20
+    activate db
+    db --> optimizer : Candidatos de producto
+    deactivate db
 
-optimizer -> optimizer : Generar combinaciones\nde tiendas\n(max_stops C M)
+    optimizer -> db : SELECT últimos precios\npara (producto candidato, tienda candidata)\nWHERE is_stale = false
+    activate db
+    db --> optimizer : Candidatos precio/tienda
+    deactivate db
 
-optimizer -> optimizer : Pre-filtrar:\ndescartar combos sin\ncobertura completa
-
-loop Para cada combinación candidata (top-K)
-    optimizer -> maps : GET /route?\ncoordinates=[user→tienda1→...→tiendaN]
-    activate maps
-    maps --> optimizer : {distance_km, duration_min}
-    deactivate maps
-
-    optimizer -> optimizer : Calcular Score =\nw_precio × ahorro_norm\n- w_distancia × dist_norm\n- w_tiempo × tiempo_norm
+    optimizer -> optimizer : Score fuzzy (producto + contexto tienda)\ny top-3 candidatos
 end
 
-optimizer -> optimizer : Ordenar por Score\ny seleccionar top-3
+optimizer -> optimizer : Elegir opción más barata por item\ny consolidar tiendas (max_stops)
 
-optimizer -> db : INSERT optimization_result\n+ route_stops\n+ route_stop_items
-activate db
-db --> optimizer : result_id
-deactivate db
+optimizer -> maps : get_distance_matrix(\nuser + tiendas seleccionadas)
+activate maps
+maps --> optimizer : distance_matrix + time_matrix
+deactivate maps
 
-optimizer --> api : Top-3 rutas con\ndesglose completo
+optimizer -> optimizer : solve_route() con OR-Tools\ny pesos precio/distancia/tiempo
+
+optimizer -> optimizer : Construir route_data\ny totales agregados
+
+optimizer --> api : Resultado optimizado\n(total_price, total_distance_km,\nestimated_time_minutes, route_data)
 deactivate optimizer
 
-api --> app : 200 OK\n{routes: [...],\nsavings, map_data}
+api -> db : INSERT optimization_result
+activate db
+db --> api : optimization_result
+deactivate db
+
+api --> app : 200 OK\n{success: true, data: {...}}
 deactivate api
 
 app -> app : Renderizar mapa\ncon polylines\ny marcadores
 
-app --> user : Muestra top-3 rutas\ncon desglose de ahorro
+app --> user : Muestra ruta optimizada\ncon desglose de ahorro
 deactivate app
 
 user -> app : Ajusta sliders\nde pesos
 activate app
 app -> api : POST /api/v1/optimize/\n{..., new_weights}
 note right: Recálculo\nen < 5 seg
-api -> optimizer : optimize_route(...)
-optimizer --> api : Nuevas top-3 rutas
-api --> app : 200 OK
+api -> optimizer : optimize_shopping_list(...)
+optimizer --> api : Nueva ruta optimizada
+api --> app : 200 OK {success: true, data}
 app --> user : Ruta actualizada
 deactivate app
 

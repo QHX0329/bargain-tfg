@@ -3,7 +3,7 @@ Unit tests for the shopping_lists domain.
 
 Tests:
 - ShoppingList model creation and constraints
-- ShoppingListItem unique_together constraint
+- ShoppingListItem text normalization
 - ListCollaborator unique_together constraint
 - ListTemplate and ListTemplateItem creation
 - IsOwnerOrCollaborator permission logic
@@ -14,7 +14,7 @@ Tests:
 import pytest
 from django.db import IntegrityError
 
-from tests.factories import ProductFactory, UserFactory
+from tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -63,33 +63,38 @@ class TestShoppingListItemModel:
         from apps.shopping_lists.models import ShoppingList, ShoppingListItem
 
         user = UserFactory()
-        product = ProductFactory()
         sl = ShoppingList.objects.create(owner=user, name="Lista")
         item = ShoppingListItem.objects.create(
-            shopping_list=sl, product=product, quantity=2, added_by=user
+            shopping_list=sl, name="Leche entera", quantity=2, added_by=user
         )
         assert item.pk is not None
+        assert item.name == "Leche entera"
         assert item.quantity == 2
         assert item.is_checked is False
 
-    def test_item_unique_together(self):
-        """Cannot add same product twice to same list."""
+    def test_item_normalized_name(self):
+        """El modelo guarda una versión normalizada del texto libre."""
         from apps.shopping_lists.models import ShoppingList, ShoppingListItem
 
         user = UserFactory()
-        product = ProductFactory()
         sl = ShoppingList.objects.create(owner=user, name="Lista")
-        ShoppingListItem.objects.create(shopping_list=sl, product=product, added_by=user)
-        with pytest.raises(IntegrityError):
-            ShoppingListItem.objects.create(shopping_list=sl, product=product, added_by=user)
+        item = ShoppingListItem.objects.create(
+            shopping_list=sl,
+            name="  Leché-Entera 1L ",
+            added_by=user,
+        )
+        assert item.normalized_name == "leche entera 1l"
 
     def test_item_default_quantity_is_one(self):
         from apps.shopping_lists.models import ShoppingList, ShoppingListItem
 
         user = UserFactory()
-        product = ProductFactory()
         sl = ShoppingList.objects.create(owner=user, name="Lista")
-        item = ShoppingListItem.objects.create(shopping_list=sl, product=product, added_by=user)
+        item = ShoppingListItem.objects.create(
+            shopping_list=sl,
+            name="Pan integral",
+            added_by=user,
+        )
         assert item.quantity == 1
 
 
@@ -140,9 +145,8 @@ class TestListTemplateModel:
         from apps.shopping_lists.models import ListTemplate, ListTemplateItem
 
         user = UserFactory()
-        product = ProductFactory()
         template = ListTemplate.objects.create(owner=user, name="Plantilla")
-        item = ListTemplateItem.objects.create(template=template, product=product)
+        item = ListTemplateItem.objects.create(template=template, name="Huevos")
         assert item.pk is not None
         assert item.ordering == 0
 
@@ -205,9 +209,12 @@ class TestIsOwnerOrCollaboratorPermission:
         from apps.shopping_lists.permissions import IsOwnerOrCollaborator
 
         owner = UserFactory()
-        product = ProductFactory()
         sl = ShoppingList.objects.create(owner=owner, name="Lista")
-        item = ShoppingListItem.objects.create(shopping_list=sl, product=product, added_by=owner)
+        item = ShoppingListItem.objects.create(
+            shopping_list=sl,
+            name="Tomate frito",
+            added_by=owner,
+        )
 
         request = MagicMock()
         request.user = owner
@@ -279,26 +286,23 @@ class TestTemplateCopyRule:
         )
 
         owner = UserFactory()
-        product1 = ProductFactory()
-        product2 = ProductFactory()
         sl = ShoppingList.objects.create(owner=owner, name="Lista")
         # Add items with various quantities and checked states
         ShoppingListItem.objects.create(
-            shopping_list=sl, product=product1, quantity=5, is_checked=True, added_by=owner
+            shopping_list=sl, name="Arroz largo", quantity=5, is_checked=True, added_by=owner
         )
         ShoppingListItem.objects.create(
-            shopping_list=sl, product=product2, quantity=3, is_checked=False, added_by=owner
+            shopping_list=sl, name="Pasta", quantity=3, is_checked=False, added_by=owner
         )
         # Create template from list
         template = ListTemplate.objects.create(owner=owner, name="Plantilla", source_list=sl)
-        for i, item in enumerate(sl.items.select_related("product").all()):
-            ListTemplateItem.objects.create(template=template, product=item.product, ordering=i)
+        for i, item in enumerate(sl.items.all()):
+            ListTemplateItem.objects.create(template=template, name=item.name, ordering=i)
 
         # Verify template items have correct structure
         template_items = list(ListTemplateItem.objects.filter(template=template))
         assert len(template_items) == 2
         # Template items don't carry quantity or is_checked — those are on ShoppingListItem
-        # Verify products are correctly copied
-        template_product_ids = {ti.product_id for ti in template_items}
-        assert product1.pk in template_product_ids
-        assert product2.pk in template_product_ids
+        template_names = {ti.name for ti in template_items}
+        assert "Arroz largo" in template_names
+        assert "Pasta" in template_names

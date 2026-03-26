@@ -590,7 +590,7 @@ export const ProductsCatalogScreen: React.FC = () => {
     async (product: Product, listId: string) => {
       const quantity = getQuickQuantity(product.id);
       try {
-        await listService.addItem(listId, { product: product.id, quantity });
+        await listService.addItem(listId, { name: product.name, quantity });
         setToastMessage(
           `${product.name} añadido (x${quantity}) a la lista actual.`,
         );
@@ -621,7 +621,7 @@ export const ProductsCatalogScreen: React.FC = () => {
       setAddingToListId(listId);
       try {
         await listService.addItem(listId, {
-          product: pendingProduct.id,
+          name: pendingProduct.name,
           quantity: selectedQuantity,
         });
         setPickerVisible(false);

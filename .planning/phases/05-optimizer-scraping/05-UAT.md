@@ -8,15 +8,15 @@ source:
   - 05-04-SUMMARY.md
   - 05-05-SUMMARY.md
 started: 2026-03-26T10:03:00+01:00
-updated: 2026-03-26T10:03:00+01:00
+updated: 2026-03-26T21:30:00+01:00
 ---
 
 ## Current Test
 
-number: 3
-name: OCR: Endpoint procesa imagen
+number: 7
+name: Frontend: AssistantScreen con API real
 expected: |
-  Al enviar una imagen de ticket o lista de compra a `POST /api/v1/ocr/scan/` (autenticado), el endpoint devuelve líneas de texto detectadas con campo `raw_text`, `confidence`, `quantity`, y opcionalmente `matched_product_id`/`matched_product_name` si hay coincidencia fuzzy. Una imagen sin texto devuelve error 422. Una petición sin autenticación devuelve 401.
+  Desde la pantalla del asistente en la app, escribes un mensaje y recibes respuesta real del backend. Se muestra indicador de escritura mientras carga. La conversación mantiene contexto entre mensajes. No hay banner de modo dev ni datos mock.
 awaiting: user response
 
 ## Tests
@@ -32,22 +32,21 @@ fix: Sustituido multiprocessing.Process por subprocess.Popen (runner.py). 3987 p
 
 ### 3. OCR: Endpoint procesa imagen
 expected: Al enviar una imagen de ticket o lista de compra a `POST /api/v1/ocr/scan/` (autenticado), el endpoint devuelve líneas de texto detectadas con campo `raw_text`, `confidence`, `quantity`, y opcionalmente `matched_product_id`/`matched_product_name` si hay coincidencia fuzzy. Una imagen sin texto devuelve error 422. Una petición sin autenticación devuelve 401.
-result: issue
-reported: "raw_text no se parece al texto real (imagen nítida). Imagen sin texto: pending hasta timeout."
-severity: medium
-fix: PSM 6→4, upscale a 1000px, timeout=30s en pytesseract. Commit 61db2ca. Re-test pendiente.
+result: pass
+fix: Migración a Google Cloud Vision API (ADR-007). Sustituye pytesseract por DOCUMENT_TEXT_DETECTION. Commits bb1c8cb + migración externa Google Vision.
 
 ### 4. Asistente: Responde consulta de compras
 expected: Al enviar un mensaje relacionado con compras a `POST /api/v1/assistant/chat/` (autenticado, con historial de mensajes), el endpoint devuelve una respuesta coherente en español sobre el tema de compras. La respuesta viene del backend real (Claude API), no de datos mock.
-result: [pending]
+result: pass
+fix: Migración de Anthropic Claude a Google Gemini API (ADR-008). SDK google-genai, modelo gemini-2.0-flash-lite, generate_content con historial completo.
 
 ### 5. Asistente: Rechaza temas fuera de dominio
 expected: Al enviar un mensaje fuera del dominio de compras (ej: "Explícame la teoría de la relatividad") al endpoint del asistente, la respuesta es un rechazo educado en español indicando que solo ayuda con temas de compra. No inventa ni responde al tema fuera de dominio.
-result: [pending]
+result: pass
 
 ### 6. Optimizador: Genera ruta optimizada
 expected: Al enviar `POST /api/v1/optimize/` con una lista de compra válida, ubicación del usuario, pesos y max_stops, el endpoint devuelve una ruta optimizada con paradas, distancias, tiempos y precios. Si no hay tiendas en el radio, devuelve error específico `OPTIMIZER_NO_STORES_IN_RADIUS` (no crash genérico).
-result: [pending]
+result: pass
 
 ### 7. Frontend: AssistantScreen con API real
 expected: Desde la pantalla del asistente en la app, escribes un mensaje y recibes respuesta real del backend. Se muestra indicador de escritura mientras carga. La conversación mantiene contexto entre mensajes. No hay banner de modo dev ni datos mock.
@@ -64,9 +63,9 @@ result: [pending]
 ## Summary
 
 total: 9
-passed: 0
+passed: 6
 issues: 0
-pending: 9
+pending: 3
 skipped: 0
 blocked: 0
 

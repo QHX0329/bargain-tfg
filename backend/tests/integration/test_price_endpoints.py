@@ -188,7 +188,11 @@ class TestListTotal:
         from apps.shopping_lists.models import ShoppingList, ShoppingListItem
 
         sl = ShoppingList.objects.create(owner=consumer_user, name="Lista Test")
-        ShoppingListItem.objects.create(shopping_list=sl, product=product, quantity=2)
+        ShoppingListItem.objects.create(
+            shopping_list=sl,
+            name=product.name,
+            quantity=2,
+        )
         return sl
 
     def test_list_total_calculates_correctly(

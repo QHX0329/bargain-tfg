@@ -260,7 +260,7 @@ Pantalla de configuración personal y estadísticas de uso. Se estructura en cua
 
 #### Descripción
 
-Primera pantalla del wizard de captura de lista por cámara. Permite al usuario fotografiar una lista de compra escrita a mano o un ticket de supermercado para extraer automáticamente los productos mediante reconocimiento óptico de caracteres (Tesseract OCR en el backend).
+Primera pantalla del wizard de captura de lista por cámara. Permite al usuario fotografiar una lista de compra escrita a mano o un ticket de supermercado para extraer automáticamente los productos mediante reconocimiento óptico de caracteres con Google Cloud Vision API en backend.
 
 #### Visor de cámara
 
@@ -269,7 +269,7 @@ Pantalla completa en modo oscuro para maximizar el contraste con el documento a 
 #### Controles
 
 - **Flash:** activa/desactiva el flash del dispositivo para condiciones de poca luz.
-- **Disparador:** botón central grande que captura la imagen y la envía como base64 al endpoint `POST /api/v1/ocr/sessions/`. Mientras el servidor procesa, se muestra un indicador de carga.
+- **Disparador:** botón central grande que captura la imagen y la envía al endpoint `POST /api/v1/ocr/scan/` como `multipart/form-data`. Mientras el servidor procesa, se muestra un indicador de carga.
 - **Galería:** alternativa al visor en vivo; permite seleccionar una imagen ya capturada desde la galería del dispositivo.
 
 #### Barra de progreso del wizard
@@ -278,7 +278,7 @@ Indicador de tres pasos en la parte superior (Captura → Revisar → Confirmar)
 
 #### Módulo Django
 
-`apps.ocr` — endpoint `POST /api/v1/ocr/sessions/` que crea una `OCRSession`, lanza la tarea Celery `process_ocr_image` y devuelve el `session_id` para polling o WebSocket.
+`apps.ocr` — endpoint `POST /api/v1/ocr/scan/` que procesa la imagen en backend, invoca Google Cloud Vision API y devuelve los ítems reconocidos. El modelo por sesiones queda como evolución futura, no como implementación vigente.
 
 #### Requisitos cubiertos
 
@@ -292,7 +292,7 @@ Indicador de tres pasos en la parte superior (Captura → Revisar → Confirmar)
 
 #### Descripción
 
-Segunda pantalla del wizard OCR. Muestra los productos reconocidos por Tesseract, agrupados por nivel de confianza, para que el usuario pueda validar, corregir y eliminar resultados antes de confirmar la incorporación a su lista.
+Segunda pantalla del wizard OCR. Muestra los productos reconocidos por Google Cloud Vision API, agrupados por nivel de confianza, para que el usuario pueda validar, corregir y eliminar resultados antes de confirmar la incorporación a su lista.
 
 #### Grupos de confianza
 
@@ -311,7 +311,7 @@ Fija en la parte superior del listado. Informa del total de productos detectados
 
 #### Módulo Django
 
-`apps.ocr` — endpoint `GET /api/v1/ocr/sessions/{id}/results/` para obtener los resultados procesados y `PATCH /api/v1/ocr/sessions/{id}/items/{item_id}/` para aplicar correcciones del usuario.
+`apps.ocr` — el backend vigente devuelve resultados directamente desde `POST /api/v1/ocr/scan/`. La persistencia de sesión y endpoints de corrección quedan documentados como evolución futura del flujo OCR.
 
 #### Requisitos cubiertos
 

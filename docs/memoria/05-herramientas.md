@@ -26,7 +26,7 @@ la decisión adoptada para el proyecto.
 | Comunicación HTTP         | Axios                                    | Fetch API nativa                                                                 | Interceptores JWT, manejo de errores, consistencia                  | Se utiliza Axios por soporte directo de interceptores para access/refresh token y estandarización de clientes API.                                                                |
 | Tareas asíncronas         | Celery + Redis                           | RQ, Dramatiq, cron directo                                                       | Retries, scheduling, madurez, ecosistema Django                     | Celery + Redis ofrece patrón probado para colas, tareas periódicas y reintentos, clave para scraping y mantenimiento de precios.                                                  |
 | Scraping                  | Scrapy + Playwright                      | BeautifulSoup + requests, Selenium                                               | Escalabilidad scraping, sitios dinámicos, robustez                  | Se combina Scrapy (pipeline y rendimiento) con Playwright (renderizado JS) para cubrir supermercados con distintos niveles de complejidad web.                                    |
-| OCR                       | Tesseract OCR (pytesseract en backend)   | Google Vision OCR, AWS Textract                                                  | Coste, control local, dependencia externa                           | Se prioriza Tesseract por coste cero de licenciamiento y capacidad de integración local para prototipado académico.                                                               |
+| OCR                       | Google Cloud Vision API (backend)        | Tesseract OCR, AWS Textract                                                      | Precisión real, dependencia externa, coste operativo, integración    | Se adopta Google Vision API porque Tesseract mostró falta de claridad en fotos reales de tickets y listas; se acepta el coste y la dependencia externa a cambio de mayor robustez. |
 | Optimización de rutas     | OR-Tools + algoritmo ponderado propio    | Heurísticas ad hoc puras, motores externos cerrados                              | Calidad de solución, reproducibilidad, control experimental         | OR-Tools aporta solvers de referencia y permite combinar un modelo formal con la función multicriterio definida para BargAIn.                                                     |
 | Asistente LLM             | Claude API (vía backend)                 | OpenAI API, modelos open source autoalojados                                     | Calidad conversacional, integración, gobernanza de acceso           | Se integra Claude vía backend para centralizar seguridad, trazabilidad y control del contexto de compra.                                                                          |
 | Observabilidad            | Sentry + structlog                       | Logging básico, Rollbar                                                          | Trazabilidad de errores, depuración, coste                          | Sentry facilita captura estructurada de excepciones y structlog estandariza logs para diagnóstico en desarrollo y staging.                                                        |
@@ -80,7 +80,7 @@ servicio ante tareas costosas (ingesta de precios, recálculos, jobs periódicos
 ### 5.3.5 IA y optimización
 
 - Claude API (integración backend)
-- Tesseract OCR
+- Google Cloud Vision API
 - OR-Tools
 - thefuzz
 
@@ -126,9 +126,9 @@ limitaciones relevantes que condicionan la evolución del sistema:
 3. Rendimiento en escenarios de alta carga. Celery + Redis resulta adecuado para el
    volumen esperado en fase académica, pero un crecimiento significativo de usuarios
    requeriría ajuste de concurrencia, colas y estrategia de observabilidad.
-4. Precisión del OCR en datos no estructurados. Tesseract presenta degradación de
-   calidad en imágenes con iluminación deficiente, escritura irregular o tickets
-   deteriorados, lo que obliga a incorporar validación posterior por parte del usuario.
+4. Dependencia del proveedor OCR. Google Cloud Vision API mejora la robustez sobre imágenes
+   complejas, pero introduce costes por uso, cuotas y dependencia de conectividad, por lo que
+   la revisión manual posterior sigue siendo necesaria en el flujo de usuario.
 5. Complejidad operativa del entorno híbrido. El modelo backend en Docker y frontend
    nativo en host mejora la experiencia de desarrollo en Windows, pero introduce
    diferencias entre entornos que deben controlarse con documentación y automatización.

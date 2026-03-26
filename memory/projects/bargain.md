@@ -16,7 +16,7 @@ Optimizar la compra del usuario combinando precio, distancia y tiempo entre mult
 
 - Backend: Django, DRF, PostgreSQL, PostGIS, Celery, Redis.
 - Frontend: React Native (Expo), React web companion, Zustand, Axios.
-- IA y optimizacion: OR-Tools, Tesseract, Claude API.
+- IA y optimizacion: OR-Tools, Google Cloud Vision API y Claude API.
 - Infra: Docker (backend), host nativo (frontend), GitHub Actions, Render.
 
 ## Estado funcional por bloques
@@ -24,7 +24,7 @@ Optimizar la compra del usuario combinando precio, distancia y tiempo entre mult
 - API backend core: completada.
 - Notificaciones y business portal backend: completada.
 - Frontend principal y UX avanzada: en progreso avanzado.
-- Optimizer real, scraping productivo, OCR/LLM backend: pendiente.
+- Optimizer real, scraping productivo, migracion OCR a Google Vision y LLM backend: pendiente.
 
 ---
 Actualizado: 2026-03-19

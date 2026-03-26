@@ -123,10 +123,9 @@ entity "**prices_pricehistory**" as price_history {
 entity "**shopping_lists_shoppinglist**" as list {
     * id : BIGSERIAL <<PK>>
     --
-    * user_id : BIGINT <<FK>>
+    * owner_id : BIGINT <<FK>>
     * name : VARCHAR(200)
-    * status : VARCHAR(20) <<CHECK>>
-    * is_template : BOOLEAN
+    * is_archived : BOOLEAN
     * created_at : TIMESTAMPTZ
     * updated_at : TIMESTAMPTZ
 }
@@ -135,10 +134,41 @@ entity "**shopping_lists_shoppinglistitem**" as list_item {
     * id : BIGSERIAL <<PK>>
     --
     * shopping_list_id : BIGINT <<FK>>
-    * product_id : BIGINT <<FK>>
-    * quantity : DECIMAL(10,3)
+    * name : VARCHAR(255)
+    * normalized_name : VARCHAR(255) <<INDEX>>
+    * quantity : SMALLINT
     * is_checked : BOOLEAN
-    notes : TEXT
+    added_by_id : BIGINT <<FK, NULL>>
+    * created_at : TIMESTAMPTZ
+}
+
+entity "**shopping_lists_listcollaborator**" as list_collaborator {
+    * id : BIGSERIAL <<PK>>
+    --
+    * shopping_list_id : BIGINT <<FK>>
+    * user_id : BIGINT <<FK>>
+    invited_by_id : BIGINT <<FK, NULL>>
+    * created_at : TIMESTAMPTZ
+    ..
+    <<UNIQUE(shopping_list_id, user_id)>>
+}
+
+entity "**shopping_lists_listtemplate**" as list_template {
+    * id : BIGSERIAL <<PK>>
+    --
+    * owner_id : BIGINT <<FK>>
+    * name : VARCHAR(200)
+    source_list_id : BIGINT <<FK, NULL>>
+    * created_at : TIMESTAMPTZ
+}
+
+entity "**shopping_lists_listtemplateitem**" as list_template_item {
+    * id : BIGSERIAL <<PK>>
+    --
+    * template_id : BIGINT <<FK>>
+    * name : VARCHAR(255)
+    * normalized_name : VARCHAR(255) <<INDEX>>
+    * ordering : SMALLINT
 }
 
 entity "**optimizer_optimizationresult**" as opt_result {
@@ -241,7 +271,13 @@ price_history }o--|| store
 
 list }o--|| user
 list_item }o--|| list
-list_item }o--|| product
+list_item }o--o| user : added_by
+list_collaborator }o--|| list
+list_collaborator }o--|| user : collaborator
+list_collaborator }o--o| user : invited_by
+list_template }o--|| user : owner
+list_template }o--o| list : source_list
+list_template_item }o--|| list_template
 
 opt_result }o--|| list
 opt_result }o--|| user

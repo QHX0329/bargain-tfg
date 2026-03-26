@@ -76,7 +76,9 @@ El usuario puede:
 Estado actual:
 - Existe interfaz de captura/revisión OCR en frontend (flujo UI).
 - Existe interfaz de chat del asistente con historial local (flujo UI).
-- La integración backend avanzada de OCR/LLM queda planificada en F5.
+- La decisión aprobada para el OCR backend es migrar a Google Cloud Vision API, motivada por la
+  falta de claridad de Tesseract en fotos reales. La alineación completa del código queda
+  planificada en F5.
 
 ## 9.11 Portal Business (web)
 
@@ -95,5 +97,5 @@ Para cuentas PYME:
 ## 9.13 Estado de cobertura del manual
 
 Este manual cubre el uso funcional implementado hasta F4-27. Los flujos de optimización
-avanzada real, OCR productivo y asistente con datos en vivo se documentarán en la actualización
-final tras F5/F6.
+avanzada real, OCR productivo con Google Vision API y asistente con datos en vivo se
+documentarán en la actualización final tras F5/F6.

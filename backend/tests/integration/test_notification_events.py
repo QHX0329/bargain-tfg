@@ -143,7 +143,6 @@ class TestSharedListNotificationTrigger:
         """Añadir ítem a lista compartida programa send_shared_list_notification con countdown=900."""
         from apps.shopping_lists.models import ListCollaborator
 
-        product = ProductFactory()
         shopping_list = ShoppingListFactory(owner=consumer_user)
         # Add a collaborator so notification is relevant
         collab_user = UserFactory()
@@ -165,7 +164,7 @@ class TestSharedListNotificationTrigger:
 
             resp = authenticated_client.post(
                 f"/api/v1/lists/{shopping_list.id}/items/",
-                {"product": product.id, "quantity": 1},
+                {"name": "Leche entera", "quantity": 1},
                 format="json",
             )
 
@@ -196,10 +195,9 @@ class TestSharedListNotificationTrigger:
             # Key already set
             mock_redis.exists.return_value = True
 
-            product2 = ProductFactory()
             resp = authenticated_client.post(
                 f"/api/v1/lists/{shopping_list.id}/items/",
-                {"product": product2.id, "quantity": 1},
+                {"name": "Pan integral", "quantity": 1},
                 format="json",
             )
 

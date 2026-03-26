@@ -135,11 +135,9 @@ package "apps.prices" as pkg_prices #FFEBEE {
 package "apps.shopping_lists" as pkg_lists #F3E5F5 {
     class ShoppingList {
         +id: BigAutoField
-        +user: FK(User)
+        +owner: FK(User)
         +name: CharField
-        +status: CharField {active|completed|archived}
-        +is_template: BooleanField
-        +shared_with: M2M(User)
+        +is_archived: BooleanField
         +created_at: DateTimeField
         +updated_at: DateTimeField
     }
@@ -147,10 +145,38 @@ package "apps.shopping_lists" as pkg_lists #F3E5F5 {
     class ShoppingListItem {
         +id: BigAutoField
         +shopping_list: FK(ShoppingList)
-        +product: FK(Product)
-        +quantity: DecimalField
+        +name: CharField
+        +normalized_name: CharField [indexed]
+        +quantity: PositiveSmallIntegerField
         +is_checked: BooleanField
-        +notes: TextField [optional]
+        +added_by: FK(User) [optional]
+        +created_at: DateTimeField
+    }
+
+    class ListCollaborator {
+        +id: BigAutoField
+        +shopping_list: FK(ShoppingList)
+        +user: FK(User)
+        +invited_by: FK(User) [optional]
+        +created_at: DateTimeField
+        ..
+        <<UNIQUE(shopping_list, user)>>
+    }
+
+    class ListTemplate {
+        +id: BigAutoField
+        +owner: FK(User)
+        +name: CharField
+        +source_list: FK(ShoppingList) [optional]
+        +created_at: DateTimeField
+    }
+
+    class ListTemplateItem {
+        +id: BigAutoField
+        +template: FK(ListTemplate)
+        +name: CharField
+        +normalized_name: CharField [indexed]
+        +ordering: PositiveSmallIntegerField
     }
 }
 
@@ -310,9 +336,14 @@ PriceHistory "*" --o "1" Store
 
 ' Listas
 ShoppingList "*" --o "1" User : owner
-ShoppingList "*" --o "0..*" User : shared_with
 ShoppingListItem "*" --o "1" ShoppingList
-ShoppingListItem "*" --o "1" Product
+ShoppingListItem "*" --o "0..1" User : added_by
+ListCollaborator "*" --o "1" ShoppingList
+ListCollaborator "*" --o "1" User : collaborator
+ListCollaborator "*" --o "0..1" User : invited_by
+ListTemplate "*" --o "1" User : owner
+ListTemplate "*" --o "0..1" ShoppingList : source_list
+ListTemplateItem "*" --o "1" ListTemplate
 
 ' Optimizador
 OptimizationResult "*" --o "1" ShoppingList

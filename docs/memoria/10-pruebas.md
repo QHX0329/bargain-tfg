@@ -61,12 +61,13 @@ Frontend:
 - Riesgo de desalineación frontend-backend: mitigado con contratos API centralizados y
 	tests de servicios frontend.
 - Riesgo en integraciones futuras (F5): pendiente ampliar pruebas de rendimiento del
-	optimizador y precisión OCR.
+	optimizador y precisión OCR con Google Vision API sobre tickets y listas reales.
 
 ## 10.7 Pruebas pendientes (F5/F6)
 
 - Tests de optimizador multicriterio con casos borde y tiempos de respuesta.
-- Tests de OCR con datasets de tickets/listas manuscritas.
+- Tests de OCR con datasets de tickets/listas manuscritas y contraste de resultados tras la
+  migración a Google Vision API.
 - E2E completos de usuario (inicio a fin).
 - Pruebas de usabilidad con usuarios reales.
 - Validación final de criterios no funcionales de rendimiento y despliegue.
@@ -74,5 +75,6 @@ Frontend:
 ## 10.8 Conclusión
 
 El estado de pruebas es sólido para la base funcional ya implementada. El foco de calidad para
-el cierre del TFG se concentra en F5-F6: optimizador real, OCR/LLM productivo, E2E y pruebas
+el cierre del TFG se concentra en F5-F6: optimizador real, migración OCR a Google Vision,
+OCR/LLM productivo, E2E y pruebas
 de usuario final.

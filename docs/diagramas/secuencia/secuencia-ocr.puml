@@ -10,8 +10,7 @@ title **BargAIn — Diagrama de Secuencia: Procesamiento OCR de Lista / Ticket**
 actor "Consumidor" as user
 participant "App Móvil\n(React Native)" as app
 participant "API REST\n(DRF)" as api
-participant "Celery Worker" as celery
-participant "OCRService\n(Tesseract)" as ocr
+participant "OCRService\n(Google Cloud Vision API)" as ocr
 participant "ProductMatcher\n(TheFuzz)" as matcher
 database "PostgreSQL" as db
 
@@ -20,57 +19,30 @@ activate app
 
 app -> app : Previsualizar imagen\ny confirmar envío
 
-app -> api : POST /api/v1/ocr/sessions/\n{image: base64}
+app -> api : POST /api/v1/ocr/scan/\n{image: multipart/form-data}
 activate api
 
-api -> db : INSERT ocr_session\nstatus='processing'
-activate db
-db --> api : session_id
-deactivate db
-
-api -> celery : process_ocr_task.delay(\nsession_id)
-activate celery
-
-api --> app : 202 Accepted\n{session_id, status: 'processing'}
-deactivate api
-
-app --> user : "Procesando imagen..."
-app -> app : Polling cada 2s\nGET /api/v1/ocr/sessions/{id}/
-
-celery -> ocr : extract_text(image)
+api -> ocr : extract_text(image)
 activate ocr
-ocr -> ocr : Preprocesar imagen\n(contraste, binarización,\nrotación)
-ocr -> ocr : Tesseract OCR\n(lang='spa')
-ocr --> celery : texto_extraido:\n"Leche entera 1L\nPan molde\nTomates kg\n..."
+ocr -> ocr : Invocar Google Vision API
+ocr --> api : texto_extraido:\n"Leche entera 1L\nPan molde\nTomates kg\n..."
 deactivate ocr
 
-celery -> celery : Limpiar y tokenizar\nlíneas de texto
+api -> api : Limpiar y tokenizar\nlíneas de texto
 
 loop Para cada línea reconocida
-    celery -> matcher : find_best_match(\nlinea, catalog)
+    api -> matcher : find_best_match(\nlinea, catalog)
     activate matcher
     matcher -> db : SELECT name, normalized_name\nFROM products\nWHERE is_active = true
     activate db
     db --> matcher : Catálogo de productos
     deactivate db
     matcher -> matcher : fuzz.token_sort_ratio(\nlinea, normalized_name)\nUmbral ≥ 60%
-    matcher --> celery : {product_id, name,\nconfidence: 0.87}
+    matcher --> api : {product_id, name,\nconfidence: 0.87}
     deactivate matcher
 end
 
-celery -> db : UPDATE ocr_session\nSET recognized_products = [...],\nextracted_text = '...',\nstatus = 'completed'
-activate db
-db --> celery : OK
-deactivate db
-deactivate celery
-
-app -> api : GET /api/v1/ocr/sessions/{id}/
-activate api
-api -> db : SELECT * FROM ocr_session
-activate db
-db --> api : session (status='completed')
-deactivate db
-api --> app : 200 OK\n{status: 'completed',\nproducts: [{name, confidence}...]}
+api --> app : 200 OK\n{items: [{name, confidence}...]}
 deactivate api
 
 app --> user : Lista de productos\nreconocidos con confianza
@@ -78,24 +50,7 @@ deactivate app
 
 user -> app : Revisa, corrige\ny confirma productos
 activate app
-
-app -> api : POST /api/v1/ocr/sessions/{id}/confirm/\n{products: [confirmed_ids],\nlist_name: "Mi lista"}
-activate api
-
-api -> db : INSERT shopping_list\n+ shopping_list_items
-activate db
-db --> api : list_id
-deactivate db
-
-api -> db : UPDATE ocr_session\nSET shopping_list_id = list_id
-activate db
-db --> api : OK
-deactivate db
-
-api --> app : 201 Created\n{list_id, items_count}
-deactivate api
-
-app --> user : "Lista creada con\nN productos"
+app --> user : "Revisión manual previa a\npersistencia final"
 deactivate app
 
 @enduml

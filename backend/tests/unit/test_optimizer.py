@@ -131,20 +131,12 @@ def test_max_stops_validation_rejects_out_of_range():
 def test_optimize_raises_no_stores_when_store_queryset_empty(consumer_user):
     """optimize_shopping_list lanza StoreNotFoundError si no hay tiendas en radio."""
     from apps.shopping_lists.models import ShoppingList, ShoppingListItem
-    from apps.products.models import Product, Category
 
-    # Crear lista con un producto
-    category = Category.objects.create(name="Test Cat")
-    product = Product.objects.create(
-        name="Test Product",
-        normalized_name="test product",
-        category=category,
-        is_active=True,
-    )
+    # Crear lista con un item textual
     shopping_list = ShoppingList.objects.create(owner=consumer_user, name="Test List")
     ShoppingListItem.objects.create(
         shopping_list=shopping_list,
-        product=product,
+        name="Test Product",
         quantity=1,
         added_by=consumer_user,
     )

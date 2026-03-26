@@ -35,6 +35,7 @@ from .serializers import (
     ShoppingListItemSerializer,
     ShoppingListSerializer,
 )
+from .utils import normalize_list_text
 
 User = get_user_model()
 
@@ -91,7 +92,7 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
                 django_models.Q(owner=user) | django_models.Q(listcollaborator_set__user=user)
             )
             .distinct()
-            .prefetch_related("items__product__category")
+            .prefetch_related("items")
             .order_by("-updated_at")
         )
 
@@ -134,9 +135,7 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
         shopping_list = self.get_object()
 
         if request.method == "GET":
-            items_qs = shopping_list.items.select_related("product__category").order_by(
-                "created_at"
-            )
+            items_qs = shopping_list.items.order_by("created_at")
             serializer = ShoppingListItemEnrichedSerializer(items_qs, many=True)
             return Response(serializer.data)
 
@@ -144,12 +143,13 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
         serializer = ShoppingListItemSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        product = serializer.validated_data.get("product")
+        item_name = serializer.validated_data["name"]
         quantity = serializer.validated_data.get("quantity", 1)
+        normalized_name = normalize_list_text(item_name)
 
         existing_item = ShoppingListItem.objects.filter(
             shopping_list=shopping_list,
-            product=product,
+            normalized_name=normalized_name,
         ).first()
 
         if existing_item is not None:
@@ -161,7 +161,11 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_200_OK,
             )
 
-        serializer.save(shopping_list=shopping_list, added_by=request.user)
+        serializer.save(
+            shopping_list=shopping_list,
+            added_by=request.user,
+            name=item_name,
+        )
         _trigger_list_notification(shopping_list.id, request.user.id)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -321,7 +325,7 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
     )
     @action(detail=True, methods=["post"], url_path="save-template")
     def save_template(self, request, pk=None):
-        """POST: crea ListTemplate desde la lista actual (solo products, qty=1, unchecked)."""
+        """POST: crea ListTemplate desde la lista actual (solo texto, qty=1, unchecked)."""
         shopping_list = self.get_object()
         name = request.data.get("name")
         if not name:
@@ -334,11 +338,11 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
             name=name,
             source_list=shopping_list,
         )
-        items = shopping_list.items.select_related("product").order_by("created_at")
+        items = shopping_list.items.order_by("created_at")
         for i, item in enumerate(items):
             ListTemplateItem.objects.create(
                 template=template,
-                product=item.product,
+                name=item.name,
                 ordering=i,
             )
 
@@ -359,9 +363,7 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
     def from_template(self, request, template_pk=None):
         """POST: crea nueva lista desde plantilla; sujeto al límite de 20 activas."""
         try:
-            template = ListTemplate.objects.prefetch_related("items__product").get(
-                pk=template_pk, owner=request.user
-            )
+            template = ListTemplate.objects.prefetch_related("items").get(pk=template_pk, owner=request.user)
         except ListTemplate.DoesNotExist:
             return Response(
                 {"detail": "Plantilla no encontrada."}, status=status.HTTP_404_NOT_FOUND
@@ -379,7 +381,7 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
         for template_item in template.items.all():
             ShoppingListItem.objects.create(
                 shopping_list=new_list,
-                product=template_item.product,
+                name=template_item.name,
                 quantity=1,
                 is_checked=False,
                 added_by=user,
@@ -407,7 +409,7 @@ class ListTemplateViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return (
             ListTemplate.objects.filter(owner=self.request.user)
-            .prefetch_related("items__product__category")
+            .prefetch_related("items")
             .order_by("-created_at")
         )
 
@@ -438,10 +440,10 @@ class ListTemplateViewSet(viewsets.ModelViewSet):
         name = request.data.get("name") or template.name
         new_list = ShoppingList.objects.create(owner=user, name=name)
 
-        for template_item in template.items.prefetch_related("product").all():
+        for template_item in template.items.all():
             ShoppingListItem.objects.create(
                 shopping_list=new_list,
-                product=template_item.product,
+                name=template_item.name,
                 quantity=1,
                 is_checked=False,
                 added_by=user,

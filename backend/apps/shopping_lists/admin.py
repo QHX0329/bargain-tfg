@@ -15,7 +15,7 @@ class ShoppingListItemInline(admin.TabularInline):
     model = ShoppingListItem
     extra = 0
     readonly_fields = ("added_by", "created_at")
-    fields = ("product", "quantity", "is_checked", "added_by", "created_at")
+    fields = ("name", "quantity", "is_checked", "added_by", "created_at")
 
 
 class ListCollaboratorInline(admin.TabularInline):
@@ -44,7 +44,7 @@ class ListCollaboratorAdmin(admin.ModelAdmin):
 class ListTemplateItemInline(admin.TabularInline):
     model = ListTemplateItem
     extra = 0
-    fields = ("product", "ordering")
+    fields = ("name", "ordering")
 
 
 @admin.register(ListTemplate)

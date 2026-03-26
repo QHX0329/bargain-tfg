@@ -216,7 +216,8 @@ class ListTotalView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        from apps.shopping_lists.models import ShoppingList, ShoppingListItem
+        from apps.optimizer.services.matching import resolve_list_items
+        from apps.shopping_lists.models import ShoppingList
         from apps.stores.models import Store
 
         try:
@@ -249,34 +250,19 @@ class ListTotalView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        items = ShoppingListItem.objects.filter(shopping_list=shopping_list).select_related(
-            "product"
-        )
+        items = list(shopping_list.items.filter(is_checked=False).order_by("created_at"))
+        resolution = resolve_list_items(items, [store], max_stops=1)
 
         total = Decimal("0.00")
-        missing_items: list[str] = []
-
-        for item in items:
-            # Obtener el precio más reciente no-stale del producto en la tienda
-            price_obj = (
-                Price.objects.filter(product=item.product, store=store, is_stale=False)
-                .order_by("-verified_at")
-                .first()
-            )
-            if price_obj is None:
-                missing_items.append(item.product.name)
-            else:
-                effective_price = (
-                    price_obj.offer_price if price_obj.offer_price else price_obj.price
-                )
-                total += effective_price * item.quantity
+        for assignment in resolution["assignments"]:
+            total += assignment.extended_price
 
         return success_response(
             {
                 "store_id": store.id,
                 "store_name": store.name,
                 "total": str(total),
-                "missing_items": missing_items,
+                "missing_items": resolution["unmatched_items"],
             }
         )
 

@@ -14,7 +14,7 @@ Módulo de OCR y revisión de productos extraídos.
 ## Estado
 Pendiente de cierre backend real.
 ## Puntos clave
-- Extracción de texto.
+- Extracción de texto con Google Cloud Vision API como decisión de diseño.
 - Matching con catálogo.
 - Integración con flujo de frontend.
 ## Fuente de verdad

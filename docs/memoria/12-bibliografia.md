@@ -40,11 +40,11 @@ https://developers.google.com/optimization
 [12] Anthropic, "Claude API Documentation," 2026. [Online]. Available:
 https://docs.anthropic.com/
 
-[13] Google, "Tesseract OCR," 2026. [Online]. Available:
-https://github.com/tesseract-ocr/tesseract
+[13] Google Cloud, "Cloud Vision Documentation," 2026. [Online]. Available:
+https://cloud.google.com/vision/docs
 
-[14] Naptha, "Tesseract.js Documentation," 2026. [Online]. Available:
-https://tesseract.projectnaptha.com/
+[14] Google Cloud, "Cloud Vision API Pricing," 2026. [Online]. Available:
+https://cloud.google.com/vision/pricing
 
 ## 12.3 Herramientas de calidad y despliegue
 

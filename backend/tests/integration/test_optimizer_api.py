@@ -61,7 +61,7 @@ def shopping_list_with_items(db, consumer_user, product_with_category):
     sl = ShoppingList.objects.create(owner=consumer_user, name="Lista Test Optimizacion")
     ShoppingListItem.objects.create(
         shopping_list=sl,
-        product=product_with_category,
+        name=product_with_category.name,
         quantity=2,
         added_by=consumer_user,
     )

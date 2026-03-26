@@ -1,13 +1,14 @@
-"""Tests del comando de seed de usuarios."""
+"""Tests del comando seed_data restringido a usuarios y tiendas reales."""
 
 from __future__ import annotations
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.contrib.gis.geos import Point
 from django.core.management import call_command
 
 from apps.business.models import BusinessProfile, Promotion
-from apps.core.management.commands.seed_data import SEED_PREFIX
+from apps.core.management.commands.seed_data import CHAIN_SPECS, SEED_PREFIX
 from apps.notifications.models import Notification, UserPushToken
 from apps.prices.models import Price, PriceAlert
 from apps.products.models import Category, Product, ProductProposal
@@ -37,22 +38,24 @@ def test_seed_data_creates_expected_users() -> None:
 
 @pytest.mark.django_db
 def test_seed_data_is_idempotent() -> None:
-    """No duplica usuarios seed al ejecutar varias veces."""
+    """No duplica usuarios ni tiendas al ejecutar varias veces."""
     user_model = get_user_model()
 
     call_command("seed_data", consumers=3, businesses=2)
-    first_count = user_model.objects.filter(username__startswith=SEED_PREFIX).count()
+    first_user_count = user_model.objects.filter(username__startswith=SEED_PREFIX).count()
+    first_store_count = Store.objects.count()
+    first_chain_count = StoreChain.objects.count()
 
     call_command("seed_data", consumers=3, businesses=2)
-    second_count = user_model.objects.filter(username__startswith=SEED_PREFIX).count()
 
-    assert first_count == 6
-    assert second_count == first_count
+    assert user_model.objects.filter(username__startswith=SEED_PREFIX).count() == first_user_count
+    assert Store.objects.count() == first_store_count
+    assert StoreChain.objects.count() == first_chain_count
 
 
 @pytest.mark.django_db
-def test_seed_data_reset_recreates_only_seed_users() -> None:
-    """Con --reset limpia seeds previos y no toca usuarios ajenos."""
+def test_seed_data_reset_recreates_only_managed_records() -> None:
+    """Con --reset limpia usuarios seed y tiendas gestionadas por el comando."""
     user_model = get_user_model()
 
     user_model.objects.create_user(
@@ -61,11 +64,20 @@ def test_seed_data_reset_recreates_only_seed_users() -> None:
         password="manualpass123",
         role="consumer",
     )
-    call_command("seed_data", consumers=2, businesses=1)
+    StoreChain.objects.create(name="Cadena Manual", slug="manual-chain")
+    Store.objects.create(
+        name="Tienda Manual",
+        address="Calle Manual 1",
+        location=Point(-5.98, 37.38, srid=4326),
+        is_active=True,
+    )
 
+    call_command("seed_data", consumers=2, businesses=1)
     call_command("seed_data", consumers=1, businesses=0, reset=True)
 
     assert user_model.objects.filter(username="manual_user").exists()
+    assert StoreChain.objects.filter(slug="manual-chain").exists()
+    assert Store.objects.filter(name="Tienda Manual").exists()
     assert user_model.objects.filter(username__startswith=SEED_PREFIX).count() == 2
     assert user_model.objects.filter(username="seed_admin").exists()
     assert user_model.objects.filter(username="seed_consumer_1").exists()
@@ -74,29 +86,26 @@ def test_seed_data_reset_recreates_only_seed_users() -> None:
 
 
 @pytest.mark.django_db
-def test_seed_data_populates_all_backend_entities() -> None:
-    """Crea registros seed para todas las entidades principales del backend."""
+def test_seed_data_populates_only_users_and_real_scraping_stores() -> None:
+    """No genera catálogo ni datos demo inventados."""
     call_command("seed_data", consumers=3, businesses=2, reset=True)
 
-    assert Category.objects.filter(name__startswith=SEED_PREFIX).exists()
-    assert Product.objects.filter(name__startswith=SEED_PREFIX).exists()
-    assert ProductProposal.objects.filter(name__startswith=SEED_PREFIX).exists()
+    assert not Category.objects.exists()
+    assert not Product.objects.exists()
+    assert not ProductProposal.objects.exists()
+    assert not Price.objects.exists()
+    assert not PriceAlert.objects.exists()
+    assert not ShoppingList.objects.exists()
+    assert not ShoppingListItem.objects.exists()
+    assert not ListCollaborator.objects.exists()
+    assert not ListTemplate.objects.exists()
+    assert not ListTemplateItem.objects.exists()
+    assert not BusinessProfile.objects.exists()
+    assert not Promotion.objects.exists()
+    assert not Notification.objects.exists()
+    assert not UserPushToken.objects.exists()
+    assert not UserFavoriteStore.objects.exists()
 
-    assert StoreChain.objects.filter(name__startswith=SEED_PREFIX).exists()
-    assert Store.objects.filter(name__startswith=SEED_PREFIX).exists()
-    assert UserFavoriteStore.objects.filter(user__username__startswith=SEED_PREFIX).exists()
-
-    assert Price.objects.filter(product__name__startswith=SEED_PREFIX).exists()
-    assert PriceAlert.objects.filter(user__username__startswith=SEED_PREFIX).exists()
-
-    assert ShoppingList.objects.filter(name__startswith=SEED_PREFIX).exists()
-    assert ShoppingListItem.objects.filter(shopping_list__name__startswith=SEED_PREFIX).exists()
-    assert ListCollaborator.objects.filter(user__username__startswith=SEED_PREFIX).exists()
-    assert ListTemplate.objects.filter(name__startswith=SEED_PREFIX).exists()
-    assert ListTemplateItem.objects.filter(template__name__startswith=SEED_PREFIX).exists()
-
-    assert BusinessProfile.objects.filter(business_name__startswith=SEED_PREFIX).exists()
-    assert Promotion.objects.filter(title__startswith=SEED_PREFIX).exists()
-
-    assert Notification.objects.filter(title__startswith=SEED_PREFIX).exists()
-    assert UserPushToken.objects.filter(token__startswith=SEED_PREFIX).exists()
+    expected_slugs = {slug for _, slug in CHAIN_SPECS}
+    assert set(StoreChain.objects.values_list("slug", flat=True)) == expected_slugs
+    assert Store.objects.filter(chain__slug__in=expected_slugs, is_active=True).exists()

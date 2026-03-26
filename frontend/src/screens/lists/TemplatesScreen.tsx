@@ -54,7 +54,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
 }) => {
   const preview = template.items
     .slice(0, 3)
-    .map((i) => i.product_name ?? `Producto #${i.product}`)
+    .map((i) => i.name)
     .join(", ");
   const extra =
     template.item_count > 3 ? ` +${template.item_count - 3} más` : "";

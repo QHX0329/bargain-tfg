@@ -660,7 +660,9 @@ Devuelve el histórico agregado diariamente (mínimo, máximo y media) de los ú
 GET /api/v1/prices/list-total/?list=<id>&store=<id>    (autenticado)
 ```
 
-Calcula el coste total de la lista de la compra en la tienda indicada, e informa de los productos sin precio disponible en esa tienda.
+Calcula el coste total de los ítems no marcados de una lista en la tienda indicada. La resolución de
+ítems es textual (matching diferido), por lo que la respuesta incluye los ítems no resueltos para
+esa tienda en `missing_items`.
 
 **Parámetros de consulta:**
 
@@ -677,11 +679,9 @@ Calcula el coste total de la lista de la compra en la tienda indicada, e informa
   "data": {
     "store_id": 7,
     "store_name": "Mercadona Triana",
-    "list_id": 3,
-    "total_price": 12.45,
-    "item_count": 8,
+    "total": "12.45",
     "missing_items": [
-      { "product_id": 99, "product_name": "Leche de avena 1L" }
+      "leche de avena 1l"
     ]
   }
 }
@@ -799,9 +799,19 @@ Devuelve todas las listas en las que el usuario es propietario o colaborador.
       "id": 3,
       "name": "Compra semanal",
       "is_archived": false,
-      "item_count": 8,
+      "owner": "usuario123",
       "created_at": "2026-03-10T09:00:00Z",
-      "role": "owner"
+      "updated_at": "2026-03-17T10:00:00Z",
+      "items": [
+        {
+          "id": 15,
+          "name": "leche entera",
+          "normalized_name": "leche entera",
+          "product_name": "leche entera",
+          "quantity": 2,
+          "is_checked": false
+        }
+      ]
     }
   ]
 }
@@ -834,8 +844,8 @@ Crea una nueva lista de la compra. Límite: 20 listas activas por usuario (error
     "id": 4,
     "name": "Compra del fin de semana",
     "is_archived": false,
-    "item_count": 0,
-    "created_at": "2026-03-17T10:00:00Z"
+    "created_at": "2026-03-17T10:00:00Z",
+    "updated_at": "2026-03-17T10:00:00Z"
   }
 }
 ```
@@ -848,7 +858,8 @@ Crea una nueva lista de la compra. Límite: 20 listas activas por usuario (error
 GET /api/v1/lists/<id>/    (autenticado)
 ```
 
-Devuelve el detalle de la lista con todos sus ítems enriquecidos con información del producto.
+Devuelve el detalle de la lista con sus ítems textuales (`name`, `normalized_name`) y el alias de
+compatibilidad `product_name`.
 
 **Respuesta 200:**
 
@@ -859,16 +870,17 @@ Devuelve el detalle de la lista con todos sus ítems enriquecidos con informaci�
     "id": 3,
     "name": "Compra semanal",
     "is_archived": false,
+    "owner": "usuario123",
+    "created_at": "2026-03-10T09:00:00Z",
+    "updated_at": "2026-03-17T10:00:00Z",
     "items": [
       {
         "id": 15,
-        "product_id": 42,
-        "product_name": "Leche entera UHT 1L",
-        "category_name": "Lácteos",
+        "name": "leche entera",
+        "normalized_name": "leche entera",
+        "product_name": "leche entera",
         "quantity": 2,
-        "is_checked": false,
-        "latest_price": 0.72,
-        "is_stale": false
+        "is_checked": false
       }
     ]
   }
@@ -916,7 +928,7 @@ Elimina la lista permanentemente. Solo el propietario puede eliminarla.
 GET /api/v1/lists/<id>/items/    (autenticado)
 ```
 
-Devuelve los ítems de la lista con información enriquecida: nombre del producto, nombre de la categoría, último precio conocido e indicador de frescura.
+Devuelve los ítems de la lista en formato textual normalizado.
 
 **Respuesta 200:**
 
@@ -926,13 +938,11 @@ Devuelve los ítems de la lista con información enriquecida: nombre del product
   "data": [
     {
       "id": 15,
-      "product_id": 42,
-      "product_name": "Leche entera UHT 1L",
-      "category_name": "Lácteos",
+      "name": "leche entera",
+      "normalized_name": "leche entera",
+      "product_name": "leche entera",
       "quantity": 2,
-      "is_checked": false,
-      "latest_price": 0.72,
-      "is_stale": false
+      "is_checked": false
     }
   ]
 }
@@ -950,10 +960,13 @@ POST /api/v1/lists/<id>/items/    (autenticado)
 
 ```json
 {
-  "product": 42,
+  "name": "leche entera",
   "quantity": 2
 }
 ```
+
+Si ya existe un ítem con el mismo `normalized_name` en la lista, el backend suma cantidades y
+responde `200` con el ítem actualizado en lugar de crear uno nuevo.
 
 **Respuesta 201:**
 
@@ -962,8 +975,9 @@ POST /api/v1/lists/<id>/items/    (autenticado)
   "success": true,
   "data": {
     "id": 15,
-    "product_id": 42,
-    "product_name": "Leche entera UHT 1L",
+    "name": "leche entera",
+    "normalized_name": "leche entera",
+    "product_name": "leche entera",
     "quantity": 2,
     "is_checked": false
   }

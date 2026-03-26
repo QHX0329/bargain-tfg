@@ -5,15 +5,13 @@ ENV PYTHONUNBUFFERED=1
 ENV DJANGO_SETTINGS_MODULE=config.settings.dev
 ENV PYTHONPATH="/app:/scraping:${PYTHONPATH}"
 
-# Install system dependencies for PostGIS and Tesseract
+# Install system dependencies for PostGIS
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gdal-bin \
     libgdal-dev \
     libgeos-dev \
     libproj-dev \
-    tesseract-ocr \
-    tesseract-ocr-spa \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

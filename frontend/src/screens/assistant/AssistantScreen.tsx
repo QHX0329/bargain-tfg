@@ -22,7 +22,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   FadeIn,
@@ -161,6 +161,7 @@ export const AssistantScreen: React.FC = () => {
       timestamp: new Date().toISOString(),
     },
   ]);
+  const insets = useSafeAreaInsets();
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
@@ -243,9 +244,9 @@ export const AssistantScreen: React.FC = () => {
   }, []);
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
+    <SafeAreaView style={styles.safe} edges={[]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: spacing.xs + insets.top }]}>
         <View style={styles.headerLeft}>
           <View style={styles.avatarBig}>
             <Ionicons name="sparkles" size={20} color={colors.white} />
@@ -265,8 +266,7 @@ export const AssistantScreen: React.FC = () => {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={90}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         {/* Lista de mensajes */}
         <FlatList

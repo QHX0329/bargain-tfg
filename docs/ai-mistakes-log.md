@@ -127,6 +127,22 @@
 
 ---
 
+### [2026-03-26] — ERR-007 — Codex (GPT-5.3-Codex)
+
+**Contexto:** Extensión de scraping con nuevos spiders de Costco/Alcampo/Hipercor y ampliación de tests unitarios.
+
+**Error cometido:** Se introdujo un error de indentación en `test_costco_extract_rows_from_pdf_bytes_without_pypdf`, provocando `IndentationError` durante la colección de `pytest`.
+
+**Causa raíz:** Edición rápida del bloque del test sin validar alineación final antes de ejecutar la suite.
+
+**Solución aplicada:** Se corrigió la indentación del `import` dentro del test y se reejecutó validación: tests focalizados + suite unitaria completa.
+
+**Prevención:** Tras añadir tests nuevos, ejecutar siempre primero un `pytest` focalizado del archivo editado para detectar errores de sintaxis/indentación antes de la suite ampliada.
+
+**Archivos afectados:** `backend/tests/unit/test_scraping_spiders.py`
+
+---
+
 ## Instrucciones para agentes
 
 - **Claude:** Actualiza este archivo al final de cada sesión donde hayas cometido un error, aunque sea menor. Usa el formato estándar. Revisa las REGLAS derivadas al inicio de cada sesión.

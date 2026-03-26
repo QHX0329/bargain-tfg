@@ -1,17 +1,19 @@
 """
-Tests de integración para los endpoints del módulo OCR.
+Tests de integracion para los endpoints del modulo OCR.
 
 Cubre:
 - POST /api/v1/ocr/scan/ - escaneo de imagen con usuario autenticado
-- Validación de autenticación obligatoria
-- Validación de imagen obligatoria
+- Validacion de autenticacion obligatoria
+- Validacion de imagen obligatoria
 - Formato de respuesta correcto
+- Error explicito cuando el OCR esta mal configurado
 """
 
 import io
 from unittest.mock import patch
 
 import pytest
+from django.core.exceptions import ImproperlyConfigured
 from django.core.files.uploadedfile import SimpleUploadedFile
 from PIL import Image, ImageDraw
 from rest_framework import status
@@ -38,10 +40,10 @@ def _make_uploaded_image(text: str = "Leche entera", filename: str = "test.png")
 
 @pytest.mark.django_db
 class TestOCRScanEndpoint:
-    """Tests de integración para POST /api/v1/ocr/scan/."""
+    """Tests de integracion para POST /api/v1/ocr/scan/."""
 
     def test_scan_endpoint_returns_200_with_valid_image(self, authenticated_client):
-        """POST con imagen válida y usuario autenticado devuelve 200."""
+        """POST con imagen valida y usuario autenticado devuelve 200."""
         uploaded_image = _make_uploaded_image("Leche entera")
 
         with patch("apps.ocr.views.extract_text_from_image") as mock_extract, patch(
@@ -69,7 +71,7 @@ class TestOCRScanEndpoint:
         assert isinstance(data["data"]["items"], list)
 
     def test_scan_endpoint_requires_auth(self, api_client):
-        """POST sin token de autenticación devuelve 401."""
+        """POST sin token de autenticacion devuelve 401."""
         uploaded_image = _make_uploaded_image()
 
         response = api_client.post(
@@ -91,7 +93,7 @@ class TestOCRScanEndpoint:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_scan_response_format(self, authenticated_client):
-        """Cada ítem de la respuesta debe tener raw_text, confidence y quantity."""
+        """Cada item de la respuesta debe tener raw_text, confidence y quantity."""
         uploaded_image = _make_uploaded_image("Pan integral")
 
         with patch("apps.ocr.views.extract_text_from_image") as mock_extract, patch(
@@ -119,3 +121,22 @@ class TestOCRScanEndpoint:
             assert "raw_text" in item
             assert "confidence" in item
             assert "quantity" in item
+
+    def test_scan_endpoint_returns_503_when_ocr_is_misconfigured(self, authenticated_client):
+        """Si el OCR no esta configurado, el endpoint debe devolver 503 explicito."""
+        uploaded_image = _make_uploaded_image("Leche entera")
+
+        with patch(
+            "apps.ocr.views.extract_text_from_image",
+            side_effect=ImproperlyConfigured("Vision key missing"),
+        ):
+            response = authenticated_client.post(
+                "/api/v1/ocr/scan/",
+                data={"image": uploaded_image},
+                format="multipart",
+            )
+
+        assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+        data = response.json()
+        assert data["success"] is False
+        assert data["error"]["code"] == "OCR_CONFIGURATION_ERROR"

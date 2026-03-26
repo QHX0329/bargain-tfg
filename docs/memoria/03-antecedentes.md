@@ -90,7 +90,7 @@ La arquitectura de *Retrieval-Augmented Generation* (RAG) [17], que combina la r
 
 ### 3.4.2 Visión artificial y OCR en aplicaciones de consumo
 
-El reconocimiento óptico de caracteres (*Optical Character Recognition*, OCR) ha experimentado avances significativos gracias a la adopción de redes neuronales convolucionales (CNN) y arquitecturas de transformers. La versión 5 de **Tesseract** [18], el motor OCR de código abierto mantenido por Google, incorpora un modelo LSTM que alcanza tasas de error inferiores al 5% en documentos impresos de calidad estándar y puede integrarse tanto en backend como en frontend de aplicaciones móviles.
+El reconocimiento óptico de caracteres (*Optical Character Recognition*, OCR) ha experimentado avances significativos gracias a la adopción de redes neuronales convolucionales (CNN), arquitecturas de transformers y servicios cloud especializados en análisis visual. Plataformas como **Google Cloud Vision API** [18] ofrecen reconocimiento de texto sobre imágenes complejas y escenarios móviles con mayor robustez práctica frente a sombras, ruido, inclinación y degradación del soporte físico.
 
 En el contexto de aplicaciones de compras, la visión artificial se aplica principalmente en dos casos de uso: el escaneo de códigos de barras para la identificación de productos (presente en la mayoría de competidores analizados) y la digitalización de listas de la compra escritas a mano o tickets de compra anteriores (caso de uso diferencial de BargAIn). Este segundo uso presenta mayores desafíos técnicos debido a la variabilidad de la escritura manual y al ruido típico de los tickets (tipografías de impresoras térmicas degradadas, papel arrugado).
 
@@ -174,7 +174,7 @@ Estas cuatro brechas constituyen el espacio de oportunidad que BargAIn aborda co
 
 [17] Lewis, P. et al. "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks." En *Advances in Neural Information Processing Systems* (NeurIPS 2020), vol. 33, pp. 9459–9474, 2020.
 
-[18] Smith, R. "An Overview of the Tesseract OCR Engine." En *Proceedings of the 9th International Conference on Document Analysis and Recognition* (ICDAR 2007), vol. 2, pp. 629–633, 2007. doi:10.1109/ICDAR.2007.4376991
+[18] Google Cloud, *Cloud Vision Documentation*. Mountain View, CA: Google LLC, 2026. Disponible en: https://cloud.google.com/vision/docs
 
 [19] Christen, P. *Data Matching: Concepts and Techniques for Record Linkage, Entity Resolution, and Duplicate Detection*. Berlín: Springer, 2012.
 

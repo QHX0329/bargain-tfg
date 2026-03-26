@@ -1,10 +1,8 @@
 """
 Serializers para el dominio shopping_lists.
 
-Incluye enriquecimiento de ítems con nombre de producto, categoría y precio más reciente.
+Incluye serialización de ítems de texto libre y plantillas.
 """
-
-from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
@@ -20,67 +18,22 @@ from .models import (
 User = get_user_model()
 
 
-def _get_latest_price(product) -> tuple[Decimal | None, bool | None] | None:
-    """
-    Obtiene el precio más reciente y si está obsoleto para un producto.
-
-    Importación lazy para no depender de apps.prices (plan 01-04, puede no estar disponible).
-    Devuelve (price, is_stale) o (None, None) si no hay precios.
-    """
-    try:
-        from apps.prices.models import Price  # noqa: PLC0415
-
-        latest = Price.objects.filter(product=product).order_by("-verified_at").first()
-        if latest is None:
-            return None, None
-        return latest.price, latest.is_stale
-    except (ImportError, LookupError, Exception):  # noqa: BLE001
-        return None, None
-
-
 class ShoppingListItemEnrichedSerializer(serializers.ModelSerializer):
-    """Serializer de ítem enriquecido con datos de producto y precio."""
+    """Serializer de ítem de lista con alias de compatibilidad."""
 
-    product_name = serializers.SerializerMethodField()
-    category_name = serializers.SerializerMethodField()
-    latest_price = serializers.SerializerMethodField()
-    is_stale = serializers.SerializerMethodField()
+    product_name = serializers.CharField(source="name", read_only=True)
 
     class Meta:
         model = ShoppingListItem
         fields = [
             "id",
-            "product",
+            "name",
+            "normalized_name",
             "product_name",
-            "category_name",
             "quantity",
             "is_checked",
-            "latest_price",
-            "is_stale",
         ]
         read_only_fields = ["id"]
-
-    def get_product_name(self, obj) -> str | None:
-        if obj.product_id and hasattr(obj, "product"):
-            return obj.product.name
-        return None
-
-    def get_category_name(self, obj) -> str | None:
-        if obj.product_id and hasattr(obj, "product") and obj.product.category_id:
-            return obj.product.category.name
-        return None
-
-    def get_latest_price(self, obj) -> Decimal | None:
-        if not obj.product_id:
-            return None
-        price, _ = _get_latest_price(obj.product)
-        return price
-
-    def get_is_stale(self, obj) -> bool | None:
-        if not obj.product_id:
-            return None
-        _, is_stale = _get_latest_price(obj.product)
-        return is_stale
 
 
 class ShoppingListSerializer(serializers.ModelSerializer):
@@ -109,8 +62,14 @@ class ShoppingListItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ShoppingListItem
-        fields = ["id", "product", "quantity", "is_checked", "added_by"]
-        read_only_fields = ["id", "added_by"]
+        fields = ["id", "name", "normalized_name", "quantity", "is_checked", "added_by"]
+        read_only_fields = ["id", "normalized_name", "added_by"]
+
+    def validate_name(self, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise serializers.ValidationError("El nombre del item no puede estar vacío.")
+        return cleaned
 
     def validate_quantity(self, value: int) -> int:
         if value < 1:
@@ -154,19 +113,12 @@ class AddCollaboratorSerializer(serializers.Serializer):
 
 
 class ListTemplateItemSerializer(serializers.ModelSerializer):
-    """Serializer de ítem de plantilla con nombre de producto."""
-
-    product_name = serializers.SerializerMethodField()
+    """Serializer de ítem de plantilla textual."""
 
     class Meta:
         model = ListTemplateItem
-        fields = ["id", "product", "product_name", "ordering"]
+        fields = ["id", "name", "normalized_name", "ordering"]
         read_only_fields = ["id"]
-
-    def get_product_name(self, obj) -> str | None:
-        if obj.product_id and hasattr(obj, "product"):
-            return obj.product.name
-        return None
 
 
 class ListTemplateSerializer(serializers.ModelSerializer):

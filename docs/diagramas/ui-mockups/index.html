@@ -3313,7 +3313,7 @@ const SCREENS = {
     module: 'apps.ocr',
     requirements: ['RF-028', 'HU-016'],
     components: ['CameraViewfinder', 'ScanFrame', 'WizardSteps', 'ShutterButton'],
-    notes: 'Expo Camera para captura. La imagen se envía como base64 a /api/v1/ocr/sessions/. Tesseract en backend.'
+    notes: 'Expo Camera para captura. La imagen se envía a /api/v1/ocr/scan/ como multipart/form-data. Google Cloud Vision API en backend.'
   },
   'ocr-rev': {
     label: '09 — OCR: Paso 2 / Revisión',

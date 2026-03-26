@@ -17,7 +17,7 @@ La arquitectura global se divide en cinco bloques principales que se comunican d
 3. **Capa de datos:** PostgreSQL 16 con extensión PostGIS 3.4 para consultas geoespaciales.
 4. **Capa de tareas asíncronas:** Celery con Redis como broker, para scraping periódico, envío de notificaciones, procesamiento OCR y cálculos pesados de optimización.
 5. **Integraciones y servicios auxiliares:** Claude API (Anthropic), Google Maps / OSRM,
-   Sentry y motor OCR Tesseract (ejecutado en servicios del backend).
+   Sentry y Google Cloud Vision API como proveedor OCR backend.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -205,30 +205,48 @@ El histórico de precios se materializa automáticamente: cada vez que se actual
 
 ```
 ShoppingList
-├── id              UUID (PK)
+├── id              BIGINT (PK)
 ├── owner           FK → User
 ├── name            VARCHAR(255)
-├── status          ENUM(active, completed, archived)
-├── is_template     BOOLEAN DEFAULT False
+├── is_archived     BOOLEAN DEFAULT False
 ├── created_at      TIMESTAMPTZ
 └── updated_at      TIMESTAMPTZ
 
 ShoppingListItem
-├── id              UUID (PK)
+├── id              BIGINT (PK)
 ├── shopping_list   FK → ShoppingList
-├── product         FK → Product
-├── quantity        DECIMAL(10,3) DEFAULT 1
+├── name            VARCHAR(255)           -- texto libre introducido por usuario
+├── normalized_name VARCHAR(255) INDEX     -- texto normalizado para matching
+├── quantity        SMALLINT DEFAULT 1
 ├── is_checked      BOOLEAN DEFAULT False
-├── notes           VARCHAR(500) NULL
-└── added_at        TIMESTAMPTZ
+├── added_by        FK → User NULL
+└── created_at      TIMESTAMPTZ
 
-ShoppingListShare
-├── id              UUID (PK)
+ListCollaborator
+├── id              BIGINT (PK)
 ├── shopping_list   FK → ShoppingList
-├── shared_with     FK → User
-├── can_edit        BOOLEAN DEFAULT True
-└── shared_at       TIMESTAMPTZ
+├── user            FK → User
+├── invited_by      FK → User NULL
+└── created_at      TIMESTAMPTZ
+
+ListTemplate
+├── id              BIGINT (PK)
+├── owner           FK → User
+├── name            VARCHAR(200)
+├── source_list     FK → ShoppingList NULL
+└── created_at      TIMESTAMPTZ
+
+ListTemplateItem
+├── id              BIGINT (PK)
+├── template        FK → ListTemplate
+├── name            VARCHAR(255)
+├── normalized_name VARCHAR(255) INDEX
+└── ordering        SMALLINT DEFAULT 0
 ```
+
+Este diseño aplica la ADR-009: los ítems de lista almacenan intención de compra en texto libre y
+delegan la resolución a productos concretos a la capa de matching contextual durante la
+comparación/optimización de precios.
 
 #### Módulo del optimizador
 
@@ -434,11 +452,12 @@ La API sigue las convenciones REST y está versionada bajo el prefijo `/api/v1/`
 
 #### OCR
 
-| Método | Endpoint                             | Descripción                         |
-| ------ | ------------------------------------ | ----------------------------------- |
-| `POST` | `/api/v1/ocr/sessions/`              | Iniciar sesión con imagen           |
-| `GET`  | `/api/v1/ocr/sessions/{id}/`         | Estado y resultado de sesión        |
-| `POST` | `/api/v1/ocr/sessions/{id}/confirm/` | Confirmar productos y generar lista |
+| Método | Endpoint            | Descripción                                  |
+| ------ | ------------------- | -------------------------------------------- |
+| `POST` | `/api/v1/ocr/scan/` | Procesar imagen y devolver ítems reconocidos |
+
+Nota: el flujo persistente por sesiones OCR queda documentado como evolución futura. El estado
+implementado en el backend actual expone `POST /api/v1/ocr/scan/`.
 
 #### Asistente
 
@@ -631,7 +650,7 @@ El algoritmo de optimización es la aportación técnica central del TFG. Dado q
 
 **Entrada:**
 
-- Lista de la compra `L = {p₁, p₂, ..., pₙ}` (n productos)
+- Lista de la compra `L = {i₁, i₂, ..., iₙ}` (n ítems textuales)
 - Ubicación del usuario `u = (lat, lng)`
 - Radio máximo `r` (km)
 - Número máximo de paradas `k` (1–4)
@@ -639,12 +658,13 @@ El algoritmo de optimización es la aportación técnica central del TFG. Dado q
 
 **Salida:**
 
-- Top-3 asignaciones de productos a tiendas `A = {(pᵢ → Sⱼ)}` que minimizan la función de coste
+- Top-3 asignaciones de ítems resueltos a tiendas
+    `A = {(iᵢ → producto_resueltoᵢ → Sⱼ)}` que minimizan la función de coste
 
 **Restricciones:**
 
-- Cada producto debe estar asignado a exactamente una tienda
-- Todas las tiendas en la asignación deben tener precio disponible para el producto asignado
+- Cada ítem resoluble debe quedar asignado a exactamente una tienda
+- Todas las tiendas en la asignación deben tener precio disponible para el producto resuelto
 - El número de tiendas distintas en la asignación ≤ k
 - Todas las tiendas deben estar dentro del radio r
 
@@ -668,11 +688,25 @@ Donde:
 
 ### 8.5.3 Pipeline de ejecución
 
-El algoritmo se ejecuta en cinco fases secuenciales dentro de `apps/optimizer/services.py`:
+El algoritmo se ejecuta en seis fases secuenciales dentro de `apps/optimizer/services.py`:
+
+**Fase 0: Resolución textual de ítems (matching contextual)**
+
+Antes de evaluar combinaciones de tiendas, cada ítem textual de `ShoppingListItem` se resuelve
+contra candidatos de catálogo mediante una estrategia híbrida:
+
+1. preselección por trigramas sobre `Product.normalized_name`,
+2. ranking fuzzy (`token_set_ratio` y `partial_ratio`),
+3. validación contextual por disponibilidad real de precio en las tiendas candidatas.
+
+Los ítems sin resolución fiable se devuelven como `unmatched_items` para mantener trazabilidad y
+evitar asignaciones forzadas de baja calidad.
 
 **Fase 1: Ingesta de precios candidatos**
 
-Para cada producto de la lista, se obtienen todos los precios vigentes en tiendas dentro del radio. Esta consulta se optimiza con una sola llamada a la base de datos usando `select_related` y filtros geoespaciales:
+Para cada producto resuelto en la fase anterior, se obtienen los precios vigentes en tiendas dentro
+del radio. Esta consulta se optimiza con una sola llamada a la base de datos usando
+`select_related` y filtros geoespaciales:
 
 ```python
 def fetch_candidate_prices(
@@ -700,7 +734,7 @@ def fetch_candidate_prices(
 
 Para evitar la explosión combinatoria, se limita el conjunto de tiendas candidatas. Solo se consideran tiendas que:
 
-1. Ofrecen precio para al menos 1 producto de la lista
+1. Ofrecen precio para al menos 1 ítem resuelto de la lista
 2. Están dentro del radio configurado
 3. Se toman solo las N mejores por algún criterio (precio medio relativo, distancia)
 
@@ -708,7 +742,9 @@ En la práctica, se limita a 30 tiendas candidatas como máximo, lo que garantiz
 
 **Fase 3: Generación y evaluación de asignaciones**
 
-Para cada combinación de tiendas, se calcula la asignación óptima de productos: cada producto se asigna a la tienda de la combinación que ofrece el precio más bajo. Esta asignación greedy es óptima dado un subconjunto fijo de tiendas.
+Para cada combinación de tiendas, se calcula la asignación óptima de ítems resueltos: cada ítem se
+asigna a la tienda de la combinación que ofrece el menor precio efectivo de su producto resuelto.
+Esta asignación greedy es óptima dado un subconjunto fijo de tiendas.
 
 ```python
 def evaluate_combination(
@@ -727,7 +763,7 @@ def evaluate_combination(
             default=None,
         )
         if best is None:
-            return None  # Esta combinación no cubre todos los productos
+            return None  # Esta combinación no cubre todos los ítems resueltos
         assignment[product_id] = best
         total_cost += best.price
 
@@ -838,28 +874,29 @@ Se respeta la regla de negocio RN-010: frecuencia máxima de una ejecución por 
 
 ### 8.7.1 Flujo de procesamiento
 
-El procesamiento de imágenes sigue un flujo asíncrono de tres pasos:
+El diseño objetivo del módulo OCR mantiene tres bloques funcionales, aunque el estado actual
+implementado en el repositorio expone un flujo síncrono sobre `POST /api/v1/ocr/scan/`.
 
-1. **Captura:** El cliente sube la imagen al endpoint `POST /api/v1/ocr/sessions/`. El backend crea una sesión OCR en estado `processing` y encola una tarea Celery. La respuesta incluye el `session_id` para consultar el estado.
+1. **Captura:** El cliente sube la imagen al endpoint `POST /api/v1/ocr/scan/`. El backend valida
+   la imagen y lanza el pipeline OCR desde la propia API. La sesión OCR persistente queda como
+   evolución futura para desacoplar cargas pesadas y auditoría de resultados.
 
-2. **Extracción de texto:** La tarea Celery invoca **Tesseract OCR** mediante `pytesseract`, configurado para reconocimiento de español (`lang='spa'`). Se aplica un preprocesamiento de imagen (conversión a escala de grises, binarización adaptativa con OpenCV) para mejorar la tasa de reconocimiento en fotografías de listas escritas a mano.
+2. **Extracción de texto:** El backend invoca **Google Cloud Vision API** con la imagen capturada.
+   La decisión se adopta tras comprobar que Tesseract no reconoce con suficiente claridad tickets
+   y listas fotografiadas en condiciones reales. El preprocesamiento ligero sigue siendo útil, pero
+   deja de ser el principal mecanismo para rescatar precisión.
 
 ```python
-# apps/ocr/services.py
-import cv2
-import pytesseract
-import numpy as np
+# Diseño objetivo de apps/ocr/services.py
+from google.cloud import vision
 
-def extract_text_from_image(image_path: str) -> str:
-    """Extrae texto de una imagen con preprocesamiento para listas manuscritas."""
-    img = cv2.imread(image_path)
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    thresh = cv2.adaptiveThreshold(
-        gray, 255,
-        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY, 11, 2
-    )
-    return pytesseract.image_to_string(thresh, lang='spa', config='--psm 6')
+def extract_text_from_image(image_bytes: bytes) -> list[str]:
+    """Extrae líneas de texto mediante Google Cloud Vision API."""
+    client = vision.ImageAnnotatorClient()
+    image = vision.Image(content=image_bytes)
+    response = client.text_detection(image=image)
+    full_text = response.full_text_annotation.text
+    return [line.strip() for line in full_text.splitlines() if line.strip()]
 ```
 
 3. **Matching con catálogo:** Cada línea de texto extraído se normaliza y se busca en el catálogo mediante el mismo servicio de matching fuzzy de `apps/products`. Se devuelve una lista de candidatos con su nivel de confianza, que el usuario puede confirmar o corregir desde la interfaz.

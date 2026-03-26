@@ -24,7 +24,7 @@ Se elige **Django 5.x** con **Django REST Framework** como framework backend pri
 - **Admin integrado**: Panel de administración inmediato para gestión de datos durante desarrollo.
 - **Celery**: Integración probada para tareas asíncronas de scraping.
 - **Comunidad**: Amplia documentación, tutoriales y paquetes disponibles.
-- **Familiaridad**: Stack Python alineado con las herramientas de IA/ML del proyecto (Tesseract, OR-Tools, Anthropic SDK).
+- **Familiaridad**: Stack Python alineado con las herramientas de IA/ML del proyecto (Google Cloud Vision API, OR-Tools, Anthropic SDK).
 
 ## Consecuencias
 - El backend será un monolito modular (no microservicios), adecuado para el alcance del TFG.

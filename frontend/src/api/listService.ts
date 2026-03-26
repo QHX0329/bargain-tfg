@@ -43,8 +43,9 @@ function normalizeListCollection(
 }
 
 export interface AddItemPayload {
-  product: string;
+  name: string;
   quantity: number;
+  is_checked?: boolean;
 }
 
 export interface UpdateItemPayload {

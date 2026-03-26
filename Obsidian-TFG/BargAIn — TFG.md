@@ -84,7 +84,7 @@ cssclasses:
 
 - Backend: Django, DRF, PostgreSQL, PostGIS, Celery, Redis
 - Frontend: React Native, Expo, React web, Zustand, Axios
-- IA: OR-Tools, Tesseract, Claude API
+- IA: OR-Tools, Google Cloud Vision API y Claude API
 - Infra: Docker, GitHub Actions, Render
 
 ## Fuente de verdad

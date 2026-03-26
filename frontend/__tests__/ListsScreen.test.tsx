@@ -57,23 +57,13 @@ import { productService } from "../src/api/productService";
 import { useListStore } from "../src/store/listStore";
 import { ListsScreen } from "../src/screens/lists/ListsScreen";
 import { ListDetailScreen } from "../src/screens/lists/ListDetailScreen";
-import type { ShoppingList, ShoppingListItem, Product } from "../src/types/domain";
+import type { ShoppingList, ShoppingListItem } from "../src/types/domain";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
-const mockProduct: Product = {
-  id: "p1",
-  name: "Leche entera",
-  normalizedName: "leche entera",
-  brand: "Mercadona",
-  category: "Lácteos",
-  unit: "l",
-  unitQuantity: 1,
-};
-
 const mockItem: ShoppingListItem = {
   id: "i1",
-  product: mockProduct,
+  name: "Leche entera",
   quantity: 2,
   isChecked: false,
 };
@@ -261,7 +251,7 @@ describe("ListDetailScreen", () => {
     alertAlertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
     useListStore.setState({ lists: [], activeList: null, isLoading: false });
     (listService.getList as jest.Mock).mockResolvedValue(mockList);
-    (productService.autocomplete as jest.Mock).mockResolvedValue([mockProduct]);
+    (productService.autocomplete as jest.Mock).mockResolvedValue([]);
   });
 
   afterEach(() => {

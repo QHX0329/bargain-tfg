@@ -46,7 +46,7 @@ El sistema debe almacenar los precios actuales de cada producto en cada tienda, 
 
 ### RI-008 Información de listas de la compra
 
-El sistema debe permitir la gestión de listas de la compra por usuario. Para cada lista se almacenará: usuario propietario, nombre de la lista, estado (activa, completada o archivada), fecha de creación y fecha de última actualización. Cada ítem de la lista contendrá: producto asociado, cantidad deseada, indicador de comprado/pendiente y notas opcionales.
+El sistema debe permitir la gestión de listas de la compra por usuario. Para cada lista se almacenará: usuario propietario, nombre de la lista, estado (activa, completada o archivada), fecha de creación y fecha de última actualización. Cada ítem de la lista contendrá: texto original introducido por el usuario, texto normalizado para matching, cantidad deseada e indicador de comprado/pendiente. La vinculación a productos del catálogo se resolverá de forma diferida durante la comparación de precios y la optimización de rutas, en función de las tiendas y precios disponibles.
 
 ### RI-009 Información de resultados de optimización
 
@@ -118,7 +118,7 @@ El sistema debe almacenar las conversaciones entre los usuarios y el asistente L
 
 **RF-020 Gestión de listas de la compra.** El sistema debe permitir al usuario crear, consultar, editar, archivar y eliminar listas de la compra, con un máximo de 20 listas activas simultáneamente.
 
-**RF-021 Gestión de ítems de lista.** El sistema debe permitir añadir productos a una lista (con buscador y autocompletado), modificar cantidades, marcar como comprados y eliminar ítems.
+**RF-021 Gestión de ítems de lista.** El sistema debe permitir añadir ítems a una lista mediante texto libre y/o sugerencias de catálogo, modificar cantidades, marcar como comprados y eliminar ítems. El sistema deberá normalizar el texto para facilitar su resolución posterior contra el catálogo y los precios por tienda.
 
 **RF-022 Compartir lista.** El sistema debe permitir compartir una lista de la compra con otro usuario registrado mediante enlace o correo electrónico, de modo que ambos puedan editar los ítems.
 
@@ -195,8 +195,8 @@ El sistema debe almacenar las conversaciones entre los usuarios y el asistente L
 
 ### Listas de la Compra
 
-**HU-004.** Como consumidor, quiero crear una lista de la compra y añadir productos buscándolos por nombre, para organizar mis compras de la semana.
-*Criterios de aceptación:* Autocompletado en buscador; añadir con cantidad; máximo 20 listas activas; productos agrupados por categoría.
+**HU-004.** Como consumidor, quiero crear una lista de la compra y añadir ítems por nombre (aunque no coincidan exactamente con el catálogo), para organizar mis compras de la semana sin fricción.
+*Criterios de aceptación:* Entrada textual libre y sugerencias de autocompletado; añadir con cantidad; máximo 20 listas activas; normalización automática del texto para comparación posterior.
 
 **HU-005.** Como consumidor, quiero marcar productos como comprados mientras estoy en la tienda, para hacer seguimiento de lo que me falta.
 *Criterios de aceptación:* Toggle de un toque; visual diferenciado para comprados; contador de pendientes visible.

@@ -8,7 +8,7 @@
 > **GitHub Repo:** https://github.com/QHX0329/bargain-tfg
 > **GitHub Issues:** https://github.com/QHX0329/bargain-tfg/issues
 >
-> Última sincronización: 2026-03-21 (F4-30 completada: pantalla Docs tecnica + integracion de navegacion publica)
+> Última sincronización: 2026-03-26 (F5-14 completada: spiders de Costco, Alcampo e Hipercor)
 
 ---
 
@@ -166,7 +166,7 @@
 
 ---
 
-## F5 — IA, Optimizador y Scraping (35 h) · ⬜ Pendiente
+## F5 — IA, Optimizador y Scraping (35 h) · 🔄 En progreso
 
 > Semanas S10–S17
 
@@ -175,13 +175,14 @@
 | F5-01 | Spider Mercadona | Scraping | 🔴 Crítica | ⬜ | 4 |
 | F5-02 | Spider Carrefour | Scraping | 🟠 Alta | ⬜ | 3 |
 | F5-03 | Spider Lidl + DIA | Scraping | 🟠 Alta | ⬜ | 4 |
+| F5-14 | Spiders Costco + Alcampo + Hipercor | Scraping | 🟠 Alta | ✅ | 3 |
 | F5-04 | Pipeline normalización e inserción en BD | Scraping | 🔴 Crítica | ⬜ | 3 |
 | F5-05 | Programación tareas con Celery Beat | Scraping | 🟠 Alta | ⬜ | 2 |
 | F5-06 | Implementación función de scoring multicriterio | Optimizer | 🔴 Crítica | ⬜ | 5 |
 | F5-07 | Integración OR-Tools para rutas | Optimizer | 🟠 Alta | ⬜ | 4 |
 | F5-08 | Integración OSRM/Google Directions | Optimizer | 🟠 Alta | ⬜ | 3 |
 | F5-09 | Tests del optimizador (casos borde, rendimiento) | Optimizer | 🔴 Crítica | ⬜ | 3 |
-| F5-10 | Servicio OCR con Tesseract | OCR | 🟠 Alta | ⬜ | 3 |
+| F5-10 | Servicio OCR con Google Vision API | OCR | 🟠 Alta | ⬜ | 3 |
 | F5-11 | Matching fuzzy OCR → catálogo | OCR | 🟠 Alta | ⬜ | 2 |
 | F5-12 | Integración Claude API con contexto de compra | Assistant | 🟠 Alta | ⬜ | 3 |
 | F5-13 | Prompt engineering y guardrails del asistente | Assistant | 🟠 Alta | ⬜ | 2 |

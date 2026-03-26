@@ -38,9 +38,13 @@
 - **HTTP:** Axios con interceptores JWT
 
 ### IA y ML
-- **Asistente LLM:** Claude API (Anthropic) vía backend proxy
-- **OCR/Visión:** Tesseract OCR (backend) + Tesseract.js (frontend, opción dual)
+- **Asistente LLM:** Google Gemini API (`gemini-2.0-flash`) vía backend proxy (ADR-008)
+- **OCR/Visión:** Google Cloud Vision API (backend) + matching fuzzy contra catálogo
 - **Optimización de rutas:** OR-Tools (Google) + algoritmo propio ponderado
+
+Nota de estado OCR:
+- La documentación vigente ya refleja Google Vision API como decisión aprobada.
+- El código OCR heredado todavía conserva referencias a Tesseract hasta completar la migración de F5.
 
 ### Infraestructura
 - **Contenedores:** Docker + Docker Compose
@@ -109,7 +113,7 @@ bargain-tfg/
 │   │   ├── shopping_lists/      # Listas de la compra del usuario
 │   │   ├── optimizer/           # Algoritmo Precio-Distancia-Tiempo
 │   │   ├── ocr/                 # Procesamiento de fotos/tickets
-│   │   ├── assistant/           # Integración LLM (Claude API)
+│   │   ├── assistant/           # Integración LLM (Gemini API)
 │   │   ├── business/            # Portal PYMES, suscripciones
 │   │   └── notifications/       # Push + email
 │   └── (código de apps)
@@ -372,8 +376,8 @@ Mantener ambos conjuntos sincronizados cuando cambie el flujo del proyecto.
 - `created_at` (para histórico)
 
 ### ShoppingList (Lista de la compra)
-- `id`, `user` (FK), `name`, `created_at`
-- Items: `product` (FK), `quantity`, `is_checked`
+- `id`, `owner` (FK), `name`, `is_archived`, `created_at`, `updated_at`
+- Items: `name` (texto libre), `normalized_name`, `quantity`, `is_checked`, `added_by`
 
 ### OptimizationResult (Resultado de optimización)
 - `id`, `shopping_list` (FK), `user_location` (PostGIS)
@@ -430,7 +434,7 @@ Donde los pesos `w_*` los configura el usuario según sus preferencias (ej: "me 
 3. Los precios tienen una caducidad de 48h para scraping y 24h para crowdsourcing
 4. Las PYMEs pueden actualizar sus precios manualmente desde el portal business
 5. El sistema prioriza fuentes verificadas: API oficial > Scraping > Crowdsourcing
-6. La foto de lista/ticket se procesa con OCR + matching fuzzy contra catálogo
+6. La foto de lista/ticket se procesa con OCR backend + matching fuzzy contra catálogo
 7. El asistente LLM solo responde consultas relacionadas con la compra
 
 ---
@@ -460,7 +464,7 @@ Donde los pesos `w_*` los configura el usuario según sus preferencias (ej: "me 
 - JWT con refresh tokens y rotación
 - Rate limiting en endpoints de scraping y asistente LLM
 - CORS configurado solo para dominios autorizados
-- Sanitización de inputs en OCR (prevenir inyección)
+- Sanitización de inputs y salida OCR (prevenir abuso del proveedor externo e inyección en matching)
 - HTTPS obligatorio en producción
 - Datos sensibles (ubicación usuario) encriptados en reposo
 

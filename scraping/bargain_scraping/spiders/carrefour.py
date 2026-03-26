@@ -1,159 +1,107 @@
-"""
-Spider de Carrefour — extrae precios usando Playwright para rendering JS.
+"""Spider de Carrefour apoyado en la landing accesible del supermercado.
 
-Carrefour utiliza una SPA React que requiere renderizado JavaScript completo.
-Se integra con scrapy-playwright para gestionar el navegador headless.
-
-URL base: https://www.carrefour.es/supermercado/
+Las categorías internas del supermercado devuelven 403 de Cloudflare incluso
+cuando se inicializa una sesión Playwright válida. La portada de
+`/supermercado`, en cambio, sí renderiza tarjetas reales de producto con
+precio. El spider se apoya en esa landing para obtener un conjunto estable de
+productos visibles sin dejar procesos bloqueados contra páginas vetadas.
 """
+
+from __future__ import annotations
 
 import re
 from decimal import Decimal, InvalidOperation
+from urllib.parse import urljoin
 
 import scrapy
 import structlog
-from scrapy import signals
+from playwright.async_api import async_playwright
 
 from bargain_scraping.items import ProductPriceItem
 
 logger = structlog.get_logger(__name__)
 
-# Categorías de alimentación que nos interesan
-CATEGORY_URLS = [
-    "https://www.carrefour.es/supermercado/lacteos-huevos-y-mantequilla/cat21450791/c",
-    "https://www.carrefour.es/supermercado/bebidas/cat21450792/c",
-    "https://www.carrefour.es/supermercado/frutas-y-verduras/cat21450793/c",
-    "https://www.carrefour.es/supermercado/carnes-y-aves/cat21450794/c",
-    "https://www.carrefour.es/supermercado/pescados-y-mariscos/cat21450795/c",
-    "https://www.carrefour.es/supermercado/panaderia-y-bolleria/cat21450796/c",
-    "https://www.carrefour.es/supermercado/aceites-y-condimentos/cat21450797/c",
-    "https://www.carrefour.es/supermercado/conservas-y-aperitivos/cat21450798/c",
-]
+CARREFOUR_HOME_URL = "https://www.carrefour.es/supermercado"
 
 
 class CarrefourSpider(scrapy.Spider):
-    """Spider para el supermercado online de Carrefour con soporte Playwright."""
+    """Spider para Carrefour basado en la landing pública del supermercado."""
 
     name = "carrefour"
-    allowed_domains = ["www.carrefour.es"]
+    allowed_domains = ["www.carrefour.es", "carrefour.es"]
+    handle_httpstatus_list = [403]
 
     custom_settings = {
-        "DOWNLOAD_HANDLERS": {
-            "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
-            "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
-        },
-        "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
-        "DOWNLOAD_DELAY": 3,
+        "DOWNLOAD_DELAY": 1,
         "CONCURRENT_REQUESTS": 1,
         "CONCURRENT_REQUESTS_PER_DOMAIN": 1,
-        "PLAYWRIGHT_BROWSER_TYPE": "chromium",
-        "PLAYWRIGHT_LAUNCH_OPTIONS": {
-            "headless": True,
-            "args": ["--no-sandbox", "--disable-setuid-sandbox"],
-        },
     }
 
     def start_requests(self):
-        """Genera requests a las categorías usando Playwright."""
-        for url in CATEGORY_URLS:
-            yield scrapy.Request(
-                url=url,
-                meta={
-                    "playwright": True,
-                    "playwright_include_page": True,
-                    "playwright_page_goto_kwargs": {"wait_until": "networkidle"},
-                },
-                callback=self.parse_category,
-                errback=self.errback_handler,
-            )
+        """Arranca desde la landing; si Scrapy recibe 403, Playwright toma el relevo."""
+        yield scrapy.Request(
+            url=CARREFOUR_HOME_URL,
+            headers=_browser_headers(),
+            callback=self.parse_home,
+            errback=self.errback_handler,
+        )
 
-    async def parse_category(self, response):
-        """Parsea la página de categoría — extrae productos y sigue paginación."""
-        page = response.meta.get("playwright_page")
-
+    async def parse_home(self, response):
+        """Extrae las tarjetas visibles de producto usando Playwright directo."""
         try:
-            # Cerrar cookies banner si aparece
-            try:
-                await page.click("button[id='onetrust-accept-btn-handler']", timeout=3000)
-            except Exception:
-                pass
-
-            # Esperar a que carguen los productos
-            try:
-                await page.wait_for_selector("[data-testid='product-card']", timeout=10000)
-            except Exception:
+            page_url, page_title, html, product_count = await _render_home_html()
+            if product_count == 0:
                 logger.warning(
-                    "No se encontraron productos en la página",
-                    url=response.url,
+                    "No se encontraron tarjetas de producto en Carrefour",
+                    url=page_url,
+                    title=page_title,
+                    upstream_status=response.status,
                 )
                 return
-
-            html = await page.content()
-
         except Exception as exc:
             logger.error(
-                "Error renderizando página con Playwright",
+                "Error renderizando landing de Carrefour",
                 url=response.url,
+                upstream_status=response.status,
                 error=str(exc),
             )
             return
-        finally:
-            if page:
-                await page.close()
 
-        # Re-parsear con Scrapy el HTML renderizado
         from scrapy import Selector
 
         sel = Selector(text=html)
+        extracted = 0
+        seen_urls: set[str] = set()
+
         for item in self._extract_products(sel, response.url):
+            item_url = str(item.get("url") or "")
+            if item_url and item_url in seen_urls:
+                continue
+            if item_url:
+                seen_urls.add(item_url)
+
+            extracted += 1
             yield item
 
-        # Paginación — buscar botón "siguiente"
-        next_url = sel.css("[data-testid='next-page-link']::attr(href)").get()
-        if next_url:
-            yield scrapy.Request(
-                url=response.urljoin(next_url),
-                meta={
-                    "playwright": True,
-                    "playwright_include_page": True,
-                    "playwright_page_goto_kwargs": {"wait_until": "networkidle"},
-                },
-                callback=self.parse_category,
-                errback=self.errback_handler,
-            )
+        if extracted == 0:
+            logger.warning("Carrefour sin productos extraídos tras render", url=response.url)
 
-    def _extract_products(self, sel, url: str):
-        """Extrae los items de producto del HTML renderizado."""
-        for card in sel.css("[data-testid='product-card'], .product-card, .eb-product"):
+    def _extract_products(self, sel, base_url: str):
+        """Extrae las tarjetas visibles de producto del HTML renderizado."""
+        for card in sel.css(_product_card_selector()):
             try:
-                name = (
-                    card.css("[data-testid='product-name']::text, .eb-product__title::text").get("")
-                    or card.css("h3::text, .product-name::text").get("")
-                ).strip()
-
+                name = _extract_name(card)
                 if not name:
                     continue
 
-                price_text = (
-                    card.css("[data-testid='product-price'] .value::text").get("")
-                    or card.css(".eb-price__value::text, .price-current::text").get("")
-                ).strip()
-
-                price = _parse_price(price_text)
+                price = _parse_price(_extract_price_text(card))
                 if price is None:
                     continue
 
-                unit_price_text = card.css(
-                    "[data-testid='product-unit-price']::text, .eb-price__unit::text"
-                ).get("")
-                unit_price = _parse_price(unit_price_text)
-
-                offer_price_text = card.css(
-                    "[data-testid='product-offer-price'] .value::text, .price-offer::text"
-                ).get("")
-                offer_price = _parse_price(offer_price_text)
-
-                product_url = card.css("a::attr(href)").get("")
+                unit_price = _parse_price(_extract_unit_price_text(card))
+                offer_price = _extract_offer_price(card, price)
+                product_url = _extract_product_url(card, base_url)
+                barcode = _extract_barcode_from_url(product_url)
 
                 yield ProductPriceItem(
                     product_name=name,
@@ -162,23 +110,21 @@ class CarrefourSpider(scrapy.Spider):
                     unit_price=unit_price,
                     offer_price=offer_price,
                     offer_end_date=None,
-                    barcode=None,
+                    barcode=barcode,
                     category_name=None,
-                    url=response.urljoin(product_url) if product_url else url,
+                    url=product_url,
                 )
             except Exception as exc:
-                logger.warning(
-                    "Error extrayendo producto de Carrefour",
-                    error=str(exc),
-                )
+                logger.warning("Error extrayendo producto de Carrefour", error=str(exc))
 
     def errback_handler(self, failure):
-        """Manejo de errores — anti-bot 403 y errores de red se loguan y se omiten."""
+        """Registra fallos de red o antibot sin bloquear la ejecución."""
         status = getattr(failure.value, "response", None)
-        if status and hasattr(status, "status") and status.status == 403:
+        if status and hasattr(status, "status"):
             logger.warning(
-                "Anti-bot 403 en Carrefour — página omitida",
+                "Respuesta fallida en Carrefour",
                 url=failure.request.url,
+                status=status.status,
             )
         else:
             logger.error(
@@ -188,7 +134,151 @@ class CarrefourSpider(scrapy.Spider):
             )
 
 
-# ── Helpers ──────────────────────────────────────────────────────────────────
+async def _dismiss_cookie_banner(page) -> None:
+    for selector in [
+        "#onetrust-accept-btn-handler",
+        "#onetrust-reject-all-handler",
+    ]:
+        try:
+            await page.locator(selector).click(timeout=1500)
+            await page.wait_for_timeout(500)
+            return
+        except Exception:
+            continue
+
+
+async def _render_home_html() -> tuple[str, str, str, int]:
+    """Renderiza la landing de Carrefour fuera de Scrapy para evitar 403 del handler."""
+    async with async_playwright() as playwright:
+        browser = await playwright.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-blink-features=AutomationControlled",
+            ],
+        )
+        context = await browser.new_context(
+            user_agent=_browser_user_agent(),
+            locale="es-ES",
+            timezone_id="Europe/Madrid",
+            viewport={"width": 1366, "height": 2200},
+        )
+        page = await context.new_page()
+        try:
+            await page.goto(CARREFOUR_HOME_URL, wait_until="domcontentloaded", timeout=60000)
+            await _dismiss_cookie_banner(page)
+            await page.wait_for_timeout(5000)
+
+            product_count = await page.locator(_product_card_selector()).count()
+            html = await page.content()
+            return page.url, await page.title(), html, product_count
+        finally:
+            await browser.close()
+
+
+def _product_card_selector() -> str:
+    return "[data-testid='product-card'], .product-card, .eb-product, .product-card-container"
+
+
+def _extract_name(card) -> str:
+    selectors = [
+        "[data-testid='product-name']::text",
+        ".eb-product__title::text",
+        ".product-card__title::text",
+        ".product-card__title-link::text",
+        ".product-card__title a::text",
+        "h3::text",
+        "a[title]::attr(title)",
+    ]
+    for selector in selectors:
+        value = (card.css(selector).get("") or "").strip()
+        if value:
+            return value
+    return ""
+
+
+def _extract_price_text(card) -> str:
+    selectors = [
+        "[data-testid='product-price'] .value::text",
+        "[data-testid='product-price']::text",
+        ".eb-price__value::text",
+        ".price-current::text",
+        ".c-price__amount::text",
+        ".product-card__price::text",
+    ]
+    return _first_non_empty(card, selectors)
+
+
+def _extract_unit_price_text(card) -> str:
+    selectors = [
+        "[data-testid='product-unit-price']::text",
+        ".eb-price__unit::text",
+        ".price-per-unit::text",
+        ".product-card__price-per-unit::text",
+    ]
+    return _first_non_empty(card, selectors)
+
+
+def _extract_offer_price(card, price: Decimal) -> Decimal | None:
+    selectors = [
+        "[data-testid='product-offer-price'] .value::text",
+        ".price-offer::text",
+        ".price-previous::text",
+        ".product-card__price-old::text",
+    ]
+    candidate = _parse_price(_first_non_empty(card, selectors))
+    if candidate is not None and candidate > price:
+        return price
+    return None
+
+
+def _extract_product_url(card, base_url: str) -> str:
+    href = (
+        card.css("a[href*='/supermercado/']::attr(href)").get("")
+        or card.css("a::attr(href)").get("")
+    ).strip()
+    if not href:
+        return base_url
+    return urljoin(base_url, href)
+
+
+def _extract_barcode_from_url(url: str) -> str | None:
+    if not url:
+        return None
+    match = re.search(r"/R-([^/]+)/p$", url)
+    return match.group(1) if match else None
+
+
+def _first_non_empty(card, selectors: list[str]) -> str:
+    for selector in selectors:
+        value = (card.css(selector).get("") or "").strip()
+        if value:
+            return value
+    return ""
+
+
+def _browser_user_agent() -> str:
+    return (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    )
+
+
+def _browser_headers() -> dict[str, str]:
+    return {
+        "Accept": (
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,"
+            "image/webp,image/apng,*/*;q=0.8"
+        ),
+        "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
+        "Upgrade-Insecure-Requests": "1",
+        "User-Agent": _browser_user_agent(),
+    }
+
 
 def _parse_price(text: str) -> Decimal | None:
     """Convierte texto de precio ('1,29 €') a Decimal o None."""

@@ -111,7 +111,7 @@ bargain-tfg/
 │   │   │   ├── urls.py
 │   │   │   └── migrations/
 │   │   │
-│   │   ├── ocr/                 # Image → text extraction (Tesseract)
+│   │   ├── ocr/                 # Image → text extraction (Google Vision target)
 │   │   │   ├── views.py         # Image upload endpoint (to be added)
 │   │   │   ├── services.py      # OCR processing logic (to be added)
 │   │   │   ├── urls.py
@@ -291,7 +291,7 @@ bargain-tfg/
 
 **`backend/apps/ocr/`:**
 - Purpose: Image → text extraction for receipt/list recognition
-- Contains: Tesseract OCR integration, image upload handling
+- Contains: OCR provider integration, image upload handling, fuzzy matching
 - Key files: `services.py` (processing), `views.py` (endpoint)
 
 **`backend/apps/scraping/`:**

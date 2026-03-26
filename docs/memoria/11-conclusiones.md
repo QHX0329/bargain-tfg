@@ -22,8 +22,8 @@ notificaciones, perfil y portal business.
 ## 11.3 Limitaciones actuales
 
 - El optimizador avanzado (F5) aún no está cerrado end-to-end con datos de scraping productivo.
-- OCR y asistente LLM están implementados en frontend como flujo UI, pendientes de integración
-	backend definitiva.
+- OCR y asistente LLM están implementados en frontend como flujo UI. En OCR se ha aprobado la
+	migración de Tesseract a Google Vision API, pendiente de alineación backend definitiva.
 - Faltan hitos de cierre F6: E2E globales, usabilidad formal, staging final y cierre académico.
 
 ## 11.4 Lecciones aprendidas
@@ -35,7 +35,8 @@ notificaciones, perfil y portal business.
 
 ## 11.5 Trabajo futuro inmediato
 
-1. Completar F5 con scraping estable, optimizer multicriterio y OCR/LLM en producción.
+1. Completar F5 con scraping estable, optimizer multicriterio y OCR/LLM en producción, incluyendo
+   la migración OCR a Google Vision API.
 2. Ejecutar F6 con pruebas finales, despliegue y validación con usuarios.
 3. Consolidar resultados cuantitativos finales (ahorro, rendimiento, precisión OCR) para defensa.
 

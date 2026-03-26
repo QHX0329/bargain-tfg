@@ -7,16 +7,17 @@
  *  3. Imagen seleccionada → POST /api/v1/ocr/scan/ (multipart/form-data)
  *  4. Cargando → "Procesando imagen..." con SkeletonBox overlay
  *  5. Resultado → lista de items con badges de confianza, steppers de cantidad,
- *     checkboxes. Items con matched_product_id pre-checkeados.
+ *     checkboxes y nombre editable.
  *  6. CTA "Añadir a mi lista" → añade items seleccionados a la lista
  */
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Alert,
   FlatList,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -32,6 +33,7 @@ import type { ListsStackParamList } from '@/navigation/types';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
 import { scanImage } from '@/api/ocrService';
 import type { OCRItem } from '@/api/ocrService';
+import { listService } from '@/api/listService';
 
 type RouteP = RouteProp<ListsStackParamList, 'OCR'>;
 
@@ -40,6 +42,7 @@ type RouteP = RouteProp<ListsStackParamList, 'OCR'>;
 interface LocalOCRItem extends OCRItem {
   localId: string;
   localQuantity: number;
+  localName: string;   // nombre editable por el usuario
   checked: boolean;
 }
 
@@ -49,11 +52,17 @@ interface OCRItemRowProps {
   item: LocalOCRItem;
   onToggle: (localId: string) => void;
   onQuantityChange: (localId: string, quantity: number) => void;
+  onNameChange: (localId: string, name: string) => void;
 }
 
-const OCRItemRow: React.FC<OCRItemRowProps> = ({ item, onToggle, onQuantityChange }) => {
+const OCRItemRow: React.FC<OCRItemRowProps> = ({
+  item,
+  onToggle,
+  onQuantityChange,
+  onNameChange,
+}) => {
   const isHighConf = item.confidence >= 0.8;
-  const hasMatch = Boolean(item.matched_product_id);
+  const inputRef = useRef<TextInput>(null);
 
   return (
     <TouchableOpacity
@@ -61,14 +70,14 @@ const OCRItemRow: React.FC<OCRItemRowProps> = ({ item, onToggle, onQuantityChang
       onPress={() => onToggle(item.localId)}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: item.checked }}
-      accessibilityLabel={item.raw_text}
+      accessibilityLabel={item.localName}
     >
       {/* Checkbox */}
       <View style={[itemRowStyles.checkbox, item.checked && itemRowStyles.checkboxChecked]}>
         {item.checked && <Ionicons name="checkmark" size={14} color={colors.white} />}
       </View>
 
-      {/* Left: raw text + confidence */}
+      {/* Left: raw text + confidence badge */}
       <View style={itemRowStyles.leftCol}>
         <Text style={itemRowStyles.rawText} numberOfLines={1}>{item.raw_text}</Text>
         <View style={[itemRowStyles.confBadge, isHighConf ? itemRowStyles.confBadgeHigh : itemRowStyles.confBadgeLow]}>
@@ -78,11 +87,30 @@ const OCRItemRow: React.FC<OCRItemRowProps> = ({ item, onToggle, onQuantityChang
         </View>
       </View>
 
-      {/* Right: matched name + quantity stepper */}
+      {/* Right: editable name + quantity stepper */}
       <View style={itemRowStyles.rightCol}>
-        <Text style={[itemRowStyles.matchName, !hasMatch && itemRowStyles.noMatchName]} numberOfLines={1}>
-          {hasMatch ? (item.matched_product_name ?? item.raw_text) : 'Sin coincidencia'}
-        </Text>
+        <TouchableOpacity
+          style={itemRowStyles.nameEditRow}
+          onPress={(e) => {
+            e.stopPropagation?.();
+            inputRef.current?.focus();
+          }}
+          accessibilityLabel="Editar nombre del producto"
+        >
+          <TextInput
+            ref={inputRef}
+            style={itemRowStyles.nameInput}
+            value={item.localName}
+            onChangeText={(text) => onNameChange(item.localId, text)}
+            onPressIn={(e) => e.stopPropagation?.()}
+            selectTextOnFocus
+            returnKeyType="done"
+            maxLength={80}
+            accessibilityLabel={`Nombre del producto: ${item.localName}`}
+          />
+          <Ionicons name="pencil-outline" size={16} color={colors.primary} />
+        </TouchableOpacity>
+
         <View style={itemRowStyles.stepper}>
           <TouchableOpacity
             style={itemRowStyles.stepBtn}
@@ -120,54 +148,46 @@ export const OCRScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [scanDone, setScanDone] = useState(false);
 
-  const handleScanPress = async () => {
-    // Request permission and launch picker
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      const camStatus = await ImagePicker.requestCameraPermissionsAsync();
-      if (camStatus.status !== 'granted') {
-        Alert.alert(
-          'Permisos requeridos',
-          'Necesitamos acceso a la cámara o galería para escanear tu lista.',
-        );
-        return;
-      }
-    }
-
-    const pickerResult = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.8,
-      allowsEditing: false,
-    });
-
-    if (pickerResult.canceled || !pickerResult.assets?.[0]) return;
-
+  const processPickerResult = async (uri: string) => {
     setLoading(true);
     setScanDone(false);
-
     try {
-      const response = await scanImage(pickerResult.assets[0].uri);
+      const response = await scanImage(uri);
       const rawItems = (response as any)?.items ?? [];
 
       const localItems: LocalOCRItem[] = rawItems.map((item: OCRItem, idx: number) => ({
         ...item,
         localId: `ocr-${idx}`,
         localQuantity: item.quantity ?? 1,
-        checked: Boolean(item.matched_product_id), // pre-check matched items
+        localName: item.matched_product_name ?? item.raw_text,
+        checked: Boolean(item.matched_product_id),
       }));
 
       setItems(localItems);
       setScanDone(true);
     } catch (err: any) {
-      const code = err?.response?.data?.error?.code ?? '';
-      if (code === 'OCR_PROCESSING_ERROR') {
-        Alert.alert('Error', 'Error al procesar la imagen. Inténtalo de nuevo con otra foto.');
-      } else {
-        Alert.alert('Error', 'Error al procesar la imagen. Inténtalo de nuevo con otra foto.');
-      }
+      Alert.alert('Error', 'Error al procesar la imagen. Inténtalo de nuevo con otra foto.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleScanPress = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      const camStatus = await ImagePicker.requestCameraPermissionsAsync();
+      if (camStatus.status !== 'granted') {
+        Alert.alert('Permisos requeridos', 'Necesitamos acceso a la cámara o galería para escanear tu lista.');
+        return;
+      }
+    }
+    const pickerResult = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.8,
+      allowsEditing: false,
+    });
+    if (pickerResult.canceled || !pickerResult.assets?.[0]) return;
+    await processPickerResult(pickerResult.assets[0].uri);
   };
 
   const handleCameraPress = async () => {
@@ -176,35 +196,9 @@ export const OCRScreen: React.FC = () => {
       Alert.alert('Permisos requeridos', 'Necesitamos acceso a la cámara para escanear tu lista.');
       return;
     }
-
-    const pickerResult = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.8,
-    });
-
+    const pickerResult = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.8 });
     if (pickerResult.canceled || !pickerResult.assets?.[0]) return;
-
-    setLoading(true);
-    setScanDone(false);
-
-    try {
-      const response = await scanImage(pickerResult.assets[0].uri);
-      const rawItems = (response as any)?.items ?? [];
-
-      const localItems: LocalOCRItem[] = rawItems.map((item: OCRItem, idx: number) => ({
-        ...item,
-        localId: `ocr-${idx}`,
-        localQuantity: item.quantity ?? 1,
-        checked: Boolean(item.matched_product_id),
-      }));
-
-      setItems(localItems);
-      setScanDone(true);
-    } catch {
-      Alert.alert('Error', 'Error al procesar la imagen. Inténtalo de nuevo con otra foto.');
-    } finally {
-      setLoading(false);
-    }
+    await processPickerResult(pickerResult.assets[0].uri);
   };
 
   const handleToggle = (localId: string) => {
@@ -219,18 +213,39 @@ export const OCRScreen: React.FC = () => {
     );
   };
 
-  const handleAddToList = () => {
+  const handleNameChange = (localId: string, name: string) => {
+    setItems((prev) =>
+      prev.map((item) => (item.localId === localId ? { ...item, localName: name } : item)),
+    );
+  };
+
+  const handleAddToList = async () => {
     const checked = items.filter((i) => i.checked);
     if (checked.length === 0) {
       Alert.alert('Sin selección', 'Selecciona al menos un producto para añadir a la lista.');
       return;
     }
-    // TODO: call listService to add items when wired in a future plan
-    Alert.alert(
-      'Productos añadidos',
-      `Se han añadido ${checked.length} producto${checked.length !== 1 ? 's' : ''} a tu lista.`,
-      [{ text: 'OK', onPress: () => navigation.goBack() }],
-    );
+
+    setLoading(true);
+    try {
+      await Promise.all(
+        checked.map((item) =>
+          listService.addItem(String(listId), {
+            name: item.localName.trim() || item.raw_text,
+            quantity: item.localQuantity,
+          }),
+        ),
+      );
+      Alert.alert(
+        'Productos añadidos',
+        `Se han añadido ${checked.length} producto${checked.length !== 1 ? 's' : ''} a tu lista.`,
+        [{ text: 'OK', onPress: () => navigation.goBack() }],
+      );
+    } catch {
+      Alert.alert('Error', 'No se pudieron añadir los productos a la lista.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -258,7 +273,7 @@ export const OCRScreen: React.FC = () => {
         </View>
       )}
 
-      {/* Empty state: initial + no items after scan */}
+      {/* Empty state: initial */}
       {!loading && !scanDone && (
         <View style={styles.emptyState}>
           <Animated.View entering={FadeInDown.springify()} style={styles.illustration}>
@@ -314,12 +329,14 @@ export const OCRScreen: React.FC = () => {
             keyExtractor={(item) => item.localId}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
             renderItem={({ item, index }) => (
               <Animated.View entering={FadeInDown.delay(index * 40).springify()}>
                 <OCRItemRow
                   item={item}
                   onToggle={handleToggle}
                   onQuantityChange={handleQuantityChange}
+                  onNameChange={handleNameChange}
                 />
               </Animated.View>
             )}
@@ -564,16 +581,23 @@ const itemRowStyles = StyleSheet.create({
   rightCol: {
     alignItems: 'flex-end',
     gap: 4,
-    minWidth: 100,
+    minWidth: 110,
   },
-  matchName: {
+  nameEditRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    maxWidth: 140,
+  },
+  nameInput: {
     fontFamily: fontFamilies.bodySemiBold,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.sm,
     color: colors.text,
-    maxWidth: 120,
-  },
-  noMatchName: {
-    color: colors.textDisabled,
+    flex: 1,
+    padding: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    minHeight: 28,
   },
   stepper: {
     flexDirection: 'row',
@@ -598,4 +622,3 @@ const itemRowStyles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-

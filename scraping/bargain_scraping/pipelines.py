@@ -91,8 +91,8 @@ class PriceUpsertPipeline:
     def _process_item_sync(self, item, spider):
         self._processed += 1
 
-        store = self._match_store(item)
-        if store is None:
+        stores = self._match_stores(item)
+        if not stores:
             self._dropped += 1
             logger.warning(
                 "Tienda no encontrada; item descartado",
@@ -103,25 +103,27 @@ class PriceUpsertPipeline:
 
         product = self._upsert_product(item)
 
-        Price.objects.update_or_create(
-            product=product,
-            store=store,
-            defaults={
-                "price": item["price"],
-                "unit_price": item.get("unit_price"),
-                "offer_price": item.get("offer_price"),
-                "offer_end_date": item.get("offer_end_date"),
-                "source": "scraping",
-                "verified_at": timezone.now(),
-                "is_stale": False,
-            },
-        )
+        verified_at = timezone.now()
+        for store in stores:
+            Price.objects.update_or_create(
+                product=product,
+                store=store,
+                defaults={
+                    "price": item["price"],
+                    "unit_price": item.get("unit_price"),
+                    "offer_price": item.get("offer_price"),
+                    "offer_end_date": item.get("offer_end_date"),
+                    "source": "scraping",
+                    "verified_at": verified_at,
+                    "is_stale": False,
+                },
+            )
 
-        self._matched += 1
+        self._matched += len(stores)
         logger.debug(
-            "Precio upserted",
+            "Precio upserted en tiendas de cadena",
             product=product.name,
-            store=store.name,
+            stores_count=len(stores),
             price=str(item["price"]),
             spider=spider.name,
         )
@@ -197,13 +199,13 @@ class PriceUpsertPipeline:
         )
         return category
 
-    def _match_store(self, item):
+    def _match_stores(self, item):
         store_chain = item.get("store_chain", "")
         if not store_chain:
-            return None
+            return []
 
-        return (
+        return list(
             Store.objects.filter(chain__name__icontains=store_chain, is_active=True)
             .select_related("chain")
-            .first()
+            .order_by("id")
         )

@@ -1,7 +1,11 @@
 # Phase 5: Optimizer, Scraping, OCR, LLM — Research
 
+> Editorial note (2026-03-26): este documento conserva parte de la investigación original del
+> enfoque OCR con pytesseract. La decisión vigente del proyecto está documentada en ADR-007 y
+> selecciona Google Vision API como proveedor OCR objetivo.
+
 **Researched:** 2026-03-25
-**Domain:** OR-Tools TSP routing, Scrapy+Playwright scraping, pytesseract OCR, Anthropic Claude API, Graphhopper routing, DRF endpoint wiring
+**Domain:** OR-Tools TSP routing, Scrapy+Playwright scraping, Google Vision OCR, Anthropic Claude API, Graphhopper routing, DRF endpoint wiring
 **Confidence:** HIGH (all core libraries verified live in Docker; all environment probes run against running containers)
 
 ---
@@ -26,7 +30,7 @@
 - D-10: OptimizationResult stored in DB with `route_data` JSONB. Result also returned inline.
 
 **OCR**
-- D-11: Backend-only OCR: pytesseract. No Tesseract.js frontend dual approach.
+- D-11: Backend-only OCR: Google Vision API. No frontend OCR dual approach.
 - D-12: `POST /ocr/scan/` accepts `multipart/form-data` with `image` field. Returns list of `{ raw_text, matched_product_id, matched_product_name, confidence, quantity }`.
 - D-13: Fuzzy matching: `thefuzz.token_sort_ratio` with threshold 80%. Frontend lets user accept or edit each item.
 - D-14: `expo-image-picker` already in package.json — uncomment import and enable in F5.
@@ -52,7 +56,7 @@
 ### Deferred Ideas (OUT OF SCOPE)
 - Crowdsource store creation from Google Places results
 - Persistent LLM chat history in PostgreSQL
-- Tesseract.js frontend OCR (dual approach)
+- OCR frontend dual approach
 - OSRM as routing engine
 </user_constraints>
 
@@ -67,7 +71,7 @@
 | OPT-02 | Route distance calculation with real road distances | Graphhopper Docker service; REST Matrix API pattern documented; fallback haversine PostGIS if Graphhopper unavailable |
 | OPT-03 | OptimizationResult stored in DB and returned inline | Model spec from CLAUDE.md; JSONB route_data pattern documented |
 | OPT-04 | User-configurable max stops (2–5, default 3) | API param `max_stops`; OR-Tools RoutingIndexManager vehicles param documented |
-| OCR-01 | POST /ocr/scan/ endpoint accepting image, returning recognized items | pytesseract 5.5.0 confirmed (eng+spa); Pillow installed; endpoint pattern documented |
+| OCR-01 | POST /ocr/scan/ endpoint accepting image, returning recognized items | Google Vision API selected in ADR-007; endpoint pattern documented |
 | OCR-02 | Fuzzy product matching with 80% threshold | thefuzz confirmed installed; token_sort_ratio pattern documented |
 | LLM-01 | POST /assistant/chat/ proxy to Claude API with guardrails | anthropic 0.85.0 confirmed; messages.create pattern documented; system prompt approach |
 | LLM-02 | Rate limiting on assistant endpoint | DRF UserRateThrottle already in global config; custom throttle class pattern documented |
@@ -79,7 +83,7 @@
 
 ## Summary
 
-Phase 5 implements four backend systems (scraping, optimizer, OCR, LLM) and wires them to three fully-built frontend screens currently running on mock data. All core Python libraries are already installed and verified live in the Docker container: OR-Tools 9.15, pytesseract with Tesseract 5.5 (eng+spa), anthropic SDK 0.85.0, thefuzz, Scrapy 2.14.2.
+Phase 5 implements four backend systems (scraping, optimizer, OCR, LLM) and wires them to three fully-built frontend screens currently running on mock data. All core Python libraries are already installed and verified live in the Docker container; for OCR, the adopted provider is now Google Vision API per ADR-007.
 
 The main new infrastructure piece is the Graphhopper container (new service in docker-compose.dev.yml) for real road-distance matrix calculation. Playwright browser binaries are NOT installed in the current Docker image — the Dockerfile.dev needs a `playwright install chromium` step added. All four Django app stubs already exist with urls.py files; the URL prefixes are already registered in config/urls.py (`/api/v1/optimize/`, `/api/v1/ocr/`, `/api/v1/assistant/`).
 

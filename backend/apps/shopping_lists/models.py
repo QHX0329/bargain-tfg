@@ -3,7 +3,7 @@ Modelos del dominio shopping_lists.
 
 Incluye:
 - ShoppingList: lista de la compra de un usuario
-- ShoppingListItem: ítem de una lista con FK a producto
+- ShoppingListItem: ítem de una lista con texto libre
 - ListCollaborator: colaborador invitado a una lista
 - ListTemplate: plantilla reutilizable de lista
 - ListTemplateItem: ítem de una plantilla
@@ -11,6 +11,8 @@ Incluye:
 
 from django.conf import settings
 from django.db import models
+
+from .utils import normalize_list_text
 
 
 class ShoppingList(models.Model):
@@ -38,7 +40,7 @@ class ShoppingList(models.Model):
 
 
 class ShoppingListItem(models.Model):
-    """Ítem de una lista de la compra con referencia a producto y estado de marcado."""
+    """Ítem de una lista de la compra basado en texto libre."""
 
     shopping_list = models.ForeignKey(
         ShoppingList,
@@ -46,11 +48,14 @@ class ShoppingListItem(models.Model):
         related_name="items",
         verbose_name="Lista de la compra",
     )
-    product = models.ForeignKey(
-        "products.Product",
-        on_delete=models.CASCADE,
-        related_name="list_items",
-        verbose_name="Producto",
+    name = models.CharField(
+        max_length=255,
+        verbose_name="Texto del item",
+    )
+    normalized_name = models.CharField(
+        max_length=255,
+        db_index=True,
+        verbose_name="Texto normalizado",
     )
     quantity = models.PositiveSmallIntegerField(default=1, verbose_name="Cantidad")
     is_checked = models.BooleanField(default=False, verbose_name="Marcado")
@@ -67,11 +72,16 @@ class ShoppingListItem(models.Model):
     class Meta:
         verbose_name = "Ítem de lista"
         verbose_name_plural = "Ítems de lista"
-        unique_together = [("shopping_list", "product")]
         ordering = ["created_at"]
 
     def __str__(self) -> str:
-        return f"{self.product.name} x{self.quantity} [{self.shopping_list.name}]"
+        return f"{self.name} x{self.quantity} [{self.shopping_list.name}]"
+
+    def save(self, *args, **kwargs) -> None:
+        if self.name:
+            self.name = self.name.strip()
+        self.normalized_name = normalize_list_text(self.name)
+        super().save(*args, **kwargs)
 
 
 class ListCollaborator(models.Model):
@@ -139,7 +149,7 @@ class ListTemplate(models.Model):
 
 
 class ListTemplateItem(models.Model):
-    """Ítem de una plantilla de lista de la compra."""
+    """Ítem textual de una plantilla de lista de la compra."""
 
     template = models.ForeignKey(
         ListTemplate,
@@ -147,11 +157,14 @@ class ListTemplateItem(models.Model):
         related_name="items",
         verbose_name="Plantilla",
     )
-    product = models.ForeignKey(
-        "products.Product",
-        on_delete=models.CASCADE,
-        related_name="template_items",
-        verbose_name="Producto",
+    name = models.CharField(
+        max_length=255,
+        verbose_name="Texto del item",
+    )
+    normalized_name = models.CharField(
+        max_length=255,
+        db_index=True,
+        verbose_name="Texto normalizado",
     )
     ordering = models.PositiveSmallIntegerField(default=0, verbose_name="Orden")
 
@@ -161,4 +174,10 @@ class ListTemplateItem(models.Model):
         ordering = ["ordering"]
 
     def __str__(self) -> str:
-        return f"{self.product.name} [{self.template.name}]"
+        return f"{self.name} [{self.template.name}]"
+
+    def save(self, *args, **kwargs) -> None:
+        if self.name:
+            self.name = self.name.strip()
+        self.normalized_name = normalize_list_text(self.name)
+        super().save(*args, **kwargs)

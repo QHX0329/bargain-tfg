@@ -39,7 +39,7 @@ with haversine already in PostGIS (Graphhopper chosen), persistent chat history 
 
 ### OCR
 
-- **D-11:** Backend-only OCR: pytesseract (already installed). No Tesseract.js frontend dual approach for F5.
+- **D-11:** Backend-only OCR: Google Cloud Vision API. No frontend OCR dual approach for F5.
 - **D-12:** Endpoint `POST /ocr/scan/` accepts `multipart/form-data` with `image` field. Returns list of `{ raw_text, matched_product_id, matched_product_name, confidence, quantity }`.
 - **D-13:** Fuzzy matching: `thefuzz.token_sort_ratio` with threshold **80%**. If similarity >= 80% → map to catalog product. If < 80% → return raw text without `matched_product_id`. Frontend (`OCRScreen`) lets user accept or edit each item before adding to list.
 - **D-14:** `expo-image-picker` already marked as TODO in OCRScreen — install and enable in F5 when the backend endpoint is ready.
@@ -119,7 +119,7 @@ with haversine already in PostGIS (Graphhopper chosen), persistent chat history 
 - `frontend/src/components/ui/SkeletonBox.tsx`: Loading skeleton component — use in wired screens while requests are in flight
 - `thefuzz[speedup]`: already installed for fuzzy product matching in OCR pipeline
 - `ortools 9.10.x`: already installed — no setup cost for OR-Tools solver
-- `pytesseract >=0.3.13`: already installed
+- `GOOGLE_CLOUD_VISION_API_KEY`: required for the adopted OCR provider
 - `anthropic >=0.30`: already installed — Claude API SDK ready
 
 ### Established Patterns
@@ -152,7 +152,7 @@ with haversine already in PostGIS (Graphhopper chosen), persistent chat history 
 
 - Crowdsource store creation from Google Places results — explicitly out of scope (noted in Phase 4 context, F5+ item)
 - Persistent LLM chat history in PostgreSQL — deferred; session-only history is sufficient for F5
-- Tesseract.js frontend OCR (dual approach) — deferred; backend-only pytesseract is F5 scope
+- OCR frontend dual approach — deferred; backend-only Google Vision API is F5 scope
 - OSRM as routing engine — evaluated, Graphhopper chosen instead
 
 None — discussion stayed within Phase 5 scope.

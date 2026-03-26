@@ -26,6 +26,7 @@ class TestExtractTextFromImage:
             return_value="Leche entera\nPan integral\n\nAceite oliva",
         ), patch("apps.ocr.services.Image") as mock_image:
             mock_img = MagicMock()
+            mock_img.height = 2000  # mayor que _MIN_HEIGHT_PX, evita upscale
             mock_image.open.return_value.convert.return_value = mock_img
             mock_img.filter.return_value = mock_img
 
@@ -48,6 +49,7 @@ class TestExtractTextFromImage:
             return_value="",
         ), patch("apps.ocr.services.Image") as mock_image:
             mock_img = MagicMock()
+            mock_img.height = 2000  # mayor que _MIN_HEIGHT_PX, evita upscale
             mock_image.open.return_value.convert.return_value = mock_img
             mock_img.filter.return_value = mock_img
 

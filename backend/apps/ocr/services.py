@@ -18,11 +18,15 @@ from apps.core.exceptions import OCRProcessingError
 logger = structlog.get_logger(__name__)
 
 
+_OCR_TIMEOUT_SECONDS = 30
+_MIN_HEIGHT_PX = 1000  # upscale si la imagen es más pequeña
+
+
 def extract_text_from_image(image_bytes: bytes, lang: str = "spa+eng") -> list[str]:
     """Extrae líneas de texto de una imagen usando pytesseract.
 
-    Preprocesa la imagen en escala de grises con autocontraste y nitidez
-    antes de ejecutar OCR. Filtra líneas vacías del resultado.
+    Preprocesa la imagen en escala de grises con autocontraste, nitidez y
+    upscale opcional antes de ejecutar OCR. Filtra líneas vacías del resultado.
 
     Args:
         image_bytes: Contenido binario de la imagen.
@@ -32,13 +36,29 @@ def extract_text_from_image(image_bytes: bytes, lang: str = "spa+eng") -> list[s
         Lista de líneas de texto no vacías extraídas de la imagen.
 
     Raises:
-        OCRProcessingError: Si no se pudo extraer ningún texto de la imagen.
+        OCRProcessingError: Si no se pudo extraer ningún texto de la imagen
+            o si tesseract supera el timeout de 30 segundos.
     """
     image = Image.open(io.BytesIO(image_bytes)).convert("L")
     image = ImageOps.autocontrast(image)
     image = image.filter(ImageFilter.SHARPEN)
 
-    raw_text = pytesseract.image_to_string(image, lang=lang, config="--psm 6 --oem 3")
+    # Upscale imágenes pequeñas para mejorar la precisión de tesseract
+    if image.height < _MIN_HEIGHT_PX:
+        scale = _MIN_HEIGHT_PX / image.height
+        new_size = (int(image.width * scale), _MIN_HEIGHT_PX)
+        image = image.resize(new_size, Image.LANCZOS)
+
+    try:
+        # psm 4: columna única de texto de tamaño variable — idóneo para listas de compra
+        # timeout evita que tesseract cuelgue en imágenes problemáticas
+        raw_text = pytesseract.image_to_string(
+            image, lang=lang, config="--psm 4 --oem 3", timeout=_OCR_TIMEOUT_SECONDS
+        )
+    except RuntimeError as exc:
+        logger.warning("ocr.tesseract_timeout", timeout=_OCR_TIMEOUT_SECONDS)
+        raise OCRProcessingError("Tesseract tardó demasiado procesando la imagen") from exc
+
     lines = [line.strip() for line in raw_text.split("\n") if line.strip()]
 
     if not lines:

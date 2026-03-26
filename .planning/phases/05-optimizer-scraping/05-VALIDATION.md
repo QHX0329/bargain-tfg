@@ -1,10 +1,11 @@
 ---
 phase: 5
 slug: optimizer-scraping
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-25
+audited: 2026-03-26
 ---
 
 # Phase 5 — Validation Strategy
@@ -17,11 +18,13 @@ created: 2026-03-25
 
 | Property | Value |
 |----------|-------|
-| **Framework** | pytest 7.x (backend) |
-| **Config file** | `backend/pytest.ini` |
-| **Quick run command** | `docker exec bargain-backend pytest tests/ -x -q --tb=short` |
-| **Full suite command** | `docker exec bargain-backend pytest tests/ -v --tb=short` |
+| **Framework** | pytest 7.x (backend + scraping) |
+| **Config file** | `backend/pytest.ini`, `scraping/pytest.ini` |
+| **Backend quick run** | `docker exec bargain-backend pytest tests/ -x -q --tb=short` |
+| **Backend full suite** | `docker exec bargain-backend pytest tests/ -v --tb=short` |
+| **Scraping spider tests** | `cd scraping && python -m pytest tests/ -v --tb=short` |
 | **Estimated runtime** | ~30-60 seconds |
+| **Note** | `bargain_scraping` is not mounted inside the Docker backend container. Spider unit tests run on the host from `scraping/` using the venv Python. |
 
 ---
 
@@ -38,14 +41,14 @@ created: 2026-03-25
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 5-scraping-01 | scraping | 1 | SCRAPING | unit | `pytest tests/unit/test_scraping_pipeline.py` | ❌ W0 | ⬜ pending |
-| 5-scraping-02 | scraping | 1 | SCRAPING | unit | `pytest tests/unit/test_spider_mercadona.py` | ❌ W0 | ⬜ pending |
-| 5-optimizer-01 | optimizer | 2 | OPTIMIZER | unit | `pytest tests/unit/test_optimizer.py` | ❌ W0 | ⬜ pending |
-| 5-optimizer-02 | optimizer | 2 | OPTIMIZER | integration | `pytest tests/integration/test_optimizer_api.py` | ❌ W0 | ⬜ pending |
-| 5-ocr-01 | ocr | 2 | OCR | unit | `pytest tests/unit/test_ocr.py` | ❌ W0 | ⬜ pending |
-| 5-ocr-02 | ocr | 2 | OCR | integration | `pytest tests/integration/test_ocr_api.py` | ❌ W0 | ⬜ pending |
-| 5-llm-01 | assistant | 3 | LLM | unit | `pytest tests/unit/test_assistant.py` | ❌ W0 | ⬜ pending |
-| 5-llm-02 | assistant | 3 | LLM | integration | `pytest tests/integration/test_assistant_api.py` | ❌ W0 | ⬜ pending |
+| 5-scraping-01 | 05-01 | 1 | SCRAP-01 | unit | `docker exec bargain-backend pytest tests/unit/test_scraping_pipeline.py` | ✅ | ⚠️ partial (pipeline DB tests need bargain_scraping mount) |
+| 5-scraping-02 | 05-01 | 1 | SCRAP-01 | unit | `cd scraping && python -m pytest tests/unit/test_spider_mercadona.py -v` | ✅ | ✅ green (38/38) |
+| 5-ocr-01 | 05-02 | 1 | OCR-01 | unit | `docker exec bargain-backend pytest tests/unit/test_ocr.py -v` | ✅ | ✅ green (5 tests) |
+| 5-ocr-02 | 05-02 | 1 | OCR-02 | integration | `docker exec bargain-backend pytest tests/integration/test_ocr_api.py -v` | ✅ | ✅ green (4 tests) |
+| 5-llm-01 | 05-03 | 1 | LLM-01 | unit | `docker exec bargain-backend pytest tests/unit/test_assistant.py -v` | ✅ | ✅ green (8 tests) |
+| 5-llm-02 | 05-03 | 1 | LLM-02 | integration | `docker exec bargain-backend pytest tests/integration/test_assistant_api.py -v` | ✅ | ✅ green (8 tests) |
+| 5-optimizer-01 | 05-04 | 2 | OPT-01..03 | unit | `docker exec bargain-backend pytest tests/unit/test_optimizer.py -v` | ✅ | ✅ green (7 tests) |
+| 5-optimizer-02 | 05-04 | 2 | OPT-01..03 | integration | `docker exec bargain-backend pytest tests/integration/test_optimizer_api.py -v` | ✅ | ✅ green (6 tests) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -53,14 +56,14 @@ created: 2026-03-25
 
 ## Wave 0 Requirements
 
-- [ ] `backend/tests/unit/test_scraping_pipeline.py` — stubs for scraping pipeline
-- [ ] `backend/tests/unit/test_spider_mercadona.py` — stubs for Mercadona spider
-- [ ] `backend/tests/unit/test_optimizer.py` — stubs for multicriterio optimizer
-- [ ] `backend/tests/integration/test_optimizer_api.py` — API endpoint integration tests
-- [ ] `backend/tests/unit/test_ocr.py` — stubs for OCR service
-- [ ] `backend/tests/integration/test_ocr_api.py` — OCR API integration tests
-- [ ] `backend/tests/unit/test_assistant.py` — stubs for LLM assistant
-- [ ] `backend/tests/integration/test_assistant_api.py` — assistant API integration tests
+- [x] `backend/tests/unit/test_scraping_pipeline.py` — scraping pipeline + task tests (6 tests; 2 DB tests need bargain_scraping mount)
+- [x] `scraping/tests/unit/test_spider_mercadona.py` — Mercadona spider unit tests (38/38 pass, runs on host)
+- [x] `backend/tests/unit/test_optimizer.py` — OR-Tools solver + distance service (7 tests)
+- [x] `backend/tests/integration/test_optimizer_api.py` — POST /optimize/ endpoint (6 tests)
+- [x] `backend/tests/unit/test_ocr.py` — OCR service + fuzzy matching (5 tests)
+- [x] `backend/tests/integration/test_ocr_api.py` — POST /ocr/scan/ endpoint (4 tests)
+- [x] `backend/tests/unit/test_assistant.py` — Claude API proxy + guardrails (8 tests)
+- [x] `backend/tests/integration/test_assistant_api.py` — POST /assistant/chat/ endpoint (8 tests)
 
 ---
 
@@ -78,11 +81,22 @@ created: 2026-03-25
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 60s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 60s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved (2026-03-26)
+
+---
+
+## Validation Audit 2026-03-26
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 1 |
+| Resolved | 1 |
+| Escalated | 0 |
+| Total automated tests | 82 (38 spider + 44 backend) |

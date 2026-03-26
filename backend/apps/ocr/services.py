@@ -20,7 +20,10 @@ logger = structlog.get_logger(__name__)
 
 _OCR_TIMEOUT_SECONDS = 30
 _MIN_HEIGHT_PX = 1000  # upscale si la imagen es más pequeña
-_MIN_WORD_CONFIDENCE = 40  # confianza mínima por palabra (escala tesseract 0-100)
+_MIN_WORD_CONFIDENCE = 60  # confianza mínima por palabra (escala tesseract 0-100)
+_MIN_ALPHA_CHARS = 3  # mínimo de caracteres alfabéticos por palabra
+_MIN_ALPHA_RATIO = 0.5  # mínimo ratio letras/total caracteres por palabra
+_SPANISH_ALPHA = set("abcdefghijklmnopqrstuvwxyzáéíóúüñABCDEFGHIJKLMNOPQRSTUVWXYZÁÉÍÓÚÜÑ")
 
 
 def extract_text_from_image(image_bytes: bytes, lang: str = "spa+eng") -> list[str]:
@@ -64,14 +67,21 @@ def extract_text_from_image(image_bytes: bytes, lang: str = "spa+eng") -> list[s
         logger.warning("ocr.tesseract_timeout", timeout=_OCR_TIMEOUT_SECONDS)
         raise OCRProcessingError("Tesseract tardó demasiado procesando la imagen") from exc
 
-    # Agrupar palabras de alta confianza por línea lógica
+    # Agrupar palabras de alta confianza y calidad por línea lógica
     lines_dict: dict[tuple, list[str]] = {}
     for i, word in enumerate(data["text"]):
         word = word.strip()
         conf = int(data["conf"][i])
-        if word and conf >= _MIN_WORD_CONFIDENCE:
-            line_key = (data["page_num"][i], data["block_num"][i], data["par_num"][i], data["line_num"][i])
-            lines_dict.setdefault(line_key, []).append(word)
+        if not word or conf < _MIN_WORD_CONFIDENCE:
+            continue
+        # Filtro de calidad: descartar ruido de fondos/patrones decorativos
+        alpha_chars = sum(1 for c in word if c in _SPANISH_ALPHA)
+        if alpha_chars < _MIN_ALPHA_CHARS:
+            continue
+        if alpha_chars / len(word) < _MIN_ALPHA_RATIO:
+            continue
+        line_key = (data["page_num"][i], data["block_num"][i], data["par_num"][i], data["line_num"][i])
+        lines_dict.setdefault(line_key, []).append(word)
 
     lines = [" ".join(words) for words in lines_dict.values() if words]
 

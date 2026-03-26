@@ -50,13 +50,14 @@ class TestExtractTextFromImage:
         assert result == ["Leche", "Pan", "Aceite"]
 
     def test_extract_text_raises_on_empty_image(self):
-        """Debe lanzar OCRProcessingError si todas las palabras tienen baja confianza."""
+        """Debe lanzar OCRProcessingError si todas las palabras son ruido o baja confianza."""
         from apps.core.exceptions import OCRProcessingError
         from apps.ocr.services import extract_text_from_image
 
         fake_image_bytes = b"\x89PNG\r\n\x1a\n"
-        # Palabras con confianza baja (ruido): deben descartarse → OCRProcessingError
-        mock_data = self._mock_image_to_data(["ou", "oe", "oo"], conf=20)
+        # Palabras con confianza alta pero que no superan filtros de calidad:
+        # "|" (0 alpha), "Hi" (2 alpha < 3 mínimo), "=>" (0 alpha)
+        mock_data = self._mock_image_to_data(["|", "Hi", "=>"], conf=70)
 
         with patch(
             "apps.ocr.services.pytesseract.image_to_data",

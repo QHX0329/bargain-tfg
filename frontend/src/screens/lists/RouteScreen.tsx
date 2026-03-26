@@ -1,190 +1,43 @@
 /**
- * [F4-13 / F4-14] Pantalla de ruta optimizada y desglose de ahorro.
+ * [F4-13 / F4-14 / F5-05] Pantalla de ruta optimizada y desglose de ahorro.
  *
- * Flujo esperado (con backend F5 implementado):
- *   POST /optimizer/optimize/?list=<id> → OptimizationResult
+ * Conecta con:
+ *   POST /api/v1/optimize/ → OptimizeResponse (F5-04)
  *
- * Mientras el backend no esté disponible, usa datos mock realistas
- * que muestran la UI completa con dos tabs:
- *   Tab 1 — Mapa de ruta (lista de paradas con orden y distancia)
- *   Tab 2 — Desglose de ahorro por parada y por producto
- *
- * La estructura de datos sigue el tipo OptimizationResult del dominio.
+ * Flujo:
+ *  1. Pantalla inicial muestra configuración (peso precio/distancia/tiempo, max paradas)
+ *  2. Usuario pulsa "Optimizar ruta" → se obtiene ubicación via expo-location
+ *  3. Mientras espera → SkeletonBox de carga (3 filas × 56px)
+ *  4. Resultado → herocard precio total + lista de paradas ordenadas
+ *  5. Error OPTIMIZER_NO_STORES_IN_RADIUS → tarjeta de error con CTA "Ampliar radio"
+ *  6. Error de red → tarjeta de error con mensaje genérico
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from 'react';
 import {
-  ActivityIndicator,
+  Alert,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import Animated, {
-  FadeInDown,
-} from "react-native-reanimated";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import type { RouteProp } from "@react-navigation/native";
+} from 'react-native';
+import Slider from '@react-native-community/slider';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
+import * as Location from 'expo-location';
 
-import {
-  borderRadius,
-  colors,
-  fontFamilies,
-  fontSize,
-  shadows,
-  spacing,
-} from "@/theme";
-import type { ListsStackParamList } from "@/navigation/types";
-import type { OptimizationResult } from "@/types/domain";
+import { borderRadius, colors, fontFamilies, fontSize, shadows, spacing } from '@/theme';
+import type { ListsStackParamList } from '@/navigation/types';
+import { SkeletonBox } from '@/components/ui/SkeletonBox';
+import { optimizeRoute } from '@/api/optimizerService';
+import type { OptimizeResponse, RouteStop } from '@/api/optimizerService';
 
-type RouteP = RouteProp<ListsStackParamList, "Route">;
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
-
-function buildMockResult(listName: string): OptimizationResult {
-  return {
-    id: "mock-001",
-    shoppingList: {
-      id: "1",
-      name: listName,
-      owner: "tú",
-      items: [],
-    },
-    mode: "balanced",
-    totalPrice: 34.87,
-    originalPrice: 41.2,
-    savedAmount: 6.33,
-    savedPercent: 15.4,
-    totalDistanceKm: 3.2,
-    totalTimeMinutes: 42,
-    createdAt: new Date().toISOString(),
-    stops: [
-      {
-        order: 1,
-        store: {
-          id: "1",
-          name: "Mercadona Triana",
-          chain: "mercadona",
-          address: "C/ San Jacinto 12, Sevilla",
-          distanceKm: 1.1,
-          estimatedMinutes: 12,
-          isOpen: true,
-        },
-        items: [
-          {
-            id: "i1",
-            product: "p1",
-            product_name: "Leche entera 1L Hacendado",
-            quantity: 2,
-            latest_price: 1.05,
-            is_checked: false,
-          },
-          {
-            id: "i2",
-            product: "p2",
-            product_name: "Aceite de oliva virgen extra 750ml",
-            quantity: 1,
-            latest_price: 6.95,
-            is_checked: false,
-          },
-          {
-            id: "i3",
-            product: "p3",
-            product_name: "Pan de molde integral 500g",
-            quantity: 1,
-            latest_price: 1.45,
-            is_checked: false,
-          },
-          {
-            id: "i4",
-            product: "p4",
-            product_name: "Yogur natural x8",
-            quantity: 1,
-            latest_price: 2.2,
-            is_checked: false,
-          },
-        ],
-        subtotal: 12.7,
-        estimatedTimeMinutes: 15,
-      },
-      {
-        order: 2,
-        store: {
-          id: "2",
-          name: "Lidl Nervión",
-          chain: "lidl",
-          address: "Av. Luis de Morales 4, Sevilla",
-          distanceKm: 1.6,
-          estimatedMinutes: 18,
-          isOpen: true,
-        },
-        items: [
-          {
-            id: "i5",
-            product: "p5",
-            product_name: "Pollo entero 1.8kg",
-            quantity: 1,
-            latest_price: 4.99,
-            is_checked: false,
-          },
-          {
-            id: "i6",
-            product: "p6",
-            product_name: "Manzanas Royal Gala 1kg",
-            quantity: 1,
-            latest_price: 1.89,
-            is_checked: false,
-          },
-          {
-            id: "i7",
-            product: "p7",
-            product_name: "Queso manchego semicurado 400g",
-            quantity: 1,
-            latest_price: 4.29,
-            is_checked: false,
-          },
-        ],
-        subtotal: 11.17,
-        estimatedTimeMinutes: 20,
-      },
-      {
-        order: 3,
-        store: {
-          id: "3",
-          name: "Carnicería El Rincón",
-          chain: "local",
-          address: "C/ Feria 89, Sevilla",
-          distanceKm: 0.5,
-          estimatedMinutes: 8,
-          isOpen: true,
-        },
-        items: [
-          {
-            id: "i8",
-            product: "p8",
-            product_name: "Jamón serrano loncheado 200g",
-            quantity: 2,
-            latest_price: 3.5,
-            is_checked: false,
-          },
-          {
-            id: "i9",
-            product: "p9",
-            product_name: "Lomo embuchado 150g",
-            quantity: 1,
-            latest_price: 4.3,
-            is_checked: false,
-          },
-        ],
-        subtotal: 11.3,
-        estimatedTimeMinutes: 10,
-      },
-    ],
-  };
-}
+type RouteP = RouteProp<ListsStackParamList, 'Route'>;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -199,270 +52,108 @@ const CHAIN_COLORS: Record<string, string> = {
 };
 
 const CHAIN_INITIALS: Record<string, string> = {
-  mercadona: "M",
-  lidl: "L",
-  aldi: "A",
-  carrefour: "C",
-  dia: "D",
-  alcampo: "Al",
-  local: "🏪",
+  mercadona: 'M',
+  lidl: 'L',
+  aldi: 'A',
+  carrefour: 'C',
+  dia: 'D',
+  alcampo: 'Al',
+  local: '🏪',
 };
 
-// ─── Tab Ruta ─────────────────────────────────────────────────────────────────
+// ─── Weight Config Modal ───────────────────────────────────────────────────────
 
-interface RouteTabProps {
-  result: OptimizationResult;
+interface WeightConfig {
+  w_precio: number;
+  w_distancia: number;
+  w_tiempo: number;
 }
 
-const RouteTab: React.FC<RouteTabProps> = ({ result }) => (
-  <ScrollView
-    style={{ flex: 1 }}
-    contentContainerStyle={routeTabStyles.content}
-    showsVerticalScrollIndicator={false}
-  >
-    {/* Resumen */}
-    <Animated.View
-      entering={FadeInDown.delay(50).springify()}
-      style={routeTabStyles.summary}
-    >
-      <View style={routeTabStyles.summaryItem}>
-        <Ionicons name="navigate-outline" size={20} color={colors.primary} />
-        <Text style={routeTabStyles.summaryValue}>
-          {result.totalDistanceKm.toFixed(1)} km
-        </Text>
-        <Text style={routeTabStyles.summaryLabel}>total</Text>
+interface WeightModalProps {
+  visible: boolean;
+  weights: WeightConfig;
+  onApply: (weights: WeightConfig) => void;
+  onClose: () => void;
+}
+
+const WeightModal: React.FC<WeightModalProps> = ({ visible, weights, onApply, onClose }) => {
+  const [local, setLocal] = useState(weights);
+
+  const handleApply = () => {
+    onApply(local);
+    onClose();
+  };
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={weightStyles.overlay}>
+        <View style={weightStyles.card}>
+          <View style={weightStyles.accentBar} />
+          <Text style={weightStyles.title}>Ajustar preferencias</Text>
+
+          {(['w_precio', 'w_distancia', 'w_tiempo'] as const).map((key) => {
+            const labels: Record<string, string> = {
+              w_precio: 'Precio',
+              w_distancia: 'Distancia',
+              w_tiempo: 'Tiempo',
+            };
+            return (
+              <View key={key} style={weightStyles.row}>
+                <Text style={weightStyles.label}>{labels[key]}</Text>
+                <Slider
+                  style={weightStyles.slider}
+                  minimumValue={0}
+                  maximumValue={100}
+                  step={1}
+                  value={local[key]}
+                  onValueChange={(v: number) => setLocal((prev) => ({ ...prev, [key]: v }))}
+                  minimumTrackTintColor={colors.primary}
+                  maximumTrackTintColor={colors.border}
+                  thumbTintColor={colors.primary}
+                />
+                <Text style={weightStyles.value}>{local[key]}</Text>
+              </View>
+            );
+          })}
+
+          <View style={weightStyles.actions}>
+            <TouchableOpacity style={weightStyles.cancelBtn} onPress={onClose}>
+              <Text style={weightStyles.cancelText}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={weightStyles.applyBtn} onPress={handleApply}>
+              <Text style={weightStyles.applyText}>Aplicar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
-      <View style={routeTabStyles.summaryDivider} />
-      <View style={routeTabStyles.summaryItem}>
-        <Ionicons name="time-outline" size={20} color={colors.info} />
-        <Text style={routeTabStyles.summaryValue}>
-          {result.totalTimeMinutes} min
-        </Text>
-        <Text style={routeTabStyles.summaryLabel}>estimado</Text>
+    </Modal>
+  );
+};
+
+// ─── Route Stop Row ────────────────────────────────────────────────────────────
+
+const RouteStopRow: React.FC<{ stop: RouteStop; index: number }> = ({ stop, index }) => {
+  const chainColor = CHAIN_COLORS[stop.chain.toLowerCase()] ?? colors.primary;
+  const initial = CHAIN_INITIALS[stop.chain.toLowerCase()] ?? stop.chain[0]?.toUpperCase() ?? '?';
+  return (
+    <Animated.View entering={FadeInDown.delay(100 + index * 80).springify()} style={stopRowStyles.container}>
+      <View style={[stopRowStyles.dot, { backgroundColor: chainColor }]} accessibilityLabel={stop.store_name} />
+      <View style={stopRowStyles.body}>
+        <Text style={stopRowStyles.storeName} numberOfLines={1}>{stop.store_name}</Text>
+        <View style={stopRowStyles.meta}>
+          <Text style={stopRowStyles.metaText}>{stop.distance_km.toFixed(1)} km</Text>
+          <Text style={stopRowStyles.metaDot}>·</Text>
+          <Text style={stopRowStyles.metaText}>~{Math.round(stop.time_minutes)} min</Text>
+        </View>
       </View>
-      <View style={routeTabStyles.summaryDivider} />
-      <View style={routeTabStyles.summaryItem}>
-        <Ionicons name="storefront-outline" size={20} color={colors.success} />
-        <Text style={routeTabStyles.summaryValue}>{result.stops.length}</Text>
-        <Text style={routeTabStyles.summaryLabel}>paradas</Text>
+      <View style={stopRowStyles.priceCol}>
+        {stop.products.length > 0 && (
+          <Text style={stopRowStyles.priceText}>
+            {stop.products.reduce((acc, p) => acc + p.price, 0).toFixed(2)} €
+          </Text>
+        )}
       </View>
     </Animated.View>
-
-    {/* Conectores + paradas */}
-    {result.stops.map((stop, idx) => {
-      const chainColor = CHAIN_COLORS[stop.store.chain] ?? colors.primary;
-      const initial = CHAIN_INITIALS[stop.store.chain] ?? "?";
-      return (
-        <Animated.View
-          key={stop.store.id}
-          entering={FadeInDown.delay(100 + idx * 80).springify()}
-        >
-          {/* Línea de conexión */}
-          {idx > 0 && (
-            <View style={routeTabStyles.connector}>
-              <View style={routeTabStyles.connectorLine} />
-              <Text style={routeTabStyles.connectorDist}>
-                {stop.store.distanceKm.toFixed(1)} km ·{" "}
-                {stop.estimatedTimeMinutes} min
-              </Text>
-            </View>
-          )}
-
-          {/* Tarjeta de parada */}
-          <View style={routeTabStyles.stopCard}>
-            {/* Badge de orden */}
-            <View
-              style={[
-                routeTabStyles.orderBadge,
-                { backgroundColor: chainColor },
-              ]}
-            >
-              <Text style={routeTabStyles.orderText}>{stop.order}</Text>
-            </View>
-
-            <View style={routeTabStyles.stopBody}>
-              <View style={routeTabStyles.stopHeader}>
-                <View
-                  style={[
-                    routeTabStyles.chainBadge,
-                    { backgroundColor: chainColor + "22" },
-                  ]}
-                >
-                  <Text
-                    style={[routeTabStyles.chainInitial, { color: chainColor }]}
-                  >
-                    {initial}
-                  </Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={routeTabStyles.storeName}>
-                    {stop.store.name}
-                  </Text>
-                  <Text style={routeTabStyles.storeAddress} numberOfLines={1}>
-                    {stop.store.address}
-                  </Text>
-                </View>
-                <Text style={routeTabStyles.stopSubtotal}>
-                  {stop.subtotal.toFixed(2)} €
-                </Text>
-              </View>
-
-              {/* Items */}
-              <View style={routeTabStyles.itemsList}>
-                {stop.items.map((item, i) => (
-                  <View
-                    key={item.id}
-                    style={[
-                      routeTabStyles.itemRow,
-                      i > 0 && routeTabStyles.itemBorder,
-                    ]}
-                  >
-                    <Text style={routeTabStyles.itemName} numberOfLines={1}>
-                      {item.product_name ?? "Producto"}
-                    </Text>
-                    <Text style={routeTabStyles.itemQty}>×{item.quantity}</Text>
-                    <Text style={routeTabStyles.itemPrice}>
-                      {item.latest_price
-                        ? `${(item.latest_price * item.quantity).toFixed(2)} €`
-                        : "—"}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          </View>
-        </Animated.View>
-      );
-    })}
-
-    <View style={{ height: spacing.xxl }} />
-  </ScrollView>
-);
-
-// ─── Tab Ahorro ───────────────────────────────────────────────────────────────
-
-interface SavingsTabProps {
-  result: OptimizationResult;
-}
-
-const SavingsTab: React.FC<SavingsTabProps> = ({ result }) => {
-  return (
-    <ScrollView
-      style={{ flex: 1 }}
-      contentContainerStyle={{ padding: spacing.md, gap: spacing.md }}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Hero de ahorro */}
-      <Animated.View
-        entering={FadeInDown.springify()}
-        style={savingsStyles.hero}
-      >
-        <Text style={savingsStyles.heroLabel}>Ahorro total estimado</Text>
-        <Text style={savingsStyles.heroAmount}>
-          -{result.savedAmount.toFixed(2)} €
-        </Text>
-        <View style={savingsStyles.heroBadge}>
-          <Ionicons name="trending-down" size={14} color={colors.success} />
-          <Text style={savingsStyles.heroPct}>
-            {result.savedPercent.toFixed(1)}% menos
-          </Text>
-        </View>
-
-        {/* Barra de comparación */}
-        <View style={savingsStyles.barWrapper}>
-          <View style={savingsStyles.barBg}>
-            <View
-              style={[
-                savingsStyles.barFill,
-                { width: `${100 - result.savedPercent}%` },
-              ]}
-            />
-          </View>
-          <View style={savingsStyles.barLabels}>
-            <Text style={savingsStyles.barLabel}>
-              Optimizado {result.totalPrice.toFixed(2)} €
-            </Text>
-            <Text style={savingsStyles.barLabelMuted}>
-              Normal {result.originalPrice.toFixed(2)} €
-            </Text>
-          </View>
-        </View>
-      </Animated.View>
-
-      {/* Desglose por tienda */}
-      {result.stops.map((stop, idx) => {
-        const chainColor = CHAIN_COLORS[stop.store.chain] ?? colors.primary;
-        const stopOriginal = stop.subtotal * 1.15;
-        const stopSavings = stopOriginal - stop.subtotal;
-        return (
-          <Animated.View
-            key={stop.store.id}
-            entering={FadeInDown.delay(idx * 80).springify()}
-            style={savingsStyles.storeCard}
-          >
-            <View style={savingsStyles.storeHeader}>
-              <View
-                style={[savingsStyles.dot, { backgroundColor: chainColor }]}
-              />
-              <Text style={savingsStyles.storeName}>{stop.store.name}</Text>
-              <View style={savingsStyles.storeSavings}>
-                <Text style={savingsStyles.storeSavingsText}>
-                  -{stopSavings.toFixed(2)} €
-                </Text>
-              </View>
-            </View>
-
-            {stop.items.map((item, i) => {
-              const orig = item.latest_price ? item.latest_price * 1.15 : null;
-              const saved =
-                orig && item.latest_price
-                  ? (orig - item.latest_price) * item.quantity
-                  : 0;
-              return (
-                <View
-                  key={item.id}
-                  style={[
-                    savingsStyles.itemRow,
-                    i > 0 && savingsStyles.itemBorder,
-                  ]}
-                >
-                  <Text style={savingsStyles.itemName} numberOfLines={1}>
-                    {item.product_name}
-                  </Text>
-                  {saved > 0 && (
-                    <Text style={savingsStyles.itemSaving}>
-                      -{saved.toFixed(2)} €
-                    </Text>
-                  )}
-                </View>
-              );
-            })}
-
-            <View style={savingsStyles.storeFooter}>
-              <Text style={savingsStyles.storeFooterLabel}>Subtotal</Text>
-              <Text style={savingsStyles.storeFooterValue}>
-                {stop.subtotal.toFixed(2)} €
-              </Text>
-            </View>
-          </Animated.View>
-        );
-      })}
-
-      {/* Nota sobre mock */}
-      <View style={savingsStyles.mockNote}>
-        <Ionicons
-          name="information-circle-outline"
-          size={14}
-          color={colors.info}
-        />
-        <Text style={savingsStyles.mockText}>
-          Datos de ejemplo. El optimizador estará disponible en una próxima
-          versión.
-        </Text>
-      </View>
-
-      <View style={{ height: spacing.xxl }} />
-    </ScrollView>
   );
 };
 
@@ -471,108 +162,220 @@ const SavingsTab: React.FC<SavingsTabProps> = ({ result }) => {
 export const RouteScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteP>();
-  const { listName } = route.params;
+  const { listId, listName } = route.params;
 
-  const [activeTab, setActiveTab] = useState<"route" | "savings">("route");
-  const [loading, setLoading] = useState(true);
-  const [result, setResult] = useState<OptimizationResult | null>(null);
+  const [result, setResult] = useState<OptimizeResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<{ code: string; message: string } | null>(null);
+  const [weights, setWeights] = useState<WeightConfig>({ w_precio: 50, w_distancia: 30, w_tiempo: 20 });
+  const [maxStops, setMaxStops] = useState(3);
+  const [showWeightModal, setShowWeightModal] = useState(false);
 
-  useEffect(() => {
-    // Simulamos llamada a API con 1.2s de delay
-    const timer = setTimeout(() => {
-      setResult(buildMockResult(listName));
+  const handleOptimize = async () => {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Ubicación requerida',
+          'Activa la ubicación para calcular la ruta óptima.',
+        );
+        setLoading(false);
+        return;
+      }
+
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+
+      const response = await optimizeRoute({
+        shopping_list_id: parseInt(listId, 10),
+        lat: loc.coords.latitude,
+        lng: loc.coords.longitude,
+        max_distance_km: 10,
+        max_stops: maxStops,
+        w_precio: weights.w_precio / 100,
+        w_distancia: weights.w_distancia / 100,
+        w_tiempo: weights.w_tiempo / 100,
+      });
+
+      setResult(response as unknown as OptimizeResponse);
+    } catch (err: any) {
+      const code = err?.response?.data?.error?.code ?? '';
+      if (code === 'OPTIMIZER_NO_STORES_IN_RADIUS') {
+        setError({
+          code: 'OPTIMIZER_NO_STORES_IN_RADIUS',
+          message: 'No hay tiendas en tu radio de búsqueda. Prueba ampliando el radio o activa la ubicación.',
+        });
+      } else {
+        setError({
+          code: 'NETWORK',
+          message: 'No se pudo calcular la ruta. Comprueba tu conexión e inténtalo de nuevo.',
+        });
+      }
+    } finally {
       setLoading(false);
-    }, 1200);
-    return () => clearTimeout(timer);
-  }, [listName]);
-
-  const switchTab = (tab: "route" | "savings") => {
-    setActiveTab(tab);
+    }
   };
 
   return (
     <SafeAreaView style={styles.safe} edges={[]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.back}
-        >
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle}>Ruta optimizada</Text>
-          <Text style={styles.headerSub} numberOfLines={1}>
-            {listName}
-          </Text>
-        </View>
-        <View style={styles.modeBadge}>
-          <Ionicons name="scale-outline" size={12} color={colors.white} />
-          <Text style={styles.modeBadgeText}>Equilibrado</Text>
+          <Text style={styles.headerSub} numberOfLines={1}>{listName}</Text>
         </View>
       </View>
 
-      {/* Tabs */}
-      <View style={styles.tabs}>
-        <TouchableOpacity
-          style={styles.tab}
-          onPress={() => switchTab("route")}
-        >
-          <Ionicons
-            name="map-outline"
-            size={16}
-            color={activeTab === "route" ? colors.primary : colors.textMuted}
-          />
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "route" && styles.tabTextActive,
-            ]}
-          >
-            Ruta
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.tab}
-          onPress={() => switchTab("savings")}
-        >
-          <Ionicons
-            name="trending-down-outline"
-            size={16}
-            color={activeTab === "savings" ? colors.primary : colors.textMuted}
-          />
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "savings" && styles.tabTextActive,
-            ]}
-          >
-            Ahorro
-          </Text>
-        </TouchableOpacity>
-        <View
-          style={[
-            styles.tabIndicator,
-            { left: activeTab === "route" ? "0%" : "50%" },
-          ]}
-        />
-      </View>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
-      {loading ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingTitle}>Calculando ruta óptima…</Text>
-          <Text style={styles.loadingBody}>
-            Comparando precios en {`>`}20 tiendas cercanas
+        {/* Configuración de preferencias */}
+        <TouchableOpacity
+          style={styles.prefRow}
+          onPress={() => setShowWeightModal(true)}
+          activeOpacity={0.7}
+          accessibilityLabel="Ajustar preferencias de optimización"
+        >
+          <Ionicons name="options-outline" size={18} color={colors.primary} />
+          <Text style={styles.prefText}>Ajustar preferencias</Text>
+          <Text style={styles.prefHint}>
+            Precio {weights.w_precio} · Distancia {weights.w_distancia} · Tiempo {weights.w_tiempo}
           </Text>
+          <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+        </TouchableOpacity>
+
+        {/* Max stops selector */}
+        <View style={styles.stopsRow}>
+          <Text style={styles.stopsLabel}>Paradas máximas</Text>
+          <View style={styles.stopsSegmented}>
+            {[2, 3, 4, 5].map((n) => (
+              <TouchableOpacity
+                key={n}
+                style={[styles.stopsOption, maxStops === n && styles.stopsOptionActive]}
+                onPress={() => setMaxStops(n)}
+              >
+                <Text
+                  style={[styles.stopsOptionText, maxStops === n && styles.stopsOptionTextActive]}
+                >
+                  {n}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
-      ) : result ? (
-        activeTab === "route" ? (
-          <RouteTab result={result} />
-        ) : (
-          <SavingsTab result={result} />
-        )
-      ) : null}
+
+        {/* CTA principal */}
+        <TouchableOpacity
+          style={[styles.ctaBtn, loading && styles.ctaBtnDisabled]}
+          onPress={handleOptimize}
+          disabled={loading}
+          accessibilityLabel="Optimizar ruta"
+        >
+          {loading ? (
+            <Text style={styles.ctaText}>Calculando la mejor ruta...</Text>
+          ) : (
+            <>
+              <Ionicons name="navigate" size={20} color={colors.white} />
+              <Text style={styles.ctaText}>Optimizar ruta</Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        {/* Loading skeletons */}
+        {loading && (
+          <View style={styles.skeletonContainer}>
+            <SkeletonBox width="100%" height={56} borderRadius={12} />
+            <SkeletonBox width="100%" height={56} borderRadius={12} />
+            <SkeletonBox width="100%" height={56} borderRadius={12} />
+          </View>
+        )}
+
+        {/* Error state */}
+        {!loading && error && (
+          <Animated.View entering={FadeInDown.springify()} style={styles.errorCard}>
+            <Ionicons name="alert-circle-outline" size={24} color={colors.error} />
+            <Text style={styles.errorText}>{error.message}</Text>
+            {error.code === 'OPTIMIZER_NO_STORES_IN_RADIUS' && (
+              <TouchableOpacity
+                style={styles.errorCta}
+                onPress={() => {
+                  // Ampliar radio — en la siguiente versión se conectará al perfil
+                  Alert.alert(
+                    'Ampliar radio',
+                    'Ve a tu perfil → Preferencias para aumentar el radio de búsqueda.',
+                    [{ text: 'Entendido' }],
+                  );
+                }}
+              >
+                <Text style={styles.errorCtaText}>Ampliar radio</Text>
+              </TouchableOpacity>
+            )}
+          </Animated.View>
+        )}
+
+        {/* Empty state */}
+        {!loading && !error && !result && (
+          <View style={styles.emptyState}>
+            <Ionicons name="map-outline" size={64} color={colors.textMuted} />
+            <Text style={styles.emptyTitle}>No tienes ninguna ruta calculada</Text>
+            <Text style={styles.emptyBody}>
+              Abre una lista de la compra y pulsa «Optimizar ruta» para encontrar la mejor combinación de tiendas.
+            </Text>
+          </View>
+        )}
+
+        {/* Result: hero card + stops */}
+        {!loading && result && (
+          <Animated.View entering={FadeInDown.springify()}>
+            {/* Hero price card */}
+            <View style={styles.heroCard}>
+              <Text style={styles.heroPriceLabel}>Precio total estimado</Text>
+              <Text style={styles.heroPrice}>{result.total_price.toFixed(2)} €</Text>
+              <View style={styles.heroMeta}>
+                <View style={styles.heroMetaItem}>
+                  <Ionicons name="navigate-outline" size={14} color={colors.textMuted} />
+                  <Text style={styles.heroMetaText}>{result.total_distance_km.toFixed(1)} km</Text>
+                </View>
+                <View style={styles.heroMetaItem}>
+                  <Ionicons name="time-outline" size={14} color={colors.textMuted} />
+                  <Text style={styles.heroMetaText}>~{Math.round(result.estimated_time_minutes)} min</Text>
+                </View>
+                <View style={styles.heroMetaItem}>
+                  <Ionicons name="storefront-outline" size={14} color={colors.textMuted} />
+                  <Text style={styles.heroMetaText}>{result.route.length} paradas</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Stop list */}
+            <Text style={styles.sectionTitle}>Paradas de la ruta</Text>
+            {result.route.map((stop, idx) => (
+              <RouteStopRow key={stop.store_id} stop={stop} index={idx} />
+            ))}
+
+            {/* "Ver en mapa" secondary button */}
+            <TouchableOpacity style={styles.mapBtn} activeOpacity={0.7}>
+              <Ionicons name="map-outline" size={18} color={colors.primary} />
+              <Text style={styles.mapBtnText}>Ver en mapa</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+
+        <View style={{ height: spacing.xxl }} />
+      </ScrollView>
+
+      {/* Weight config modal */}
+      <WeightModal
+        visible={showWeightModal}
+        weights={weights}
+        onApply={setWeights}
+        onClose={() => setShowWeightModal(false)}
+      />
     </SafeAreaView>
   );
 };
@@ -582,8 +385,8 @@ export const RouteScreen: React.FC = () => {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     backgroundColor: colors.surface,
@@ -601,341 +404,327 @@ const styles = StyleSheet.create({
     fontSize: fontSize.xs,
     color: colors.textMuted,
   },
-  modeBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.pill,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
+  content: {
+    padding: spacing.md,
+    gap: spacing.md,
   },
-  modeBadgeText: {
-    fontFamily: fontFamilies.bodyMedium,
-    fontSize: 11,
-    color: colors.white,
-  },
-  tabs: {
-    flexDirection: "row",
-    backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.divider,
-    position: "relative",
-  },
-  tab: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.xs,
-    paddingVertical: spacing.sm,
-  },
-  tabText: {
-    fontFamily: fontFamilies.bodyMedium,
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
-  },
-  tabTextActive: { color: colors.primary },
-  tabIndicator: {
-    position: "absolute",
-    bottom: 0,
-    width: "50%",
-    height: 2,
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.pill,
-  },
-  center: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+  prefRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.sm,
-    padding: spacing.xl,
-  },
-  loadingTitle: {
-    fontFamily: fontFamilies.display,
-    fontSize: fontSize.lg,
-    color: colors.text,
-    textAlign: "center",
-  },
-  loadingBody: {
-    fontFamily: fontFamilies.body,
-    fontSize: fontSize.sm,
-    color: colors.textMuted,
-    textAlign: "center",
-  },
-});
-
-const routeTabStyles = StyleSheet.create({
-  content: { padding: spacing.md },
-  summary: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-around",
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     padding: spacing.md,
-    marginBottom: spacing.md,
     ...shadows.card,
   },
-  summaryItem: { alignItems: "center", gap: 2 },
-  summaryValue: {
-    fontFamily: fontFamilies.display,
-    fontSize: fontSize.lg,
+  prefText: {
+    flex: 1,
+    fontFamily: fontFamilies.bodyMedium,
+    fontSize: fontSize.sm,
     color: colors.text,
   },
-  summaryLabel: {
+  prefHint: {
     fontFamily: fontFamilies.body,
-    fontSize: fontSize.xs,
+    fontSize: 11,
     color: colors.textMuted,
   },
-  summaryDivider: {
-    width: 1,
-    height: 32,
-    backgroundColor: colors.divider,
-  },
-  connector: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingLeft: 28,
-    marginVertical: spacing.xs,
-    gap: spacing.xs,
-  },
-  connectorLine: {
-    width: 2,
-    height: 20,
-    backgroundColor: colors.primary,
-    borderRadius: 1,
-  },
-  connectorDist: {
-    fontFamily: fontFamilies.body,
-    fontSize: fontSize.xs,
-    color: colors.textMuted,
-  },
-  stopCard: {
-    flexDirection: "row",
+  stopsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
-    overflow: "hidden",
+    padding: spacing.md,
     ...shadows.card,
   },
-  orderBadge: {
-    width: 32,
-    alignItems: "center",
-    justifyContent: "flex-start",
-    paddingTop: spacing.md,
+  stopsLabel: {
+    flex: 1,
+    fontFamily: fontFamilies.bodyMedium,
+    fontSize: fontSize.sm,
+    color: colors.text,
   },
-  orderText: {
-    fontFamily: fontFamilies.display,
+  stopsSegmented: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  stopsOption: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surfaceVariant,
+  },
+  stopsOptionActive: {
+    backgroundColor: colors.primary,
+  },
+  stopsOptionText: {
+    fontFamily: fontFamilies.bodyMedium,
+    fontSize: fontSize.sm,
+    color: colors.text,
+  },
+  stopsOptionTextActive: {
+    color: colors.white,
+  },
+  ctaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.md,
+    minHeight: 48,
+  },
+  ctaBtnDisabled: {
+    backgroundColor: colors.primaryDark,
+    opacity: 0.8,
+  },
+  ctaText: {
+    fontFamily: fontFamilies.bodyMedium,
     fontSize: fontSize.md,
     color: colors.white,
   },
-  stopBody: { flex: 1, padding: spacing.sm },
-  stopHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
+  skeletonContainer: {
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  errorCard: {
+    backgroundColor: colors.errorBg,
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    alignItems: 'center',
+    gap: spacing.sm,
+    ...shadows.card,
+  },
+  errorText: {
+    fontFamily: fontFamilies.body,
+    fontSize: fontSize.sm,
+    color: colors.error,
+    textAlign: 'center',
+  },
+  errorCta: {
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  errorCtaText: {
+    fontFamily: fontFamilies.bodyMedium,
+    fontSize: fontSize.sm,
+    color: colors.white,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+    gap: spacing.md,
+  },
+  emptyTitle: {
+    fontFamily: fontFamilies.display,
+    fontSize: fontSize.lg,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  emptyBody: {
+    fontFamily: fontFamilies.body,
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  heroCard: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    alignItems: 'center',
+    gap: spacing.sm,
+    ...shadows.card,
+  },
+  heroPriceLabel: {
+    fontFamily: fontFamilies.body,
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
+  },
+  heroPrice: {
+    fontFamily: fontFamilies.display,
+    fontSize: 36,
+    color: colors.primary,
+  },
+  heroMeta: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  heroMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  heroMetaText: {
+    fontFamily: fontFamilies.body,
+    fontSize: fontSize.xs,
+    color: colors.textMuted,
+  },
+  sectionTitle: {
+    fontFamily: fontFamilies.bodySemiBold,
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginTop: spacing.sm,
     marginBottom: spacing.xs,
   },
-  chainBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: borderRadius.sm,
-    alignItems: "center",
-    justifyContent: "center",
+  mapBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.white,
+    marginTop: spacing.sm,
   },
-  chainInitial: {
-    fontFamily: fontFamilies.display,
+  mapBtnText: {
+    fontFamily: fontFamilies.bodyMedium,
     fontSize: fontSize.sm,
+    color: colors.primary,
+  },
+});
+
+const stopRowStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 56,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
+    ...shadows.card,
+  },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    flexShrink: 0,
+  },
+  body: {
+    flex: 1,
+    gap: 2,
   },
   storeName: {
     fontFamily: fontFamilies.bodySemiBold,
     fontSize: fontSize.sm,
     color: colors.text,
   },
-  storeAddress: {
+  meta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  metaText: {
     fontFamily: fontFamilies.body,
-    fontSize: 11,
+    fontSize: fontSize.xs,
     color: colors.textMuted,
   },
-  stopSubtotal: {
+  metaDot: {
+    fontFamily: fontFamilies.body,
+    fontSize: fontSize.xs,
+    color: colors.textMuted,
+  },
+  priceCol: {
+    alignItems: 'flex-end',
+  },
+  priceText: {
     fontFamily: fontFamilies.display,
     fontSize: fontSize.md,
     color: colors.primary,
-    marginLeft: "auto",
-  },
-  itemsList: { gap: 2 },
-  itemRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 3,
-  },
-  itemBorder: {
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-  },
-  itemName: {
-    flex: 1,
-    fontFamily: fontFamilies.body,
-    fontSize: 12,
-    color: colors.textMuted,
-  },
-  itemQty: {
-    fontFamily: fontFamilies.bodyMedium,
-    fontSize: 12,
-    color: colors.textMuted,
-    marginRight: spacing.xs,
-  },
-  itemPrice: {
-    fontFamily: fontFamilies.mono,
-    fontSize: 12,
-    color: colors.text,
   },
 });
 
-const savingsStyles = StyleSheet.create({
-  hero: {
-    backgroundColor: colors.secondaryDark,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    alignItems: "center",
+const weightStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: colors.overlay,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
   },
-  heroLabel: {
-    fontFamily: fontFamilies.body,
-    fontSize: fontSize.sm,
-    color: colors.white,
-    opacity: 0.75,
-    marginBottom: spacing.xs,
-  },
-  heroAmount: {
-    fontFamily: fontFamilies.display,
-    fontSize: 40,
-    color: colors.white,
-    marginBottom: spacing.xs,
-  },
-  heroBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: colors.successBg,
-    borderRadius: borderRadius.pill,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    marginBottom: spacing.md,
-  },
-  heroPct: {
-    fontFamily: fontFamilies.bodyMedium,
-    fontSize: fontSize.sm,
-    color: colors.success,
-  },
-  barWrapper: { width: "100%", gap: spacing.xs },
-  barBg: {
-    height: 8,
-    backgroundColor: colors.white + "44",
-    borderRadius: borderRadius.pill,
-    overflow: "hidden",
-  },
-  barFill: {
-    height: "100%",
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.pill,
-  },
-  barLabels: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  barLabel: {
-    fontFamily: fontFamilies.bodyMedium,
-    fontSize: fontSize.xs,
-    color: colors.white,
-  },
-  barLabelMuted: {
-    fontFamily: fontFamilies.body,
-    fontSize: fontSize.xs,
-    color: colors.white,
-    opacity: 0.6,
-    textDecorationLine: "line-through",
-  },
-  storeCard: {
+  card: {
+    width: '100%',
+    maxWidth: 400,
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    ...shadows.card,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+    ...shadows.elevated,
   },
-  storeHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
+  accentBar: {
+    height: 4,
+    backgroundColor: colors.primary,
+  },
+  title: {
+    fontFamily: fontFamilies.display,
+    fontSize: fontSize.lg,
+    color: colors.text,
+    marginTop: spacing.lg,
+    marginHorizontal: spacing.lg,
     marginBottom: spacing.sm,
   },
-  dot: { width: 10, height: 10, borderRadius: 5 },
-  storeName: {
-    flex: 1,
-    fontFamily: fontFamilies.bodySemiBold,
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+    gap: spacing.sm,
+  },
+  label: {
+    fontFamily: fontFamilies.bodyMedium,
     fontSize: fontSize.sm,
     color: colors.text,
+    width: 72,
   },
-  storeSavings: {
-    backgroundColor: colors.successBg,
-    borderRadius: borderRadius.pill,
-    paddingHorizontal: spacing.xs,
-    paddingVertical: 2,
-  },
-  storeSavingsText: {
-    fontFamily: fontFamilies.bodyMedium,
-    fontSize: fontSize.xs,
-    color: colors.success,
-  },
-  itemRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 4,
-  },
-  itemBorder: {
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-  },
-  itemName: {
+  slider: {
     flex: 1,
-    fontFamily: fontFamilies.body,
-    fontSize: fontSize.xs,
-    color: colors.textMuted,
+    height: 40,
   },
-  itemSaving: {
-    fontFamily: fontFamilies.bodyMedium,
-    fontSize: fontSize.xs,
-    color: colors.success,
-  },
-  storeFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: spacing.sm,
-    paddingTop: spacing.xs,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-  },
-  storeFooterLabel: {
-    fontFamily: fontFamilies.body,
+  value: {
+    fontFamily: fontFamilies.mono,
     fontSize: fontSize.sm,
-    color: colors.textMuted,
-  },
-  storeFooterValue: {
-    fontFamily: fontFamilies.display,
-    fontSize: fontSize.md,
     color: colors.text,
+    width: 32,
+    textAlign: 'right',
   },
-  mockNote: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-    backgroundColor: colors.infoBg,
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: spacing.sm,
+    margin: spacing.lg,
+  },
+  cancelBtn: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
     borderRadius: borderRadius.md,
-    padding: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  mockText: {
-    flex: 1,
-    fontFamily: fontFamilies.body,
-    fontSize: fontSize.xs,
-    color: colors.info,
-    lineHeight: 16,
+  cancelText: {
+    fontFamily: fontFamilies.bodyMedium,
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
+  },
+  applyBtn: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.primary,
+  },
+  applyText: {
+    fontFamily: fontFamilies.bodyMedium,
+    fontSize: fontSize.sm,
+    color: colors.white,
   },
 });

@@ -1,17 +1,14 @@
 /**
- * [F4-17 / F4-18] Pantalla del asistente de compras IA.
+ * [F4-17 / F4-18 / F5-05] Pantalla del asistente de compras IA.
  *
  * Chat interface con:
- *  - Historial de conversación persistente (local, no sincronizado con backend aún)
+ *  - Historial de conversación con backend real (POST /api/v1/assistant/chat/)
  *  - Sugerencias rápidas de inicio
  *  - Indicador de escritura animado (typing dots)
  *  - Mensajes con timestamps
  *
  * Conecta con:
- *   POST /assistant/chat/ (pendiente F5-12) → respuesta del LLM
- *
- * Mientras el backend no esté disponible, genera respuestas mock inteligentes
- * basadas en palabras clave del mensaje del usuario.
+ *   POST /api/v1/assistant/chat/ → Claude API via backend proxy (F5-03)
  */
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -48,6 +45,8 @@ import {
   spacing,
 } from "@/theme";
 import type { AssistantMessage } from "@/types/domain";
+import { sendChatMessage } from "@/api/assistantService";
+import type { ChatMessage } from "@/api/assistantService";
 
 // ─── Sugerencias rápidas ──────────────────────────────────────────────────────
 
@@ -58,54 +57,6 @@ const QUICK_SUGGESTIONS = [
   "¿Cuál es el mejor día para hacer la compra?",
   "Optimiza mi lista de la compra por precio",
 ];
-
-// ─── Respuestas mock del asistente ───────────────────────────────────────────
-
-function generateMockResponse(message: string): string {
-  const lower = message.toLowerCase();
-
-  if (
-    lower.includes("leche") ||
-    lower.includes("mercadona") ||
-    lower.includes("lidl")
-  ) {
-    return "Basándome en los datos de precios disponibles, **Mercadona** suele tener la leche entera a 1,05 €/L con su marca Hacendado, mientras que **Lidl** la tiene a 0,99 €/L con Milbona. Para la leche semidesnatada, Mercadona gana ligeramente en precio. ¿Quieres que compare más productos?";
-  }
-
-  if (lower.includes("aceite") || lower.includes("oliva")) {
-    return "El aceite de oliva ha subido bastante últimamente. En este momento:\n\n• **Mercadona** — Aceite Hacendado AOVE 750ml: 6,95 €\n• **Lidl** — Belvin AOVE 750ml: 6,49 €\n• **Carrefour** — Aceite propio 750ml: 7,20 €\n\nLidl tiene la mejor relación calidad-precio ahora mismo. ¿Quieres añadirlo a tu lista?";
-  }
-
-  if (
-    lower.includes("cena") ||
-    lower.includes("económic") ||
-    lower.includes("receta")
-  ) {
-    return "Aquí tienes una cena económica para 4 personas con un presupuesto de ~8€:\n\n🍳 **Tortilla de patatas**\n• 6 huevos (~1,50 €)\n• 800g patatas (~0,90 €)\n• 1 cebolla (~0,30 €)\n• Aceite de oliva (aprox. 0,50 €)\n\n🥗 **Ensalada mixta**\n• Lechuga (~0,80 €)\n• 2 tomates (~0,60 €)\n• Atún en lata x2 (~1,20 €)\n\n**Total estimado: ~5,80 €**\n¿Añado estos ingredientes a tu lista de la compra?";
-  }
-
-  if (
-    lower.includes("día") ||
-    lower.includes("semana") ||
-    lower.includes("cuando")
-  ) {
-    return "Los mejores días para hacer la compra según los datos que tenemos son:\n\n📅 **Martes y miércoles**: los supermercados reponen el pescado fresco y suelen iniciar nuevas ofertas.\n\n📅 **Jueves**: muchos supermercados activan descuentos en productos próximos a caducar.\n\n⚠️ **Evita los domingos por la tarde**: hay menos stock y los precios dinámicos suelen ser más altos.\n\n¿Quieres que te avise cuando haya ofertas en los productos de tu lista habitual?";
-  }
-
-  if (
-    lower.includes("optimiz") ||
-    lower.includes("lista") ||
-    lower.includes("ruta")
-  ) {
-    return "Para optimizar tu lista de la compra, el algoritmo de BargAIn analiza:\n\n1. **Precios actuales** en todas las tiendas de tu radio\n2. **Distancia** desde tu ubicación\n3. **Tu preferencia** (precio / distancia / equilibrado)\n\nVe a la pestaña **Listas**, abre una lista y pulsa el botón **Optimizar** para generar la ruta óptima. ¿Tienes alguna lista creada?";
-  }
-
-  return (
-    'Entiendo tu pregunta sobre "' +
-    message.slice(0, 50) +
-    '...". Soy el asistente de compras de BargAIn. Puedo ayudarte a:\n\n• Comparar precios entre tiendas\n• Sugerir recetas económicas\n• Optimizar tu lista de la compra\n• Encontrar las mejores ofertas\n\nEl asistente completo con IA estará disponible próximamente. ¿En qué más puedo ayudarte?'
-  );
-}
 
 // ─── Componentes de mensaje ───────────────────────────────────────────────────
 
@@ -233,27 +184,50 @@ export const AssistantScreen: React.FC = () => {
         timestamp: new Date().toISOString(),
       };
 
-      setMessages((prev) => [...prev, userMsg]);
+      const updatedMessages = [...messages, userMsg];
+      setMessages(updatedMessages);
       setInputText("");
       setShowSuggestions(false);
       setIsTyping(true);
       scrollToBottom();
 
-      // Simular latencia de respuesta
-      const delay = 800 + Math.random() * 1000;
-      setTimeout(() => {
+      try {
+        // Build ChatMessage[] for the API (without id/timestamp)
+        const apiMessages: ChatMessage[] = updatedMessages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        }));
+
+        const response = await sendChatMessage(apiMessages);
+        const data = response as unknown as { role: string; content: string };
+
         const botMsg: AssistantMessage = {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: generateMockResponse(trimmed),
+          content: data.content,
           timestamp: new Date().toISOString(),
         };
         setMessages((prev) => [...prev, botMsg]);
+      } catch (err: any) {
+        const code = err?.response?.data?.error?.code ?? "";
+        const errorContent =
+          code === "ASSISTANT_UNAVAILABLE"
+            ? "El asistente no está disponible en este momento. Inténtalo más tarde."
+            : "Ha ocurrido un error. Comprueba tu conexión e inténtalo de nuevo.";
+
+        const errorMsg: AssistantMessage = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: errorContent,
+          timestamp: new Date().toISOString(),
+        };
+        setMessages((prev) => [...prev, errorMsg]);
+      } finally {
         setIsTyping(false);
         scrollToBottom();
-      }, delay);
+      }
     },
-    [scrollToBottom],
+    [messages, scrollToBottom],
   );
 
   const clearConversation = useCallback(() => {
@@ -287,14 +261,6 @@ export const AssistantScreen: React.FC = () => {
         <TouchableOpacity onPress={clearConversation} style={styles.clearBtn}>
           <Ionicons name="refresh-outline" size={20} color={colors.textMuted} />
         </TouchableOpacity>
-      </View>
-
-      {/* Banner de development */}
-      <View style={styles.devBanner}>
-        <Ionicons name="flask-outline" size={12} color={colors.info} />
-        <Text style={styles.devBannerText}>
-          Asistente en desarrollo — respuestas generadas localmente
-        </Text>
       </View>
 
       <KeyboardAvoidingView
@@ -367,6 +333,7 @@ export const AssistantScreen: React.FC = () => {
             ]}
             onPress={() => sendMessage(inputText)}
             disabled={!inputText.trim() || isTyping}
+            accessibilityLabel="Enviar mensaje"
           >
             <Ionicons
               name="send"
@@ -434,21 +401,6 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   clearBtn: { padding: spacing.xs },
-  devBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-    backgroundColor: colors.infoBg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.info + "33",
-  },
-  devBannerText: {
-    fontFamily: fontFamilies.body,
-    fontSize: fontSize.xs,
-    color: colors.info,
-  },
   messagesList: {
     padding: spacing.md,
     gap: spacing.sm,

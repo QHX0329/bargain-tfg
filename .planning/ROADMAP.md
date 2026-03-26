@@ -40,7 +40,7 @@ Plans:
 - [x] 05-02-PLAN.md — OCR backend endpoint (pytesseract + fuzzy matching)
 - [x] 05-03-PLAN.md — LLM assistant endpoint (Claude API proxy + guardrails)
 - [x] 05-04-PLAN.md — Optimizer algorithm (Graphhopper + OR-Tools + OptimizationResult model)
-- [ ] 05-05-PLAN.md — Frontend wiring (RouteScreen + OCRScreen + AssistantScreen to real endpoints)
+- [x] 05-05-PLAN.md — Frontend wiring (RouteScreen + OCRScreen + AssistantScreen to real endpoints)
 
 ### Phase 6 (closure)
 

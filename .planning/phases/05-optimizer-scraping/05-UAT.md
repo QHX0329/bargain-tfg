@@ -1,5 +1,5 @@
 ---
-status: testing
+status: complete
 phase: 05-optimizer-scraping
 source:
   - 05-01-SUMMARY.md
@@ -13,11 +13,9 @@ updated: 2026-03-26T21:30:00+01:00
 
 ## Current Test
 
-number: 7
-name: Frontend: AssistantScreen con API real
-expected: |
-  Desde la pantalla del asistente en la app, escribes un mensaje y recibes respuesta real del backend. Se muestra indicador de escritura mientras carga. La conversación mantiene contexto entre mensajes. No hay banner de modo dev ni datos mock.
-awaiting: user response
+## Current Test
+
+[all tests complete]
 
 ## Tests
 
@@ -50,22 +48,22 @@ result: pass
 
 ### 7. Frontend: AssistantScreen con API real
 expected: Desde la pantalla del asistente en la app, escribes un mensaje y recibes respuesta real del backend. Se muestra indicador de escritura mientras carga. La conversación mantiene contexto entre mensajes. No hay banner de modo dev ni datos mock.
-result: [pending]
+result: pass
 
 ### 8. Frontend: OCRScreen captura y procesa imagen
 expected: Desde la pantalla OCR en la app, seleccionas una imagen (cámara o galería) y el sistema la envía al backend, mostrando las líneas detectadas con badges de confianza, steppers de cantidad y checkboxes. Si la imagen no tiene texto, muestra error apropiado.
-result: [pending]
+result: pass
 
 ### 9. Frontend: RouteScreen calcula ruta
 expected: Desde RouteScreen, con una lista de compra seleccionada y ubicación obtenida, ajustas los sliders de peso y max_stops, y el sistema calcula la ruta usando el backend real. Se muestra loading skeleton mientras calcula. El resultado muestra paradas con productos y estimaciones de distancia/tiempo/precio.
-result: [pending]
+result: pass
 
 ## Summary
 
 total: 9
-passed: 6
+passed: 9
 issues: 0
-pending: 3
+pending: 0
 skipped: 0
 blocked: 0
 

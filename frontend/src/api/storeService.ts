@@ -28,6 +28,59 @@ interface RawStore {
   google_place_id?: string;
 }
 
+interface RawStoreProduct {
+  id: string | number;
+  name: string;
+  normalized_name?: string;
+  normalizedName?: string;
+  category?: string | { id?: number; name?: string } | null;
+  brand?: string | null;
+  unit?: string;
+  unit_quantity?: number;
+  unitQuantity?: number;
+  image_url?: string | null;
+}
+
+interface RawStoreProductOffer {
+  product: RawStoreProduct;
+  price: string | number;
+  offer_price?: string | number | null;
+  source: "scraping" | "crowdsourcing" | "api" | "business";
+  is_stale: boolean;
+  verified_at: string;
+}
+
+export interface StoreProductOffer {
+  product: {
+    id: string;
+    name: string;
+    normalizedName: string;
+    category: string;
+    brand?: string;
+    unit: "kg" | "g" | "l" | "ml" | "ud" | "pack";
+    unitQuantity: number;
+    imageUrl?: string;
+  };
+  price: number;
+  offerPrice: number | null;
+  source: "scraping" | "crowdsourcing" | "api" | "business";
+  isStale: boolean;
+  verifiedAt: string;
+}
+
+export interface StoreProductsParams {
+  page?: number;
+  pageSize?: number;
+  categoryId?: number;
+}
+
+export interface StoreProductsResult {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: StoreProductOffer[];
+}
+
 interface PaginatedResponse<T> {
   count: number;
   next: string | null;
@@ -53,6 +106,47 @@ function normalizeChain(chain: RawStore["chain"]): Store["chain"] {
     default:
       return "local";
   }
+}
+
+function normalizeStoreProductOffer(
+  raw: RawStoreProductOffer,
+): StoreProductOffer {
+  const categoryName =
+    typeof raw.product.category === "string"
+      ? raw.product.category
+      : (raw.product.category?.name ?? "Sin categoría");
+
+  const unitMap: Record<string, StoreProductOffer["product"]["unit"]> = {
+    kg: "kg",
+    g: "g",
+    l: "l",
+    ml: "ml",
+    pack: "pack",
+    units: "ud",
+    ud: "ud",
+  };
+
+  return {
+    product: {
+      id: String(raw.product.id),
+      name: raw.product.name,
+      normalizedName:
+        raw.product.normalizedName ??
+        raw.product.normalized_name ??
+        raw.product.name.toLowerCase(),
+      category: categoryName,
+      brand: raw.product.brand ?? undefined,
+      unit: unitMap[String(raw.product.unit ?? "ud").toLowerCase()] ?? "ud",
+      unitQuantity: raw.product.unitQuantity ?? raw.product.unit_quantity ?? 1,
+      imageUrl: raw.product.image_url ?? undefined,
+    },
+    price: parseFloat(String(raw.price)),
+    offerPrice:
+      raw.offer_price != null ? parseFloat(String(raw.offer_price)) : null,
+    source: raw.source,
+    isStale: raw.is_stale,
+    verifiedAt: raw.verified_at,
+  };
 }
 
 function normalizeStore(raw: RawStore): Store {
@@ -91,6 +185,35 @@ function normalizeCollection(
   }
 
   return [];
+}
+
+function normalizeStoreProductsCollection(
+  payload: RawStoreProductOffer[] | PaginatedResponse<RawStoreProductOffer>,
+): StoreProductsResult {
+  if (Array.isArray(payload)) {
+    return {
+      count: payload.length,
+      next: null,
+      previous: null,
+      results: payload.map(normalizeStoreProductOffer),
+    };
+  }
+
+  if (payload && Array.isArray(payload.results)) {
+    return {
+      count: payload.count,
+      next: payload.next,
+      previous: payload.previous,
+      results: payload.results.map(normalizeStoreProductOffer),
+    };
+  }
+
+  return {
+    count: 0,
+    next: null,
+    previous: null,
+    results: [],
+  };
 }
 
 export const storeService = {
@@ -192,5 +315,28 @@ export const storeService = {
     } catch {
       return null; // Silent fail per user decision
     }
+  },
+
+  /** GET /stores/{id}/products/ — productos con precio en la tienda */
+  getProducts: async (
+    storeId: string,
+    {
+      page = 1,
+      pageSize = 20,
+      categoryId,
+    }: StoreProductsParams = {},
+  ): Promise<StoreProductsResult> => {
+    const payload = await apiClient.get<
+      never,
+      RawStoreProductOffer[] | PaginatedResponse<RawStoreProductOffer>
+    >(`/stores/${storeId}/products/`, {
+      params: {
+        page,
+        page_size: pageSize,
+        ...(categoryId ? { category: categoryId } : {}),
+      },
+    });
+
+    return normalizeStoreProductsCollection(payload);
   },
 };

@@ -285,7 +285,7 @@ export const OptimizerConfigScreen: React.FC = () => {
             label="Distancia máxima"
             value={radius}
             min={1}
-            max={30}
+            max={50}
             step={1}
             formatValue={(v) => `${v} km`}
             onValueChange={setRadius}

@@ -2,6 +2,9 @@
 
 from rest_framework import serializers
 
+from apps.prices.models import Price
+from apps.products.models import Product
+
 from .models import Store, StoreChain, UserFavoriteStore
 
 
@@ -66,3 +69,48 @@ class StoreDetailSerializer(StoreListSerializer):
         if request is None or not request.user.is_authenticated:
             return False
         return UserFavoriteStore.objects.filter(user=request.user, store=obj).exists()
+
+
+class StoreProductSerializer(serializers.ModelSerializer):
+    """Serializa producto para listados de perfil de tienda."""
+
+    category = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = [
+            "id",
+            "name",
+            "normalized_name",
+            "category",
+            "brand",
+            "unit",
+            "unit_quantity",
+            "image_url",
+        ]
+
+    def get_category(self, obj: Product) -> dict[str, object] | None:
+        """Devuelve la categoría embebida con formato estable para frontend."""
+        if obj.category_id is None or obj.category is None:
+            return None
+        return {
+            "id": obj.category_id,
+            "name": obj.category.name,
+        }
+
+
+class StoreProductOfferSerializer(serializers.ModelSerializer):
+    """Serializa la mejor oferta disponible por producto dentro de una tienda."""
+
+    product = StoreProductSerializer(read_only=True)
+
+    class Meta:
+        model = Price
+        fields = [
+            "product",
+            "price",
+            "offer_price",
+            "source",
+            "is_stale",
+            "verified_at",
+        ]

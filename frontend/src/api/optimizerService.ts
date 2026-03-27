@@ -52,5 +52,102 @@ export interface OptimizeResponse {
   route: RouteStop[];
 }
 
-export const optimizeRoute = (data: OptimizeRequest) =>
-  apiClient.post<OptimizeResponse>("/optimize/", data);
+interface RawRouteStopProduct {
+  query_text: string;
+  quantity: number | string;
+  matched_product_id: number | string;
+  matched_product_name: string;
+  matched_store_id: number | string;
+  matched_store_name: string;
+  matched_chain: string;
+  price: number | string;
+  similarity_score: number | string;
+  candidate_rank: number | string;
+}
+
+interface RawRouteStop {
+  store_id: number | string;
+  store_name: string;
+  chain: string;
+  lat: number | string;
+  lng: number | string;
+  distance_km: number | string;
+  time_minutes: number | string;
+  products: RawRouteStopProduct[];
+}
+
+interface RawOptimizeResponse {
+  id: number | string;
+  total_price?: number | string;
+  total_distance_km?: number | string;
+  estimated_time_minutes?: number | string;
+  route?: RawRouteStop[];
+  route_data?: RawRouteStop[];
+}
+
+function toNumber(value: unknown, fallback = 0): number {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+  return fallback;
+}
+
+function normalizeRouteStopProduct(raw: RawRouteStopProduct): RouteStopProduct {
+  return {
+    query_text: raw.query_text,
+    quantity: Math.max(0, Math.round(toNumber(raw.quantity, 0))),
+    matched_product_id: Math.round(toNumber(raw.matched_product_id, 0)),
+    matched_product_name: raw.matched_product_name,
+    matched_store_id: Math.round(toNumber(raw.matched_store_id, 0)),
+    matched_store_name: raw.matched_store_name,
+    matched_chain: raw.matched_chain,
+    price: toNumber(raw.price, 0),
+    similarity_score: toNumber(raw.similarity_score, 0),
+    candidate_rank: Math.max(1, Math.round(toNumber(raw.candidate_rank, 1))),
+  };
+}
+
+function normalizeRouteStop(raw: RawRouteStop): RouteStop {
+  return {
+    store_id: Math.round(toNumber(raw.store_id, 0)),
+    store_name: raw.store_name,
+    chain: raw.chain,
+    lat: toNumber(raw.lat, 0),
+    lng: toNumber(raw.lng, 0),
+    distance_km: toNumber(raw.distance_km, 0),
+    time_minutes: toNumber(raw.time_minutes, 0),
+    products: (raw.products ?? []).map(normalizeRouteStopProduct),
+  };
+}
+
+function normalizeOptimizeResponse(raw: RawOptimizeResponse): OptimizeResponse {
+  const routeRaw = raw.route ?? raw.route_data ?? [];
+
+  return {
+    id: Math.round(toNumber(raw.id, 0)),
+    total_price: toNumber(raw.total_price, 0),
+    total_distance_km: toNumber(raw.total_distance_km, 0),
+    estimated_time_minutes: toNumber(raw.estimated_time_minutes, 0),
+    route: routeRaw.map(normalizeRouteStop),
+  };
+}
+
+export const optimizeRoute = async (
+  data: OptimizeRequest,
+): Promise<OptimizeResponse> => {
+  const payload = await apiClient.post<never, RawOptimizeResponse | { data: RawOptimizeResponse }>(
+    "/optimize/",
+    data,
+  );
+
+  const raw =
+    payload && typeof payload === "object" && "data" in payload
+      ? (payload.data as RawOptimizeResponse)
+      : (payload as RawOptimizeResponse);
+
+  return normalizeOptimizeResponse(raw);
+};

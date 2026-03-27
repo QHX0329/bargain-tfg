@@ -4,6 +4,7 @@ import {
   FlatList,
   Linking,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -23,26 +24,50 @@ import {
 } from "@/theme";
 import type { MapStackParamList } from "@/navigation/types";
 import { storeService } from "@/api/storeService";
+import type { StoreProductOffer } from "@/api/storeService";
 import { productService } from "@/api/productService";
-import { priceService } from "@/api/priceService";
-import type {
-  PlacesDetail,
-  PriceCompare,
-  Product,
-  Store,
-} from "@/types/domain";
+import type { ProductCategory } from "@/api/productService";
+import type { PlacesDetail, Store } from "@/types/domain";
 import { SkeletonBox } from "@/components/ui/SkeletonBox";
 
 type Props = NativeStackScreenProps<MapStackParamList, "StoreProfile">;
 
-interface StoreProductOffer {
-  product: Product;
-  price: number;
-  source: PriceCompare["source"];
-  distanceKm: number | null;
+const PRODUCTS_PAGE_SIZE = 12;
+
+interface CategoryFilterOption {
+  id: number;
+  label: string;
 }
 
-const PRODUCT_SCAN_LIMIT = 60;
+function nextPageFromUrl(nextUrl: string | null): number | null {
+  if (!nextUrl) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(nextUrl);
+    const nextParam = parsed.searchParams.get("page");
+    if (!nextParam) {
+      return null;
+    }
+    const page = parseInt(nextParam, 10);
+    return Number.isNaN(page) || page < 1 ? null : page;
+  } catch {
+    return null;
+  }
+}
+
+function flattenCategoryFilters(
+  categories: ProductCategory[],
+): CategoryFilterOption[] {
+  return categories.flatMap((root) => {
+    const children = (root.children ?? []).map((child) => ({
+      id: child.id,
+      label: `${root.name} / ${child.name}`,
+    }));
+    return [{ id: root.id, label: root.name }, ...children];
+  });
+}
 
 function haversineDistanceKm(
   aLat: number,
@@ -59,13 +84,6 @@ function haversineDistanceKm(
   return 2 * 6371 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 }
 
-function effectiveRowPrice(row: PriceCompare): number {
-  const values = [row.promo_price, row.offer_price, row.price]
-    .filter(Boolean)
-    .map((value) => parseFloat(String(value)));
-  return values.length > 0 ? Math.min(...values) : Number.POSITIVE_INFINITY;
-}
-
 function chainLabel(store: Store): string {
   const map: Record<string, string> = {
     mercadona: "Mercadona",
@@ -74,6 +92,12 @@ function chainLabel(store: Store): string {
     carrefour: "Carrefour",
     dia: "Dia",
     alcampo: "Alcampo",
+    hipercor: "Hipercor",
+    costco: "Costco",
+    eroski: "Eroski",
+    spar: "SPAR",
+    consum: "Consum",
+    coviran: "Coviran",
     local: "Comercio local",
   };
   return map[store.chain] ?? "Tienda";
@@ -83,74 +107,79 @@ export const StoreProfileScreen: React.FC<Props> = ({ route, navigation }) => {
   const { storeId, storeName, userLat, userLng } = route.params;
 
   const [store, setStore] = useState<Store | null>(null);
+  const [categories, setCategories] = useState<ProductCategory[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | "all">(
+    "all",
+  );
   const [products, setProducts] = useState<StoreProductOffer[]>([]);
+  const [productsCount, setProductsCount] = useState(0);
+  const [nextPage, setNextPage] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
 
   // ── Google Places enrichment ──────────────────────────────────────────────
   const [placesDetail, setPlacesDetail] = useState<PlacesDetail | null>(null);
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
 
+  const categoryFilters = useMemo(
+    () => flattenCategoryFilters(categories),
+    [categories],
+  );
+
+  const loadProductsPage = useCallback(
+    async (page: number, replace: boolean, categoryId: number | "all") => {
+      const payload = await storeService.getProducts(storeId, {
+        page,
+        pageSize: PRODUCTS_PAGE_SIZE,
+        categoryId: categoryId === "all" ? undefined : categoryId,
+      });
+
+      const sorted = [...payload.results].sort((a, b) => {
+        const aEffective = a.offerPrice ?? a.price;
+        const bEffective = b.offerPrice ?? b.price;
+        return aEffective - bEffective;
+      });
+
+      setProductsCount(payload.count);
+      setNextPage(nextPageFromUrl(payload.next));
+
+      if (replace) {
+        setProducts(sorted);
+        return;
+      }
+
+      setProducts((prev) => {
+        const merged = [...prev, ...sorted];
+        const seenIds = new Set<string>();
+        return merged.filter((item) => {
+          if (seenIds.has(item.product.id)) {
+            return false;
+          }
+          seenIds.add(item.product.id);
+          return true;
+        });
+      });
+    },
+    [storeId],
+  );
+
   const loadStoreProfile = useCallback(async () => {
     setIsLoading(true);
     try {
-      const detail = await storeService.getDetail(
-        storeId,
-        userLat,
-        userLng,
-        20,
-      );
+      const [detail, fetchedCategories] = await Promise.all([
+        storeService.getDetail(storeId, userLat, userLng, 20),
+        productService.getCategories(),
+      ]);
       setStore(detail);
+      setCategories(fetchedCategories);
 
-      const productCandidates: Product[] = [];
-      const firstPage = await productService.list({ page: 1 });
-      productCandidates.push(...firstPage.results);
-      if (firstPage.next && productCandidates.length < PRODUCT_SCAN_LIMIT) {
-        const secondPage = await productService.list({ page: 2 });
-        productCandidates.push(...secondPage.results);
-      }
-
-      const scanProducts = productCandidates.slice(0, PRODUCT_SCAN_LIMIT);
-      const collected: StoreProductOffer[] = [];
-
-      for (const product of scanProducts) {
-        try {
-          const comparison = await priceService.getPriceComparison(
-            product.id,
-            userLat,
-            userLng,
-            20,
-          );
-          const row = comparison.find(
-            (entry) => String(entry.store_id) === String(storeId),
-          );
-          if (!row) {
-            continue;
-          }
-
-          const price = effectiveRowPrice(row);
-          if (!Number.isFinite(price)) {
-            continue;
-          }
-
-          collected.push({
-            product,
-            price,
-            source: row.source,
-            distanceKm: row.distance_km,
-          });
-        } catch {
-          // Continue scanning products if one compare call fails.
-        }
-      }
-
-      collected.sort((a, b) => a.price - b.price);
-      setProducts(collected.slice(0, 20));
+      await loadProductsPage(1, true, selectedCategoryId);
     } finally {
       setIsLoading(false);
     }
-  }, [storeId, userLat, userLng]);
+  }, [loadProductsPage, selectedCategoryId, storeId, userLat, userLng]);
 
   useEffect(() => {
     void loadStoreProfile();
@@ -174,6 +203,38 @@ export const StoreProfileScreen: React.FC<Props> = ({ route, navigation }) => {
       setIsRefreshing(false);
     }
   }, [loadStoreProfile]);
+
+  const handleLoadMore = useCallback(async () => {
+    if (isLoadingMore || isLoading || isRefreshing || nextPage === null) {
+      return;
+    }
+
+    setIsLoadingMore(true);
+    try {
+      await loadProductsPage(nextPage, false, selectedCategoryId);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [
+    isLoading,
+    isLoadingMore,
+    isRefreshing,
+    loadProductsPage,
+    nextPage,
+    selectedCategoryId,
+  ]);
+
+  const handleSelectCategory = useCallback(
+    async (categoryId: number | "all") => {
+      if (selectedCategoryId === categoryId || isLoading || isRefreshing) {
+        return;
+      }
+
+      setSelectedCategoryId(categoryId);
+      await loadProductsPage(1, true, categoryId);
+    },
+    [isLoading, isRefreshing, loadProductsPage, selectedCategoryId],
+  );
 
   const handleToggleFavorite = useCallback(async () => {
     if (!store) {
@@ -239,6 +300,10 @@ export const StoreProfileScreen: React.FC<Props> = ({ route, navigation }) => {
       <FlatList
         data={products}
         keyExtractor={(item) => item.product.id}
+        onEndReached={() => {
+          void handleLoadMore();
+        }}
+        onEndReachedThreshold={0.3}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
         }
@@ -385,8 +450,60 @@ export const StoreProfileScreen: React.FC<Props> = ({ route, navigation }) => {
             )}
 
             <Text style={styles.productsTitle}>
-              Productos detectados en esta tienda
+              Productos detectados en esta tienda ({productsCount})
             </Text>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoryFiltersContent}
+              style={styles.categoryFilters}
+            >
+              <TouchableOpacity
+                style={[
+                  styles.categoryChip,
+                  selectedCategoryId === "all" ? styles.categoryChipActive : null,
+                ]}
+                onPress={() => {
+                  void handleSelectCategory("all");
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Filtrar por todas las categorías"
+              >
+                <Text
+                  style={[
+                    styles.categoryChipText,
+                    selectedCategoryId === "all" ? styles.categoryChipTextActive : null,
+                  ]}
+                >
+                  Todas
+                </Text>
+              </TouchableOpacity>
+
+              {categoryFilters.map((category) => {
+                const isActive = selectedCategoryId === category.id;
+                return (
+                  <TouchableOpacity
+                    key={category.id}
+                    style={[styles.categoryChip, isActive ? styles.categoryChipActive : null]}
+                    onPress={() => {
+                      void handleSelectCategory(category.id);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Filtrar por ${category.label}`}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryChipText,
+                        isActive ? styles.categoryChipTextActive : null,
+                      ]}
+                    >
+                      {category.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
           </View>
         }
         ListEmptyComponent={
@@ -413,11 +530,21 @@ export const StoreProfileScreen: React.FC<Props> = ({ route, navigation }) => {
               </Text>
             </View>
             <View style={styles.productPriceWrap}>
-              <Text style={styles.productPrice}>{item.price.toFixed(2)} €</Text>
+              <Text style={styles.productPrice}>
+                {(item.offerPrice ?? item.price).toFixed(2)} €
+              </Text>
               <Text style={styles.productSource}>{item.source}</Text>
             </View>
           </View>
         )}
+        ListFooterComponent={
+          isLoadingMore ? (
+            <View style={styles.listFooterLoading}>
+              <ActivityIndicator size="small" color={colors.primary} />
+              <Text style={styles.listFooterText}>Cargando más productos...</Text>
+            </View>
+          ) : null
+        }
       />
     </SafeAreaView>
   );
@@ -532,6 +659,34 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginTop: spacing.sm,
   },
+  categoryFilters: {
+    marginTop: spacing.sm,
+  },
+  categoryFiltersContent: {
+    gap: spacing.xs,
+    paddingRight: spacing.xs,
+  },
+  categoryChip: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  categoryChipActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary,
+  },
+  categoryChipText: {
+    fontFamily: fontFamilies.body,
+    fontSize: fontSize.sm,
+    color: colors.text,
+  },
+  categoryChipTextActive: {
+    color: colors.white,
+    fontFamily: fontFamilies.bodyMedium,
+  },
   emptyProducts: {
     alignItems: "center",
     gap: spacing.xs,
@@ -581,6 +736,18 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     color: colors.textMuted,
     marginTop: 2,
+  },
+  listFooterLoading: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+  },
+  listFooterText: {
+    fontFamily: fontFamilies.body,
+    fontSize: fontSize.sm,
+    color: colors.textMuted,
   },
   // ── Google Places enrichment styles ────────────────────────────────────────
   placesLoadingRow: {

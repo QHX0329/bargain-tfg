@@ -1,5 +1,7 @@
 """Vistas del módulo de tiendas con búsqueda geoespacial."""
 
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+
 import requests as http_requests
 from django.conf import settings
 from django.contrib.gis.db.models.functions import Distance
@@ -17,9 +19,14 @@ from rest_framework.response import Response
 
 from apps.core.exceptions import BargainAPIException
 from apps.core.responses import success_response
+from apps.prices.models import Price
 
 from .models import Store, UserFavoriteStore
-from .serializers import StoreDetailSerializer, StoreListSerializer
+from .serializers import (
+    StoreDetailSerializer,
+    StoreListSerializer,
+    StoreProductOfferSerializer,
+)
 
 
 class StoreViewSet(viewsets.ReadOnlyModelViewSet):
@@ -99,6 +106,7 @@ class StoreViewSet(viewsets.ReadOnlyModelViewSet):
             "places_detail",
             "places_autocomplete",
             "places_resolve",
+            "products",
         ):
             return Store.objects.filter(is_active=True).select_related("chain")
 
@@ -422,6 +430,149 @@ class StoreViewSet(viewsets.ReadOnlyModelViewSet):
             result["matched_store_id"] = str(matched)
 
         return success_response(result)
+
+    @extend_schema(
+        summary="Productos con precio en una tienda",
+        description=(
+            "Devuelve una oferta por producto para la tienda indicada. "
+            "Soporta paginación y filtro por categoría. "
+            "Prioriza precios no caducados y, dentro de cada estado, el registro más reciente."
+        ),
+        parameters=[
+            OpenApiParameter(
+                "category",
+                int,
+                required=False,
+                description="ID de categoría para filtrar productos de la tienda.",
+            ),
+            OpenApiParameter(
+                "page",
+                int,
+                required=False,
+                description="Número de página (por defecto 1).",
+            ),
+            OpenApiParameter(
+                "page_size",
+                int,
+                required=False,
+                description="Tamaño de página (1-100, por defecto 20).",
+            ),
+            OpenApiParameter(
+                "limit",
+                int,
+                required=False,
+                description="Alias legacy de page_size (1-100).",
+            ),
+        ],
+        responses={
+            200: inline_serializer(
+                "StoreProductsPaginatedResponse",
+                fields={
+                    "count": drf_serializers.IntegerField(),
+                    "next": drf_serializers.CharField(allow_null=True),
+                    "previous": drf_serializers.CharField(allow_null=True),
+                    "results": StoreProductOfferSerializer(many=True),
+                },
+            )
+        },
+    )
+    @action(detail=True, methods=["get"], url_path="products", permission_classes=[])
+    def products(self, request: Request, pk: str | None = None) -> Response:
+        """Lista productos detectados en la tienda con paginación y filtro por categoría."""
+        store = self.get_object()
+        query_params = request.query_params
+
+        try:
+            page = int(query_params.get("page", 1))
+        except ValueError:
+            page = 1
+        page = max(1, page)
+
+        page_size_raw = query_params.get("page_size") or query_params.get("limit") or 20
+        try:
+            page_size = int(page_size_raw)
+        except (TypeError, ValueError):
+            page_size = 20
+        page_size = max(1, min(page_size, 100))
+
+        category_param = query_params.get("category")
+        category_id: int | None = None
+        if category_param is not None:
+            try:
+                category_id = int(category_param)
+            except ValueError:
+                return Response(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": "INVALID_CATEGORY",
+                            "message": "El parámetro category debe ser un entero válido.",
+                            "details": {},
+                        },
+                    },
+                    status=400,
+                )
+            if category_id <= 0:
+                return Response(
+                    {
+                        "success": False,
+                        "error": {
+                            "code": "INVALID_CATEGORY",
+                            "message": "El parámetro category debe ser mayor que 0.",
+                            "details": {},
+                        },
+                    },
+                    status=400,
+                )
+
+        # Orden estable para escoger un único precio por producto:
+        # no-stale primero y, luego, el más reciente.
+        prices_qs = Price.objects.filter(store=store, product__is_active=True)
+        if category_id is not None:
+            prices_qs = prices_qs.filter(product__category_id=category_id)
+
+        prices_qs = prices_qs.select_related("product", "product__category").order_by(
+            "product_id", "is_stale", "-verified_at"
+        )
+
+        selected_prices = []
+        seen_product_ids: set[int] = set()
+        for price_obj in prices_qs:
+            if price_obj.product_id in seen_product_ids:
+                continue
+            seen_product_ids.add(price_obj.product_id)
+            selected_prices.append(price_obj)
+
+        total_count = len(selected_prices)
+        start = (page - 1) * page_size
+        end = start + page_size
+        paged_prices = selected_prices[start:end]
+
+        current_url = request.build_absolute_uri()
+
+        def _replace_query_param(url: str, key: str, value: int) -> str:
+            split = urlsplit(url)
+            query_dict = dict(parse_qsl(split.query, keep_blank_values=True))
+            query_dict[key] = str(value)
+            new_query = urlencode(query_dict)
+            return urlunsplit((split.scheme, split.netloc, split.path, new_query, split.fragment))
+
+        has_next = end < total_count
+        has_previous = page > 1
+        next_url = _replace_query_param(current_url, "page", page + 1) if has_next else None
+        previous_url = (
+            _replace_query_param(current_url, "page", page - 1) if has_previous else None
+        )
+
+        serializer = StoreProductOfferSerializer(paged_prices, many=True)
+        return success_response(
+            {
+                "count": total_count,
+                "next": next_url,
+                "previous": previous_url,
+                "results": serializer.data,
+            }
+        )
 
     @extend_schema(
         request=None,

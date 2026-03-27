@@ -13,10 +13,12 @@
  *  6. Error de red → tarjeta de error con mensaje genérico
  */
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
+  Linking,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -27,7 +29,7 @@ import Slider from "@react-native-community/slider";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useFocusEffect, useNavigation, useRoute } from "@react-navigation/native";
 import type { RouteProp } from "@react-navigation/native";
 import * as Location from "expo-location";
 
@@ -41,8 +43,16 @@ import {
 } from "@/theme";
 import type { ListsStackParamList } from "@/navigation/types";
 import { SkeletonBox } from "@/components/ui/SkeletonBox";
+import { authService } from "@/api/authService";
 import { optimizeRoute } from "@/api/optimizerService";
 import type { OptimizeResponse, RouteStop } from "@/api/optimizerService";
+import { useProfileStore } from "@/store/profileStore";
+import type { UserProfile } from "@/types/domain";
+import {
+  buildAppleMapsCircularRouteUrl,
+  buildGoogleMapsAppCircularRouteUrl,
+  buildGoogleMapsCircularRouteUrl,
+} from "@/utils/maps";
 
 type RouteP = RouteProp<ListsStackParamList, "Route">;
 
@@ -64,6 +74,34 @@ interface WeightConfig {
   w_precio: number;
   w_distancia: number;
   w_tiempo: number;
+}
+
+function getOptimizerPrefsFromProfile(profile: UserProfile | null): {
+  maxDistanceKm: number;
+  maxStops: number;
+  weights: WeightConfig;
+} {
+  if (!profile) {
+    return {
+      maxDistanceKm: 10,
+      maxStops: 3,
+      weights: {
+        w_precio: 50,
+        w_distancia: 30,
+        w_tiempo: 20,
+      },
+    };
+  }
+
+  return {
+    maxDistanceKm: profile.searchRadiusKm ?? profile.max_search_radius_km ?? 10,
+    maxStops: profile.maxStops ?? profile.max_stops ?? 3,
+    weights: {
+      w_precio: profile.weightPrice ?? profile.weight_price ?? 50,
+      w_distancia: profile.weightDistance ?? profile.weight_distance ?? 30,
+      w_tiempo: profile.weightTime ?? profile.weight_time ?? 20,
+    },
+  };
 }
 
 interface WeightModalProps {
@@ -96,7 +134,7 @@ const WeightModal: React.FC<WeightModalProps> = ({
       <View style={weightStyles.overlay}>
         <View style={weightStyles.card}>
           <View style={weightStyles.accentBar} />
-          <Text style={weightStyles.title}>Ajustar preferencias</Text>
+          <Text style={weightStyles.title}>Ajustar optimizador</Text>
 
           {(["w_precio", "w_distancia", "w_tiempo"] as const).map((key) => {
             const labels: Record<string, string> = {
@@ -144,44 +182,96 @@ const WeightModal: React.FC<WeightModalProps> = ({
 
 // ─── Route Stop Row ────────────────────────────────────────────────────────────
 
-const RouteStopRow: React.FC<{ stop: RouteStop; index: number }> = ({
-  stop,
-  index,
-}) => {
+const RouteStopRow: React.FC<{
+  stop: RouteStop;
+  index: number;
+  isSelected: boolean;
+  onSelect: () => void;
+}> = ({ stop, index, isSelected, onSelect }) => {
   const chainColor = CHAIN_COLORS[stop.chain.toLowerCase()] ?? colors.primary;
+  const subtotal = stop.products.reduce(
+    (acc, product) => acc + product.price * product.quantity,
+    0,
+  );
+
   return (
     <Animated.View
       entering={FadeInDown.delay(100 + index * 80).springify()}
       style={stopRowStyles.container}
     >
-      <View
-        style={[stopRowStyles.dot, { backgroundColor: chainColor }]}
-        accessibilityLabel={stop.store_name}
-      />
-      <View style={stopRowStyles.body}>
-        <Text style={stopRowStyles.storeName} numberOfLines={1}>
-          {stop.store_name}
-        </Text>
-        <View style={stopRowStyles.meta}>
-          <Text style={stopRowStyles.metaText}>
-            {stop.distance_km.toFixed(1)} km
+      <TouchableOpacity
+        style={stopRowStyles.headerPressable}
+        onPress={onSelect}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={`Ver productos de ${stop.store_name}`}
+      >
+        <View
+          style={[stopRowStyles.dot, { backgroundColor: chainColor }]}
+          accessibilityLabel={stop.store_name}
+        />
+        <View style={stopRowStyles.body}>
+          <Text style={stopRowStyles.storeName} numberOfLines={1}>
+            {stop.store_name}
           </Text>
-          <Text style={stopRowStyles.metaDot}>·</Text>
-          <Text style={stopRowStyles.metaText}>
-            ~{Math.round(stop.time_minutes)} min
+          <View style={stopRowStyles.meta}>
+            <Text style={stopRowStyles.metaText}>
+              {stop.distance_km.toFixed(1)} km
+            </Text>
+            <Text style={stopRowStyles.metaDot}>·</Text>
+            <Text style={stopRowStyles.metaText}>
+              ~{Math.round(stop.time_minutes)} min
+            </Text>
+          </View>
+        </View>
+        <View style={stopRowStyles.priceCol}>
+          {stop.products.length > 0 && (
+            <Text style={stopRowStyles.priceText}>{subtotal.toFixed(2)} €</Text>
+          )}
+          <Ionicons
+            name={isSelected ? "chevron-up" : "chevron-down"}
+            size={16}
+            color={colors.textMuted}
+          />
+        </View>
+      </TouchableOpacity>
+
+      {isSelected && stop.products.length > 0 ? (
+        <View style={stopRowStyles.productsPanel}>
+          <Text style={stopRowStyles.productsPanelTitle}>
+            Productos en esta tienda
+          </Text>
+          {stop.products.map((product, productIndex) => {
+            const lineTotal = product.price * product.quantity;
+            return (
+              <View
+                key={`${product.matched_product_id}-${productIndex}`}
+                style={stopRowStyles.productLine}
+              >
+                <View style={stopRowStyles.productLineInfo}>
+                  <Text style={stopRowStyles.productLineName} numberOfLines={1}>
+                    {product.matched_product_name}
+                  </Text>
+                  <Text style={stopRowStyles.productLineMeta}>
+                    {product.quantity} x {product.price.toFixed(2)} €
+                  </Text>
+                </View>
+                <Text style={stopRowStyles.productLineTotal}>
+                  {lineTotal.toFixed(2)} €
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      ) : null}
+
+      {isSelected && stop.products.length === 0 ? (
+        <View style={stopRowStyles.productsPanel}>
+          <Text style={stopRowStyles.emptyProductsText}>
+            No hay productos asignados a esta parada.
           </Text>
         </View>
-      </View>
-      <View style={stopRowStyles.priceCol}>
-        {stop.products.length > 0 && (
-          <Text style={stopRowStyles.priceText}>
-            {stop.products
-              .reduce((acc, p) => acc + p.price * p.quantity, 0)
-              .toFixed(2)}{" "}
-            €
-          </Text>
-        )}
-      </View>
+      ) : null}
     </Animated.View>
   );
 };
@@ -192,19 +282,53 @@ export const RouteScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteP>();
   const { listId, listName } = route.params;
+  const profile = useProfileStore((state) => state.profile);
+  const setProfile = useProfileStore((state) => state.setProfile);
+  const initialPrefs = getOptimizerPrefsFromProfile(profile);
 
   const [result, setResult] = useState<OptimizeResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<{ code: string; message: string } | null>(
     null,
   );
-  const [weights, setWeights] = useState<WeightConfig>({
-    w_precio: 50,
-    w_distancia: 30,
-    w_tiempo: 20,
-  });
-  const [maxStops, setMaxStops] = useState(3);
+  const [weights, setWeights] = useState<WeightConfig>(initialPrefs.weights);
+  const [maxStops, setMaxStops] = useState(initialPrefs.maxStops);
+  const [maxDistanceKm, setMaxDistanceKm] = useState(initialPrefs.maxDistanceKm);
   const [showWeightModal, setShowWeightModal] = useState(false);
+  const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null);
+  const [originCoords, setOriginCoords] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const prefs = getOptimizerPrefsFromProfile(profile);
+    setWeights(prefs.weights);
+    setMaxStops(prefs.maxStops);
+    setMaxDistanceKm(prefs.maxDistanceKm);
+  }, [profile]);
+
+  useFocusEffect(
+    useCallback(() => {
+      let mounted = true;
+      const loadProfile = async () => {
+        try {
+          const freshProfile = await authService.getProfile();
+          if (!mounted) {
+            return;
+          }
+          setProfile(freshProfile);
+        } catch {
+          // Keep local/store values if profile refresh fails.
+        }
+      };
+
+      void loadProfile();
+      return () => {
+        mounted = false;
+      };
+    }, [setProfile]),
+  );
 
   const handleOptimize = async () => {
     setLoading(true);
@@ -225,19 +349,24 @@ export const RouteScreen: React.FC = () => {
       const loc = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
       });
+      setOriginCoords({
+        lat: loc.coords.latitude,
+        lng: loc.coords.longitude,
+      });
 
       const response = await optimizeRoute({
         shopping_list_id: parseInt(listId, 10),
         lat: loc.coords.latitude,
         lng: loc.coords.longitude,
-        max_distance_km: 10,
+        max_distance_km: maxDistanceKm,
         max_stops: maxStops,
         w_precio: weights.w_precio / 100,
         w_distancia: weights.w_distancia / 100,
         w_tiempo: weights.w_tiempo / 100,
       });
 
-      setResult(response as unknown as OptimizeResponse);
+      setResult(response);
+      setSelectedStoreId(response.route[0]?.store_id ?? null);
     } catch (err: any) {
       const code = err?.response?.data?.error?.code ?? "";
       if (code === "OPTIMIZER_NO_STORES_IN_RADIUS") {
@@ -255,6 +384,76 @@ export const RouteScreen: React.FC = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleOpenRouteInMap = async () => {
+    if (!result || result.route.length === 0) {
+      Alert.alert("Ruta no disponible", "Primero genera una ruta optimizada.");
+      return;
+    }
+
+    try {
+      let origin = originCoords;
+      if (!origin) {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert(
+            "Ubicación requerida",
+            "Necesitamos tu ubicación para abrir la ruta circular en Google Maps.",
+          );
+          return;
+        }
+
+        const loc = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+        origin = {
+          lat: loc.coords.latitude,
+          lng: loc.coords.longitude,
+        };
+        setOriginCoords(origin);
+      }
+
+      const mapUrl = buildGoogleMapsCircularRouteUrl({
+        origin,
+        stops: result.route.map((stop) => ({ lat: stop.lat, lng: stop.lng })),
+        travelMode: "driving",
+      });
+
+      const googleAppUrl = buildGoogleMapsAppCircularRouteUrl({
+        origin,
+        stops: result.route.map((stop) => ({ lat: stop.lat, lng: stop.lng })),
+        travelMode: "driving",
+      });
+
+      const appleMapsUrl = buildAppleMapsCircularRouteUrl({
+        origin,
+        stops: result.route.map((stop) => ({ lat: stop.lat, lng: stop.lng })),
+        travelMode: "driving",
+      });
+
+      if (!mapUrl) {
+        Alert.alert(
+          "Ruta no disponible",
+          "No hay coordenadas válidas para abrir la ruta en Google Maps.",
+        );
+        return;
+      }
+
+      if (googleAppUrl && (await Linking.canOpenURL(googleAppUrl))) {
+        await Linking.openURL(googleAppUrl);
+        return;
+      }
+
+      if (Platform.OS === "ios" && appleMapsUrl) {
+        await Linking.openURL(appleMapsUrl);
+        return;
+      }
+
+      await Linking.openURL(mapUrl);
+    } catch {
+      Alert.alert("No se pudo abrir el mapa", "Inténtalo de nuevo en unos segundos.");
     }
   };
 
@@ -289,10 +488,9 @@ export const RouteScreen: React.FC = () => {
           accessibilityLabel="Ajustar preferencias de optimización"
         >
           <Ionicons name="options-outline" size={18} color={colors.primary} />
-          <Text style={styles.prefText}>Ajustar preferencias</Text>
           <Text style={styles.prefHint}>
-            Precio {weights.w_precio} · Distancia {weights.w_distancia} · Tiempo{" "}
-            {weights.w_tiempo}
+            Radio {maxDistanceKm} km · Precio {weights.w_precio} · Distancia{" "}
+            {weights.w_distancia} · Tiempo {weights.w_tiempo}
           </Text>
           <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
         </TouchableOpacity>
@@ -365,10 +563,10 @@ export const RouteScreen: React.FC = () => {
               <TouchableOpacity
                 style={styles.errorCta}
                 onPress={() => {
-                  // Ampliar radio — en la siguiente versión se conectará al perfil
+                  setMaxDistanceKm((prev) => Math.min(50, prev + 5));
                   Alert.alert(
                     "Ampliar radio",
-                    "Ve a tu perfil → Preferencias para aumentar el radio de búsqueda.",
+                    `Se ha ampliado el radio a ${Math.min(50, maxDistanceKm + 5)} km para el siguiente intento.`,
                     [{ text: "Entendido" }],
                   );
                 }}
@@ -439,11 +637,29 @@ export const RouteScreen: React.FC = () => {
             {/* Stop list */}
             <Text style={styles.sectionTitle}>Paradas de la ruta</Text>
             {result.route.map((stop, idx) => (
-              <RouteStopRow key={stop.store_id} stop={stop} index={idx} />
+              <RouteStopRow
+                key={stop.store_id}
+                stop={stop}
+                index={idx}
+                isSelected={selectedStoreId === stop.store_id}
+                onSelect={() =>
+                  setSelectedStoreId((prev) =>
+                    prev === stop.store_id ? null : stop.store_id,
+                  )
+                }
+              />
             ))}
 
             {/* "Ver en mapa" secondary button */}
-            <TouchableOpacity style={styles.mapBtn} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={styles.mapBtn}
+              activeOpacity={0.7}
+              onPress={() => {
+                void handleOpenRouteInMap();
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Abrir ruta circular en Google Maps"
+            >
               <Ionicons name="map-outline" size={18} color={colors.primary} />
               <Text style={styles.mapBtnText}>Ver en mapa</Text>
             </TouchableOpacity>
@@ -680,15 +896,18 @@ const styles = StyleSheet.create({
 
 const stopRowStyles = StyleSheet.create({
   container: {
-    flexDirection: "row",
-    alignItems: "center",
-    height: 56,
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.md,
-    gap: spacing.sm,
+    paddingVertical: spacing.sm,
     marginBottom: spacing.xs,
     ...shadows.card,
+  },
+  headerPressable: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    minHeight: 40,
   },
   dot: {
     width: 10,
@@ -722,11 +941,57 @@ const stopRowStyles = StyleSheet.create({
   },
   priceCol: {
     alignItems: "flex-end",
+    gap: 2,
   },
   priceText: {
     fontFamily: fontFamilies.display,
     fontSize: fontSize.md,
     color: colors.primary,
+  },
+  productsPanel: {
+    marginTop: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
+    gap: spacing.xs,
+  },
+  productsPanelTitle: {
+    fontFamily: fontFamilies.bodySemiBold,
+    fontSize: fontSize.xs,
+    color: colors.textMuted,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  productLine: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+  },
+  productLineInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  productLineName: {
+    fontFamily: fontFamilies.bodyMedium,
+    fontSize: fontSize.sm,
+    color: colors.text,
+  },
+  productLineMeta: {
+    fontFamily: fontFamilies.body,
+    fontSize: fontSize.xs,
+    color: colors.textMuted,
+  },
+  productLineTotal: {
+    fontFamily: fontFamilies.bodySemiBold,
+    fontSize: fontSize.sm,
+    color: colors.primary,
+  },
+  emptyProductsText: {
+    fontFamily: fontFamilies.body,
+    fontSize: fontSize.xs,
+    color: colors.textMuted,
   },
 });
 

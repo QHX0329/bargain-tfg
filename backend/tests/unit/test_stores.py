@@ -5,6 +5,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.contrib.gis.measure import Distance
 
+from apps.prices.models import Price
+from apps.products.models import Category, Product
 from apps.stores.models import Store, StoreChain
 from apps.stores.serializers import StoreListSerializer
 
@@ -157,3 +159,164 @@ class TestPlacesDetailCache:
         assert response2.data["data"]["rating"] == 4.2
         # Google API sólo debe llamarse una vez (la segunda respuesta viene del caché)
         mock_get.assert_called_once()
+
+
+class TestStoreProductsEndpoint:
+    """Tests para GET /api/v1/stores/{id}/products/."""
+
+    def test_returns_one_offer_per_product_prioritizing_non_stale(
+        self, api_client, store_with_chain, seville_point
+    ):
+        """Debe priorizar precios no stale y evitar duplicados por producto."""
+        category = Category.objects.create(name="Lácteos", slug="lacteos")
+        product = Product.objects.create(
+            name="Leche entera",
+            normalized_name="leche entera",
+            category=category,
+            unit="l",
+            unit_quantity=1,
+            is_active=True,
+        )
+
+        # Precio stale más reciente: no debe seleccionarse si hay uno no stale.
+        Price.objects.create(
+            product=product,
+            store=store_with_chain,
+            price="1.39",
+            source=Price.Source.SCRAPING,
+            is_stale=True,
+        )
+        Price.objects.create(
+            product=product,
+            store=store_with_chain,
+            price="1.09",
+            source=Price.Source.SCRAPING,
+            is_stale=False,
+        )
+
+        response = api_client.get(f"/api/v1/stores/{store_with_chain.id}/products/")
+
+        assert response.status_code == 200
+        payload = response.data["data"]
+        assert payload["count"] == 1
+        assert len(payload["results"]) == 1
+        assert payload["results"][0]["product"]["name"] == "Leche entera"
+        assert payload["results"][0]["price"] == "1.09"
+        assert payload["results"][0]["is_stale"] is False
+
+        other_chain = StoreChain.objects.create(name="Dia", slug="dia")
+        other_store = Store.objects.create(
+            name="Dia Centro",
+            chain=other_chain,
+            address="Calle Sierpes 8, Sevilla",
+            location=seville_point,
+            is_active=True,
+        )
+        Price.objects.create(
+            product=product,
+            store=other_store,
+            price="0.99",
+            source=Price.Source.SCRAPING,
+            is_stale=False,
+        )
+
+        response_after_other_store = api_client.get(
+            f"/api/v1/stores/{store_with_chain.id}/products/"
+        )
+        assert response_after_other_store.status_code == 200
+        assert response_after_other_store.data["data"]["count"] == 1
+        assert len(response_after_other_store.data["data"]["results"]) == 1
+
+    def test_respects_limit_query_param(self, api_client, store_with_chain):
+        """Debe truncar el número de ofertas al límite solicitado."""
+        category = Category.objects.create(name="Despensa", slug="despensa")
+        for index in range(3):
+            product = Product.objects.create(
+                name=f"Producto {index}",
+                normalized_name=f"producto {index}",
+                category=category,
+                unit="units",
+                unit_quantity=1,
+                is_active=True,
+            )
+            Price.objects.create(
+                product=product,
+                store=store_with_chain,
+                price=f"{index + 1}.00",
+                source=Price.Source.SCRAPING,
+                is_stale=False,
+            )
+
+        response = api_client.get(f"/api/v1/stores/{store_with_chain.id}/products/?limit=2")
+
+        assert response.status_code == 200
+        assert response.data["data"]["count"] == 3
+        assert len(response.data["data"]["results"]) == 2
+
+    def test_supports_category_filter_and_page_number(self, api_client, store_with_chain):
+        """Debe filtrar por categoría y paginar por page/page_size."""
+        drinks = Category.objects.create(name="Bebidas", slug="bebidas")
+        snacks = Category.objects.create(name="Snacks", slug="snacks")
+
+        prod_a = Product.objects.create(
+            name="Agua 1L",
+            normalized_name="agua 1l",
+            category=drinks,
+            unit="l",
+            unit_quantity=1,
+            is_active=True,
+        )
+        prod_b = Product.objects.create(
+            name="Cola 2L",
+            normalized_name="cola 2l",
+            category=drinks,
+            unit="l",
+            unit_quantity=2,
+            is_active=True,
+        )
+        prod_c = Product.objects.create(
+            name="Patatas",
+            normalized_name="patatas",
+            category=snacks,
+            unit="units",
+            unit_quantity=1,
+            is_active=True,
+        )
+
+        for product in [prod_a, prod_b, prod_c]:
+            Price.objects.create(
+                product=product,
+                store=store_with_chain,
+                price="1.50",
+                source=Price.Source.SCRAPING,
+                is_stale=False,
+            )
+
+        page_1 = api_client.get(
+            f"/api/v1/stores/{store_with_chain.id}/products/?category={drinks.id}&page=1&page_size=1"
+        )
+        page_2 = api_client.get(
+            f"/api/v1/stores/{store_with_chain.id}/products/?category={drinks.id}&page=2&page_size=1"
+        )
+
+        assert page_1.status_code == 200
+        assert page_2.status_code == 200
+
+        payload_1 = page_1.data["data"]
+        payload_2 = page_2.data["data"]
+
+        assert payload_1["count"] == 2
+        assert payload_1["next"] is not None
+        assert payload_1["previous"] is None
+        assert len(payload_1["results"]) == 1
+
+        assert payload_2["count"] == 2
+        assert payload_2["next"] is None
+        assert payload_2["previous"] is not None
+        assert len(payload_2["results"]) == 1
+
+        names = {
+            payload_1["results"][0]["product"]["name"],
+            payload_2["results"][0]["product"]["name"],
+        }
+        assert names == {"Agua 1L", "Cola 2L"}

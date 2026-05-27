@@ -16,6 +16,7 @@ Roadmap operativo sincronizado a 2026-04-05. El proyecto tiene F1-F6 finalizadas
 - [ ] Phase 8: Milestone Evidence Recovery - Pendiente
 - [ ] Phase 9: Traceability Normalization - Pendiente
 - [ ] Phase 10: Contract Alignment Cleanup - Pendiente
+- [ ] Phase 12: Consumer Web App - Pendiente
 
 ## Current Execution Focus
 
@@ -121,6 +122,7 @@ Plans:
 | 8. Milestone Evidence Recovery | Not started | Backfill de VERIFICATION.md y cierre formal de evidencia |
 | 9. Traceability Normalization | Not started | Reparacion de requirements-completed y trazabilidad audit-ready |
 | 10. Contract Alignment Cleanup | Not started | Alinear IDs ambiguos y contrato OCR antes de re-auditar |
+| 12. Consumer Web App | Not started | 6 planes en 3 waves |
 
 ### Phase 11: Auditar memoria TFG contra guías oficiales y preparar despliegue reproducible
 
@@ -133,4 +135,22 @@ Plans:
 - [ ] TBD (run /gsd-plan-phase 11 to break down)
 
 ---
-Last updated: 2026-04-05
+
+### Phase 12: Consumer Web App
+
+**Goal:** Implement all consumer-facing mobile features as web pages in `frontend/web/` under routes `/app/*`, using React Leaflet for the map (OpenStreetMap) and file upload for OCR.
+
+**Requirements:** [WEB-01, WEB-02, WEB-03, WEB-04, WEB-05, WEB-06]
+
+**Plans:** 6 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — Consumer section scaffold (layout, routing, stores, services)
+- [ ] 12-02-PLAN.md — Shopping lists + list detail + templates
+- [ ] 12-03-PLAN.md — Optimizer result + product catalog + price comparison + proposal
+- [ ] 12-04-PLAN.md — Map (React Leaflet) + store profile + favorites
+- [ ] 12-05-PLAN.md — AI assistant chat + OCR file upload
+- [ ] 12-06-PLAN.md — Profile + optimizer config + notifications + price alerts
+
+---
+Last updated: 2026-05-27

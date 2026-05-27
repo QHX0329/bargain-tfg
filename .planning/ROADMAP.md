@@ -142,10 +142,10 @@ Plans:
 
 **Requirements:** [WEB-01, WEB-02, WEB-03, WEB-04, WEB-05, WEB-06]
 
-**Plans:** 6 plans
+**Plans:** 1/6 plans executed
 
 Plans:
-- [ ] 12-01-PLAN.md — Consumer section scaffold (layout, routing, stores, services)
+- [x] 12-01-PLAN.md — Consumer section scaffold (layout, routing, stores, services)
 - [ ] 12-02-PLAN.md — Shopping lists + list detail + templates
 - [ ] 12-03-PLAN.md — Optimizer result + product catalog + price comparison + proposal
 - [ ] 12-04-PLAN.md — Map (React Leaflet) + store profile + favorites

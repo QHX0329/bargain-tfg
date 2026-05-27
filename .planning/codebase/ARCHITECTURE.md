@@ -1,240 +1,149 @@
 # Architecture
 
-**Analysis Date:** 2026-03-16
+**Analysis Date:** 2026-05-25
 
 ## Pattern Overview
 
-**Overall:** Layered 3-tier architecture with domain-driven design.
+**Overall:** Layered monolith (Django) with a separate Scrapy project, two independent frontend targets (React Native mobile + Vite/React web portal), and Celery async workers.
 
 **Key Characteristics:**
-- Django REST Framework backend with modular domain apps
-- React Native + Expo frontend with centralized state management (Zustand)
-- Domain separation by feature (users, products, stores, prices, shopping_lists, optimizer, OCR, assistant, business, notifications)
-- JWT authentication with role-based access control (consumer, business, admin)
-- PostGIS for geospatial operations (store locations, route calculations)
-- Async task processing with Celery + Redis
-- Structured logging with structlog
-- Global exception handling with standardized error responses
+- DRF-based REST API under `/api/v1/` with consistent `{ success, data/error }` envelope
+- All domain logic lives in `backend/apps/` as discrete Django apps; cross-app imports are explicit
+- Async work (scraping, push notifications, price expiry) handled by Celery tasks backed by Redis
+- PostGIS used for all geospatial queries (store proximity, user location, route calculation)
+- Scrapy runs in child subprocesses (via `subprocess.Popen`) to avoid Twisted/Celery reactor conflict
 
 ## Layers
 
-**Presentation Layer (Frontend):**
-- Purpose: Mobile-first UI rendered with React Native, web fallback with React
-- Location: `frontend/`
-- Contains: Screens (auth, home, lists, map, profile), reusable UI components, navigation logic
-- Depends on: HTTP client (`api/client.ts`), Zustand stores, theme system, type definitions
-- Used by: End users, accessed via Expo CLI or built app
+**HTTP API (DRF):**
+- Purpose: Handle authenticated REST requests; validate input via serializers; delegate to services
+- Location: `backend/apps/*/views.py`, `backend/apps/*/urls.py`, `backend/apps/*/serializers.py`
+- Contains: APIView subclasses, ModelViewSet subclasses, serializer classes
+- Depends on: Service layer, models, `apps.core.responses`, `apps.core.exceptions`
+- Used by: Mobile frontend, web portal frontend
 
-**API Gateway / HTTP Layer:**
-- Purpose: Bridge between frontend and backend
-- Location: `frontend/src/api/client.ts`
-- Contains: Axios client with JWT interceptors, request/response handling
-- Depends on: Auth store for token injection, backend at `http://localhost:8000/api/v1`
-- Used by: All frontend services and screen components
+**Service Layer:**
+- Purpose: Business logic decoupled from HTTP concerns
+- Location: `backend/apps/optimizer/services/` (solver.py, matching.py, distance.py, semantic.py), `backend/apps/products/services.py`, `backend/apps/ocr/services.py`, `backend/apps/assistant/services.py`
+- Contains: Pure functions; no request/response objects
+- Depends on: Django ORM, external SDKs (Google Vision, Gemini, OR-Tools, Graphhopper)
+- Used by: Views, Celery tasks
 
-**State Management Layer:**
-- Purpose: Global state for authentication and app-wide concerns
-- Location: `frontend/src/store/authStore.ts`
-- Contains: Zustand store with user identity, JWT token, login/logout actions
-- Depends on: Nothing (isolated)
-- Used by: Navigation logic (RootNavigator), HTTP client interceptors, all screens
+**Data / ORM:**
+- Purpose: Model definitions and database persistence
+- Location: `backend/apps/*/models.py`, `backend/apps/*/migrations/`
+- Contains: Django models, PostGIS `PointField`, JSON fields, GistIndex for spatial indexing
+- Key spatial model: `Store.location` as `gis_models.PointField(srid=4326)` with `GistIndex`
 
-**REST API Layer (Backend):**
-- Purpose: HTTP API implementing Django REST Framework with OpenAPI documentation
-- Location: `backend/config/urls.py` routes to `backend/apps/*/urls.py`
-- Contains: ViewSets, serializers, endpoints organized by domain
-- Depends on: Django ORM, DRF, JWT authentication, permission classes
-- Used by: Frontend HTTP client, external integrations
+**Celery Task Layer:**
+- Purpose: Background and periodic tasks
+- Location: `backend/apps/scraping/tasks.py`, `backend/apps/prices/tasks.py`, `backend/apps/notifications/tasks.py`, `backend/apps/business/tasks.py`
+- Contains: `@shared_task` functions; scheduled via `django_celery_beat`
+- Depends on: Service layer, Django ORM, Redis (rate limiting in notifications)
 
-**Domain Applications Layer:**
-- Purpose: Isolated business logic per feature domain
-- Location: `backend/apps/{users,products,stores,prices,shopping_lists,optimizer,ocr,assistant,business,notifications}/`
-- Contains: Per-app models, views, serializers, permissions, URL routing, tasks
-- Depends on: Django models, DRF, core exceptions and permissions
-- Used by: Other domain apps (through database or direct service calls), API layer
+**Core Cross-Cutting:**
+- Purpose: Shared error types, response helpers, permissions
+- Location: `backend/apps/core/exceptions.py`, `backend/apps/core/responses.py`, `backend/apps/core/permissions.py`
+- Contains: `BargainAPIException` hierarchy, `success_response()`/`created_response()` helpers, `bargain_exception_handler` for DRF
 
-**Core Services Layer:**
-- Purpose: Shared infrastructure and utilities
-- Location: `backend/apps/core/`
-- Contains: Health checks, global exception handler, role-based permissions, custom exceptions
-- Depends on: Django, DRF
-- Used by: All domain applications
+## Django App Modules
 
-**Database Layer:**
-- Purpose: Data persistence with relational + geospatial support
-- Location: PostgreSQL 16 + PostGIS 3.4 (configured in `backend/config/settings/base.py`)
-- Contains: User model with location field, product catalog, store locations, prices, shopping lists, optimization results
-- Depends on: Django ORM with GIS extensions
-- Used by: All domain applications
+| App | Responsibility |
+|-----|---------------|
+| `apps.core` | Shared exceptions, response helpers, health check at `/api/v1/health/` |
+| `apps.users` | Registration, JWT auth (simplejwt), profile, password reset via email |
+| `apps.products` | Normalized product catalog, category tree, trigram search, product proposals |
+| `apps.stores` | Store + StoreChain models, PostGIS location, user favorite stores |
+| `apps.prices` | Price records per product/store, price history, PriceAlert, staleness logic |
+| `apps.shopping_lists` | ShoppingList + ShoppingListItem CRUD with per-owner permissions |
+| `apps.optimizer` | Multicriterio route optimization: fuzzy matching → OR-Tools TSP → persist result |
+| `apps.ocr` | Image upload → Google Cloud Vision API → fuzzy match against catalog |
+| `apps.assistant` | Proxy to Gemini `gemini-2.0-flash-lite` with domain guardrails; rate-limited 30 req/hr |
+| `apps.business` | PYME portal: BusinessProfile lifecycle (pending/verified/rejected), bulk price upload, Promotions |
+| `apps.notifications` | Notification inbox + Expo push token management; dispatch via Celery |
+| `apps.scraping` | Celery task wrapper that spawns Scrapy spiders as subprocesses |
 
-**Async Task Layer:**
-- Purpose: Background job processing (web scraping, price expiration, notifications)
-- Location: `backend/apps/{prices,scraping,notifications}/tasks.py` + Celery broker (Redis)
-- Contains: Celery tasks with `@shared_task` decorator
-- Depends on: Celery, Redis, domain models
-- Used by: Scheduled tasks (beat), triggered by domain events or API requests
+## API Design Patterns
 
-**Configuration Layer:**
-- Purpose: Environment-specific settings and initialization
-- Location: `backend/config/settings/{base,dev,prod,test}.py`
-- Contains: Django apps list, middleware, databases, auth backends, third-party config, logging
-- Depends on: Environment variables via `.env`
-- Used by: Django application bootstrap
+**URL Namespace:** All routes under `/api/v1/`. Mapped in `backend/config/urls.py`.
 
-## Data Flow
+**View Patterns:**
+- Domain CRUD: `ModelViewSet` (e.g., `BusinessProfileViewSet`, `ProductViewSet`)
+- Custom actions: `@action` decorator on ViewSets (e.g., `profiles/{id}/approve/`, `autocomplete/`)
+- Non-CRUD operations: `APIView` subclasses (e.g., `OptimizeView`, `OCRScanView`, `AssistantChatView`)
 
-**Authentication Flow:**
+**Authentication:** JWT via `rest_framework_simplejwt`. All endpoints require `IsAuthenticated` unless explicitly `AllowAny`. Token refresh handled by the Axios interceptor in `frontend/src/api/client.ts`.
 
-1. User submits email + password on LoginScreen (`frontend/src/screens/auth/LoginScreen.tsx`)
-2. Frontend calls POST `/api/v1/auth/login` via `apiClient` (Axios)
-3. Backend endpoint processes credentials against User model (PostGIS-enabled)
-4. Backend returns `{ access: "JWT_TOKEN", refresh: "REFRESH_TOKEN", user: {...} }`
-5. Frontend intercepts response, calls `useAuthStore.login(token, user)`
-6. Zustand store updates `isAuthenticated=true`, persists token in memory
-7. RootNavigator reacts to `isAuthenticated` state change, shows MainTabs instead of AuthNavigator
-8. Subsequent requests auto-inject token via `apiClient.interceptors.request` (line 32-41, `frontend/src/api/client.ts`)
-9. If 401 response, `apiClient.interceptors.response` (line 48-57) calls `logout()` to reset app state
+**Response Envelope (all endpoints):**
+```json
+{ "success": true, "data": { ... } }
+{ "success": false, "error": { "code": "ERROR_CODE", "message": "...", "details": {} } }
+```
+Global handler in `apps.core.exceptions.bargain_exception_handler` normalizes all DRF errors to this shape.
 
-**Product Search & Optimization Flow:**
+**Schema:** OpenAPI auto-generated by `drf_spectacular` at `/api/v1/schema/`. Swagger UI at `/api/v1/schema/swagger-ui/`.
 
-1. User creates ShoppingList with products on ListsScreen
-2. Frontend calls POST `/api/v1/lists/` with `{ name, items: [...] }`
-3. Backend creates ShoppingList + ShoppingListItem records
-4. User requests optimization (route calculation) on MapScreen
-5. Frontend calls POST `/api/v1/optimize/` with `{ shopping_list_id, user_location, max_distance_km, optimization_mode }`
-6. Backend optimizer app:
-   a. Queries prices for all products within radius via PostGIS
-   b. Groups prices by store + calculates travel distance/time
-   c. Runs weighted scoring algorithm: `score = w_price * savings - w_distance * extra_km - w_time * extra_min`
-   d. Returns top-3 routes with store ordering + cost breakdown
-7. Frontend receives OptimizationResult with route_data (GeoJSON)
-8. MapScreen renders stores + route polyline using React Native Maps + Google Maps API
+## Data Flow — Optimization
 
-**Async Task Flow (Price Expiration):**
+1. Frontend POSTs `{ shopping_list_id, lat, lng, max_distance_km, max_stops, w_precio, w_distancia, w_tiempo }` to `POST /api/v1/optimize/`
+2. `OptimizeView.post()` in `backend/apps/optimizer/views.py` validates input via `OptimizeRequestSerializer`
+3. Calls `optimize_shopping_list()` in `backend/apps/optimizer/services/solver.py`
+4. Service fetches unchecked `ShoppingListItem` rows; queries candidate `Store` objects within radius using PostGIS `location__distance_lte=(user_point, D(km=...))`
+5. `resolve_list_items()` in `services/matching.py` does fuzzy matching of item text against `Price` records
+6. `solve_route()` invokes OR-Tools TSP with weighted arc costs: `cost = w_dist*dist + w_time*time - w_price*savings`
+7. Results persisted atomically: `OptimizationResult` + `OptimizationRouteStop` + `OptimizationRouteStopItem`
+8. Response serialized via `OptimizeResponseSerializer`
 
-1. Celery Beat scheduler triggers `expire_stale_prices` task every 6 hours (configured in `backend/config/celery.py`)
-2. Task queries all Price records with `source='scraping'` and `verified_at < now()-48h`
-3. Marks expired prices as `is_active=false` (or deletes, TBD in model implementation)
-4. Logs results to structlog + sends to monitoring backend
-5. Next price query automatically filters out expired prices
+## Data Flow — OCR
 
-**State Management:**
+1. Frontend POSTs multipart image to `POST /api/v1/ocr/scan/`
+2. `OCRScanView` (throttle_scope=`ocr`) reads bytes, calls `extract_text_from_image()` (Google Cloud Vision API)
+3. Raw text lines passed to `match_products()` for fuzzy catalog matching
+4. Returns `{ items: [{ text, matched_product, confidence }] }`
 
-- Frontend global state: Only AuthStore with user identity + token (minimal, edge-case values)
-- Backend state: Django ORM handles all domain state (users, products, stores, prices, lists)
-- Frontend local state: Screen components use React hooks for form inputs, UI toggles (not persisted)
-- Real-time state: Not yet implemented; frontend polls backend for list updates
-- Error state: Captured in responses via global exception handler (`backend/apps/core/exceptions.py`)
+## Data Flow — Scraping Pipeline
 
-## Key Abstractions
+1. `django_celery_beat` schedules `run_spider(spider_name)` tasks
+2. `backend/apps/scraping/tasks.py` launches `backend/apps/scraping/runner.py` via `subprocess.Popen`
+3. Runner sets up sys.path, calls `django.setup()`, runs the Scrapy spider class via `CrawlerProcess`
+4. Scrapy pipeline writes `Price` records with `source=SCRAPING`
+5. `expire_stale_prices` task marks prices older than 48h (scraping) / 24h (crowdsourcing) as `is_stale=True`
+6. `check_price_alerts` task fires `dispatch_push_notification` Celery tasks when target prices are met
 
-**User Model (AbstractUser extension):**
-- Purpose: Extended Django auth with roles, location, preferences
-- Examples: `backend/apps/users/models.py`
-- Pattern: Model inheritance + property methods for role checks (`is_consumer`, `is_business`)
+## PostGIS / Geospatial Architecture
 
-**ViewSet Pattern:**
-- Purpose: DRF ViewSet pattern for CRUD + custom actions per domain
-- Examples: All `backend/apps/*/urls.py` reference ViewSets (not yet fully defined)
-- Pattern: ModelViewSet + custom actions (e.g., `POST /api/v1/optimize/` for optimization)
+- `django.contrib.gis` enabled; database is PostgreSQL + PostGIS
+- `Store.location`: `PointField(srid=4326)` with `GistIndex` — enables fast radius queries
+- Optimizer candidate selection: `Store.objects.filter(location__distance_lte=(user_point, D(km=...)))`
+- Distance/time matrix: `backend/apps/optimizer/services/distance.py` calls Graphhopper API (coordinate order: `[lng, lat]`)
+- `OptimizationResult.user_location`: `PointField` stores the user's position at time of optimization
 
-**Permission Classes:**
-- Purpose: Fine-grained access control decorators
-- Examples: `backend/apps/core/permissions.py` (IsConsumer, IsBusiness, IsOwnerOrAdmin)
-- Pattern: BasePermission subclasses with `has_permission()` and `has_object_permission()` methods
+## Celery Task Architecture
 
-**Exception Handler:**
-- Purpose: Standardized error response format across all endpoints
-- Examples: `backend/apps/core/exceptions.py` + handler registered in settings
-- Pattern: Custom exceptions inherit BargainAPIException, mapped to HTTP status codes
+- Broker: Redis (configured via `CELERY_BROKER_URL` env var)
+- App: `bargain` defined in `backend/config/celery.py`; autodiscovers tasks from all `LOCAL_APPS`
+- Scheduler: `django_celery_beat` for periodic tasks (beat schedule in `backend/config/settings/base.py`)
 
-**Zustand Store Pattern:**
-- Purpose: Minimal global state for auth + app-wide concerns
-- Examples: `frontend/src/store/authStore.ts`
-- Pattern: `create<State>((set) => ({...}))` with immer middleware for immutability
-
-**Component Composition (React Native):**
-- Purpose: Reusable, typed component system
-- Examples: `frontend/src/components/ui/ProductCard.tsx` with vertical/horizontal variants
-- Pattern: Functional components with TypeScript interfaces, Reanimated 2 for animations, StyleSheet for styling
-
-**Navigation Stack Pattern:**
-- Purpose: TypeScript-safe navigation with screen params
-- Examples: `frontend/src/navigation/RootNavigator.tsx`, `MainTabs.tsx`
-- Pattern: createNativeStackNavigator<ParamList> with conditional rendering based on auth state
-
-**Celery Task Pattern:**
-- Purpose: Async background jobs for long-running operations
-- Examples: `backend/apps/prices/tasks.py`, `backend/apps/scraping/tasks.py`
-- Pattern: `@shared_task(bind=True)` with logging, retries on failure
-
-**Domain App Structure:**
-- Purpose: Self-contained feature modules with clear dependencies
-- Examples: `/backend/apps/{products,stores,prices}/`
-- Pattern: Per-app `models.py`, `views.py`, `serializers.py` (to be added), `urls.py`, `migrations/`
-
-## Entry Points
-
-**Backend:**
-- Location: `backend/manage.py`
-- Triggers: Django CLI; typically `python manage.py runserver` (dev) or `gunicorn config.wsgi` (prod)
-- Responsibilities: Database initialization, app bootstrap, middleware setup, route registration via `backend/config/urls.py`
-
-**Frontend:**
-- Location: `frontend/App.tsx`
-- Triggers: `npx expo start` (local) or compiled native app
-- Responsibilities: Font loading, NavigationContainer initialization, RootNavigator rendering
-
-**API Entry Points (by domain):**
-- `api/health/` → Health check without auth (from `backend/apps/core/urls.py`)
-- `api/v1/auth/` → Login, register, token refresh (from `backend/apps/users/urls.py`)
-- `api/v1/products/` → Product CRUD (from `backend/apps/products/urls.py`)
-- `api/v1/stores/` → Store search + geolocation (from `backend/apps/stores/urls.py`)
-- `api/v1/prices/` → Price queries by product/store (from `backend/apps/prices/urls.py`)
-- `api/v1/lists/` → Shopping list CRUD (from `backend/apps/shopping_lists/urls.py`)
-- `api/v1/optimize/` → Route optimization algorithm (from `backend/apps/optimizer/urls.py`)
-- `api/v1/ocr/` → Image text extraction (from `backend/apps/ocr/urls.py`)
-- `api/v1/assistant/` → LLM chat endpoint (from `backend/apps/assistant/urls.py`)
-- `api/v1/business/` → SME portal endpoints (from `backend/apps/business/urls.py`)
-- `api/v1/notifications/` → Push + email notification management (from `backend/apps/notifications/urls.py`)
+| Task | Module | Retry Policy |
+|------|--------|-------------|
+| `run_spider` | `apps.scraping.tasks` | `max_retries=3`, delay 300s, timeout per spider |
+| `dispatch_push_notification` | `apps.notifications.tasks` | `max_retries=3`; Redis rate limit 10/user/day |
+| `expire_stale_prices` | `apps.prices.tasks` | periodic, `ignore_result=True` |
+| `check_price_alerts` | `apps.prices.tasks` | periodic; dispatches push tasks on trigger |
+| `purge_old_price_history` | `apps.prices.tasks` | periodic; deletes records older than 90 days |
 
 ## Error Handling
 
-**Strategy:** Standardized JSON error responses with codes + HTTP status codes.
+**Strategy:** Domain exception hierarchy under `BargainAPIException` → normalized by `bargain_exception_handler`.
 
-**Patterns:**
-- Custom exceptions in `backend/apps/core/exceptions.py` inherit `BargainAPIException`
-- Global exception handler `bargain_exception_handler()` wraps all responses
-- Response format: `{ success: false, error: { code: "ERROR_CODE", message: "...", details: {...} } }`
-- HTTP status codes map to business errors (404 for not found, 409 for conflict, 422 for validation, 429 for rate limit)
-- Frontend intercepts 401 to trigger logout via `apiClient.interceptors.response`
-- Logging via `structlog` for monitoring + Sentry integration (configured but not yet in code)
+**Exception Types** (all in `backend/apps/core/exceptions.py`):
+- `StoreNotFoundError` (404), `ProductNotFoundError` (404)
+- `OptimizationError` (422), `OCRProcessingError` (422)
+- `AssistantError` (503), `SubscriptionRequiredError` (402)
+- `RateLimitExceededError` (429), `BusinessNotVerifiedError` (403), `PromotionConflictError` (409)
 
-**Common Exceptions:**
-- `StoreNotFoundError` (404) — No stores in search radius
-- `ProductNotFoundError` (404) — Product not in catalog
-- `PriceExpiredError` (409) — Price data is stale
-- `OptimizationError` (422) — Algorithm cannot compute valid route
-- `OCRProcessingError` (422) — Image text extraction failed
-- `AssistantError` (503) — LLM unavailable
-- `RateLimitExceededError` (429) — Too many requests
-
-## Cross-Cutting Concerns
-
-**Logging:** Structured logging with `structlog`; configuration in `backend/config/settings/base.py`
-
-**Validation:** Django model validators + DRF serializer validation (to be implemented per app)
-
-**Authentication:** JWT via `rest_framework_simplejwt`; middleware in settings registers JWTAuthentication
-
-**Authorization:** Role-based permission classes (IsConsumer, IsBusiness, IsBusinessOwnerOrAdmin) applied per endpoint
-
-**CORS:** Configured in `backend/config/settings/base.py` for frontend origin
-
-**Rate Limiting:** Not yet implemented (RateLimitExceededError exists for future use)
-
-**Geolocation:** PostGIS integration for store searches and route distance calculations
+**Logging:** `structlog` structured logger used in all views and services via `structlog.get_logger(__name__)`.
 
 ---
 
-*Architecture analysis: 2026-03-16*
+*Architecture analysis: 2026-05-25*

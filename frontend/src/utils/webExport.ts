@@ -66,10 +66,12 @@ export async function copyToClipboard(text: string): Promise<boolean> {
  */
 function escapeCsvCell(value: string): string {
   let cell = value ?? '';
-  // Guard against formula injection (OWASP)
-  if (/^[=+\-@]/.test(cell)) cell = `'${cell}`;
-  // RFC 4180 quoting
-  if (/[",\n]/.test(cell)) cell = `"${cell.replace(/"/g, '""')}"`;
+  // Guard against formula injection (OWASP): incluye TAB (\t) y CR (\r),
+  // que algunos importadores recortan para exponer el carácter de fórmula.
+  if (/^[=+\-@\t\r]/.test(cell)) cell = `'${cell}`;
+  // RFC 4180 quoting — envuelve también TAB/CR para que el espacio en blanco
+  // se conserve literal y no pueda re-recortarse en el importador.
+  if (/[",\n\r\t]/.test(cell)) cell = `"${cell.replace(/"/g, '""')}"`;
   return cell;
 }
 

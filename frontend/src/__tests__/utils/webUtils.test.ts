@@ -134,6 +134,12 @@ describe('buildCsv', () => {
     expect(output).toContain("'@SUM");
   });
 
+  it('prefixes TAB-leading formula-injection cells with a single quote and quotes the cell', () => {
+    const output = buildCsv(['p'], [['\t=2+2']]);
+    // single-quote guard applied, then RFC4180-quoted because it contains a TAB
+    expect(output).toContain('"\'\t=2+2"');
+  });
+
   it('quotes cells containing commas per RFC4180', () => {
     const output = buildCsv(['p'], [['a,b']]);
     expect(output).toContain('"a,b"');

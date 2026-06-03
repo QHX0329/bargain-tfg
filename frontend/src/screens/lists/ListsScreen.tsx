@@ -9,6 +9,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   FlatList,
+  Platform,
   RefreshControl,
   StyleSheet,
   Text,
@@ -22,6 +23,7 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { colors, spacing, textStyles, borderRadius } from "@/theme";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 import type { ListsStackParamList } from "@/navigation/types";
 import type { ShoppingList } from "@/types/domain";
 import { listService } from "@/api/listService";
@@ -66,6 +68,9 @@ const ListCard: React.FC<ListCardProps> = ({
     onSaveTemplateRequest(item.id, item.name);
   }, [item.id, item.name, onSaveTemplateRequest]);
 
+  // Hover feedback (web-only) — Pattern 3/B: tint card on mouse over
+  const [hovered, setHovered] = useState(false);
+
   const itemCount = item.items?.length ?? 0;
   const itemLabel = itemCount === 1 ? "1 producto" : `${itemCount} productos`;
   const rawDate = item.updated_at ?? item.updatedAt ?? "";
@@ -78,9 +83,17 @@ const ListCard: React.FC<ListCardProps> = ({
 
   return (
     <TouchableOpacity
-      style={styles.card}
+      style={[
+        styles.card,
+        Platform.OS === "web" && styles.cardFocusable,
+        hovered && styles.cardHover,
+      ]}
       onPress={() => onPress(item.id, item.name)}
       activeOpacity={0.7}
+      // @ts-ignore — onMouseEnter/onMouseLeave son props solo-web (react-native-web)
+      onMouseEnter={() => setHovered(true)}
+      // @ts-ignore — ver arriba
+      onMouseLeave={() => setHovered(false)}
     >
       <View style={styles.cardContent}>
         <Text style={styles.cardName} numberOfLines={1}>
@@ -157,6 +170,7 @@ function makeRenderItem(
 
 export const ListsScreen: React.FC = () => {
   const navigation = useNavigation<ListsScreenNavigationProp>();
+  const breakpoint = useBreakpoint();
   const { lists, isLoading, setLists, addList, removeList, updateList } =
     useListStore();
   const [refreshing, setRefreshing] = useState(false);
@@ -383,9 +397,13 @@ export const ListsScreen: React.FC = () => {
         data={lists}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
-        contentContainerStyle={
-          lists.length === 0 ? styles.emptyContentContainer : styles.listContent
-        }
+        contentContainerStyle={[
+          lists.length === 0
+            ? styles.emptyContentContainer
+            : styles.listContent,
+          // Lista centrada y más estrecha en tablet/desktop (maxWidth 600 — valor vinculante 13-UI-SPEC)
+          breakpoint !== "mobile" && lists.length > 0 && styles.listContentWide,
+        ]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -509,6 +527,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing.xxxl,
   },
+  // maxWidth 600: tarjetas más anchas centradas en tablet/desktop (valor vinculante 13-UI-SPEC)
+  listContentWide: {
+    maxWidth: 600,
+    alignSelf: "center",
+    width: "100%",
+  },
   emptyContentContainer: {
     flex: 1,
   },
@@ -532,6 +556,17 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     marginBottom: spacing.md,
     minHeight: 80,
+  },
+  // Hover (web): tinte primario suave al pasar el ratón sobre la tarjeta
+  cardHover: {
+    backgroundColor: colors.primaryTint,
+  },
+  // Focus ring accesible (web): contorno al navegar con teclado
+  cardFocusable: {
+    // @ts-ignore — outline* son props CSS solo-web (react-native-web)
+    outlineColor: colors.primary,
+    outlineWidth: 2,
+    outlineOffset: 2,
   },
   cardContent: {
     flex: 1,

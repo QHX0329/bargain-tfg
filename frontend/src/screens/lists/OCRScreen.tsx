@@ -43,6 +43,7 @@ import { AppModal } from "@/components/ui/AppModal";
 import { scanImage } from "@/api/ocrService";
 import type { OCRItem } from "@/api/ocrService";
 import { listService } from "@/api/listService";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 
 type RouteP = RouteProp<ListsStackParamList, "OCR">;
 type OCRNavigationProp = NativeStackNavigationProp<ListsStackParamList, "OCR">;
@@ -191,6 +192,9 @@ export const OCRScreen: React.FC = () => {
   const navigation = useNavigation<OCRNavigationProp>();
   const route = useRoute<RouteP>();
   const listId = route.params?.listId;
+  const breakpoint = useBreakpoint();
+  // Contenido centrado y estrecho en web/tablet (maxWidth 560 — valor vinculante 13-UI-SPEC)
+  const centered = breakpoint !== "mobile" ? styles.contentCentered : undefined;
 
   const [items, setItems] = useState<LocalOCRItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -409,7 +413,7 @@ export const OCRScreen: React.FC = () => {
 
       {/* Empty state: initial */}
       {!loading && !scanDone && (
-        <View style={styles.emptyState}>
+        <View style={[styles.emptyState, centered]}>
           <Animated.View
             entering={FadeInDown.springify()}
             style={styles.illustration}
@@ -433,6 +437,7 @@ export const OCRScreen: React.FC = () => {
             <TouchableOpacity
               style={styles.ctaPrimary}
               onPress={handleCameraPress}
+              accessibilityRole="button"
               accessibilityLabel="Abrir cámara para escanear"
             >
               <Ionicons name="camera" size={20} color={colors.white} />
@@ -441,6 +446,7 @@ export const OCRScreen: React.FC = () => {
             <TouchableOpacity
               style={styles.ctaSecondary}
               onPress={handleScanPress}
+              accessibilityRole="button"
               accessibilityLabel="Escanear lista desde galería"
             >
               <Ionicons
@@ -456,7 +462,7 @@ export const OCRScreen: React.FC = () => {
 
       {/* No items recognized state */}
       {!loading && scanDone && items.length === 0 && (
-        <View style={styles.emptyState}>
+        <View style={[styles.emptyState, centered]}>
           <Ionicons name="search-outline" size={64} color={colors.textMuted} />
           <Text style={styles.emptyTitle}>No encontramos productos</Text>
           <Text style={styles.emptyBody}>
@@ -472,7 +478,7 @@ export const OCRScreen: React.FC = () => {
 
       {/* Items list */}
       {!loading && scanDone && items.length > 0 && (
-        <View style={{ flex: 1 }}>
+        <View style={[{ flex: 1 }, centered]}>
           <FlatList
             data={items}
             keyExtractor={(item) => item.localId}
@@ -543,6 +549,12 @@ export const OCRScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
+  // maxWidth 560: contenido centrado en >=768px (valor vinculante 13-UI-SPEC)
+  contentCentered: {
+    maxWidth: 560,
+    alignSelf: "center",
+    width: "100%",
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",

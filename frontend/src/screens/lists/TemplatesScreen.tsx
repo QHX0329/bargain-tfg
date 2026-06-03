@@ -36,6 +36,7 @@ import type { ListsStackParamList } from "@/navigation/types";
 import type { ListTemplate } from "@/types/domain";
 import { listService } from "@/api/listService";
 import { AppModal } from "@/components/ui/AppModal";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 
 type Nav = NativeStackNavigationProp<ListsStackParamList, "Templates">;
 
@@ -45,13 +46,18 @@ interface TemplateCardProps {
   template: ListTemplate;
   onUse: (t: ListTemplate) => void;
   onDelete: (t: ListTemplate) => void;
+  /** En grid multi-columna la tarjeta debe expandirse con flex */
+  multiColumn?: boolean;
 }
 
 const TemplateCard: React.FC<TemplateCardProps> = ({
   template,
   onUse,
   onDelete,
+  multiColumn,
 }) => {
+  // Hover feedback (web-only)
+  const [hovered, setHovered] = useState(false);
   const preview = template.items
     .slice(0, 3)
     .map((i) => i.name)
@@ -70,8 +76,13 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
   return (
     <Animated.View
       entering={FadeInDown.duration(320).easing(Easing.out(Easing.quad))}
+      style={multiColumn ? styles.columnItem : undefined}
+      // @ts-ignore — onMouseEnter/onMouseLeave son props solo-web (react-native-web)
+      onMouseEnter={() => setHovered(true)}
+      // @ts-ignore — ver arriba
+      onMouseLeave={() => setHovered(false)}
     >
-      <View style={styles.card}>
+      <View style={[styles.card, hovered && styles.cardHover]}>
         <View style={styles.cardHeader}>
           <View style={styles.iconWrap}>
             <Ionicons
@@ -126,6 +137,9 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
 
 export const TemplatesScreen: React.FC = () => {
   const navigation = useNavigation<Nav>();
+  const breakpoint = useBreakpoint();
+  // Grid responsivo: 3 columnas en desktop, 2 en tablet, 1 en móvil
+  const numColumns = breakpoint === "desktop" ? 3 : breakpoint === "tablet" ? 2 : 1;
 
   const [templates, setTemplates] = useState<ListTemplate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -200,9 +214,10 @@ export const TemplatesScreen: React.FC = () => {
         template={item}
         onUse={(t) => setUseTarget(t)}
         onDelete={(t) => setDeleteTarget(t)}
+        multiColumn={numColumns > 1}
       />
     ),
-    [],
+    [numColumns],
   );
 
   return (
@@ -240,7 +255,15 @@ export const TemplatesScreen: React.FC = () => {
           data={templates}
           keyExtractor={(t) => t.id}
           renderItem={renderItem}
-          contentContainerStyle={styles.list}
+          numColumns={numColumns}
+          // key obligatorio al cambiar numColumns (RN lanza error si no — RESEARCH)
+          key={numColumns}
+          columnWrapperStyle={numColumns > 1 ? styles.columnWrapper : undefined}
+          contentContainerStyle={[
+            styles.list,
+            // maxWidth 1000: planner discretion — ancho de contenido centrado razonable
+            breakpoint !== "mobile" && styles.listWide,
+          ]}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
@@ -302,6 +325,19 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.sm,
   },
+  // maxWidth 1000: planner discretion — ancho de contenido centrado razonable
+  listWide: {
+    maxWidth: 1000,
+    alignSelf: "center",
+    width: "100%",
+  },
+  columnWrapper: {
+    gap: spacing.sm,
+  },
+  columnItem: {
+    flex: 1,
+    minWidth: 0,
+  },
   card: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
@@ -310,6 +346,9 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     gap: spacing.sm,
     ...shadows.card,
+  },
+  cardHover: {
+    backgroundColor: colors.primaryTint,
   },
   cardHeader: {
     flexDirection: "row",

@@ -31,6 +31,7 @@ import {
 } from '@expo-google-fonts/ibm-plex-mono';
 
 import { RootNavigator } from '@/navigation';
+import { linking } from '@/navigation/linking';
 import { useAuthStore } from '@/store/authStore';
 import { registerLockscreenChecklistActionHandler } from '@/services/lockscreenChecklistService';
 import { colors } from '@/theme';
@@ -77,7 +78,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <NavigationContainer>
+        <NavigationContainer linking={linking}>
           <StatusBar style="auto" />
           <RootNavigator />
         </NavigationContainer>

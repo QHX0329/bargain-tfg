@@ -17,21 +17,21 @@ autonomous: true
 must_haves:
   truths:
     - "On desktop, ListsScreen shows a wider/centered layout and TemplatesScreen shows a 2-3 column grid"
-    - "On web, list items in ListDetailScreen can be drag-reordered and the order persists via API"
+    - "On web, list items in ListDetailScreen can be drag-reordered and the new order is reflected immediately in the current session (optimistic, no backend persistence in this phase)"
     - "On web, ListDetailScreen offers 'Exportar lista' (.txt download) and a share-URL button"
     - "On web, RouteScreen offers 'Exportar ruta' (.txt download)"
     - "Mobile layout (<768px) of all five Listas screens is unchanged"
   artifacts:
     - path: "frontend/src/screens/lists/ListDetailScreen.web.tsx"
-      provides: "Drag-drop reorder variant via HTML5 DragEvents"
+      provides: "Drag-drop reorder variant via HTML5 DragEvents (optimistic, session-only — no API persistence)"
       contains: "onDragStart"
     - path: "frontend/src/screens/lists/RouteScreen.tsx"
       provides: "Web export-route button"
       contains: "Exportar ruta"
   key_links:
     - from: "frontend/src/screens/lists/ListDetailScreen.web.tsx"
-      to: "listService.updateItemOrder (or equivalent reorder API)"
-      via: "onDrop -> optimistic reorder + API PATCH"
+      to: "local component item state (session-only reorder)"
+      via: "onDrop -> optimistic reorder of local state (no API PATCH)"
       pattern: "onDrop"
     - from: "frontend/src/screens/lists/ListDetailScreen.tsx"
       to: "frontend/src/utils/webExport.ts"
@@ -91,10 +91,10 @@ Existing .web.tsx precedent: frontend/src/screens/map/MapScreen.web.tsx (645 LOC
 ListsScreen.tsx: add `const breakpoint = useBreakpoint();`. On `breakpoint !== 'mobile'` constrain the
 lists container to a centered column: `contentContainerStyle` / wrapper with
 `{ maxWidth: 600, alignSelf: 'center', width: '100%' }` (tablet per UI-SPEC: "wider cards max-width 600
-centered"). Add hover tint on each list card: use `onMouseEnter`/`onMouseLeave` state toggling
-`backgroundColor: colors.primaryTint` on web (Pattern 3, Pattern B). Add `// @ts-ignore` above the
-web-only mouse props. Add a focus ring style on touchable cards via
-`Platform.OS==='web' ? { outlineColor: colors.primary, outlineWidth: 2, outlineOffset: 2 } : {}`.
+centered" — 600 IS a UI-SPEC binding value). Add hover tint on each list card: use
+`onMouseEnter`/`onMouseLeave` state toggling `backgroundColor: colors.primaryTint` on web (Pattern 3,
+Pattern B). Add `// @ts-ignore` above the web-only mouse props. Add a focus ring style on touchable
+cards via `Platform.OS==='web' ? { outlineColor: colors.primary, outlineWidth: 2, outlineOffset: 2 } : {}`.
 Keep "Nueva lista" CTA copy unchanged. Do NOT add the desktop split pane here (selecting a list still
 navigates via push — full MasterDetailLayout split is reserved for the ListDetail web experience and is
 optional polish; do not break mobile push navigation).
@@ -104,17 +104,21 @@ FlatList `numColumns`: `const numColumns = breakpoint === 'desktop' ? 3 : breakp
 and add `key={numColumns}` to the FlatList (required — RN throws "Changing numColumns requires a key
 change", see RESEARCH Code Examples). Center the grid with
 `contentContainerStyle={breakpoint!=='mobile' ? { maxWidth: 1000, alignSelf:'center', width:'100%' } : undefined}`.
+The `1000` maxWidth is planner discretion — a reasonable centred-content width (NOT a UI-SPEC binding
+value); in the comment write "planner discretion — reasonable centred-content width" (do NOT cite UI-SPEC).
 Add hover tint on template cards (same Pattern B).
 
 OCRScreen.tsx: add `const breakpoint = useBreakpoint();`. On `breakpoint !== 'mobile'` center content
-at `{ maxWidth: 560, alignSelf: 'center', width: '100%' }` per UI-SPEC ("Centered max-width 560px on >=768px").
-Ensure the file picker remains keyboard-accessible (it already uses expo-image-picker; just confirm the
-trigger button has `accessibilityRole="button"` and `accessibilityLabel`). No structural change.
+at `{ maxWidth: 560, alignSelf: 'center', width: '100%' }` per UI-SPEC ("Centered max-width 560px on >=768px"
+— 560 IS a UI-SPEC binding value). Ensure the file picker remains keyboard-accessible (it already uses
+expo-image-picker; just confirm the trigger button has `accessibilityRole="button"` and
+`accessibilityLabel`). No structural change.
 
 All three: use ONLY spacing.*/colors.* tokens; no new hex/magic numbers except the documented
-maxWidth layout constants (600/1000/560 — UI-SPEC binding; add comments citing UI-SPEC). All web-only
-branches guarded by `Platform.OS==='web'` or the breakpoint check. Mobile branch must reproduce the
-exact prior layout.
+maxWidth layout constants. Of these, 600 and 560 are UI-SPEC binding (cite UI-SPEC in their comments);
+1000 is planner discretion (comment "planner discretion — reasonable centred-content width", do NOT cite
+UI-SPEC). All web-only branches guarded by `Platform.OS==='web'` or the breakpoint check. Mobile branch
+must reproduce the exact prior layout.
   </action>
   <verify>
     <automated>cd frontend && npx jest ListsScreen</automated>
@@ -122,6 +126,7 @@ exact prior layout.
   <acceptance_criteria>
     - ListsScreen.tsx contains `useBreakpoint` and `colors.primaryTint` (hover) and `maxWidth: 600`
     - TemplatesScreen.tsx contains `numColumns` and `key={numColumns}` and a responsive column ternary
+    - TemplatesScreen.tsx maxWidth comment does NOT cite UI-SPEC (it is planner discretion); `grep -n "UI-SPEC" TemplatesScreen.tsx` shows no maxWidth=1000 provenance claim
     - OCRScreen.tsx contains `useBreakpoint` and `maxWidth: 560`
     - `cd frontend && npx jest ListsScreen` exits 0 (existing ListsScreen tests still pass — no mobile regression)
     - No raw hex literals added; `grep -nE "#[0-9A-Fa-f]{6}" ListsScreen.tsx TemplatesScreen.tsx OCRScreen.tsx` shows only pre-existing lines
@@ -134,7 +139,6 @@ exact prior layout.
   <files>frontend/src/screens/lists/ListDetailScreen.tsx, frontend/src/screens/lists/ListDetailScreen.web.tsx</files>
   <read_first>
     - frontend/src/screens/lists/ListDetailScreen.tsx (FULL — 978 LOC; item list rendering, add-item input, item API calls)
-    - frontend/src/api/listService (the service module ListDetailScreen imports — find updateItem / item-order methods; if no reorder method exists, see action)
     - frontend/src/screens/map/MapScreen.web.tsx (FULL — canonical .web.tsx structure: same default export name, same props, imports)
     - frontend/src/utils/webExport.ts (Wave 0 — downloadFile, copyToClipboard, todayStamp)
     - frontend/src/components/ui/WebTooltip.tsx (Wave 0)
@@ -142,14 +146,23 @@ exact prior layout.
     - 13-UI-SPEC.md "D-07 Drag-drop reorder", "Export/download", "Copy to clipboard", "D-06 keyboard (Enter to add, Esc to close)"
   </read_first>
   <action>
+SCOPE NOTE (read first): Drag-drop reordering in this phase is **optimistic / session-only**. The new
+order lives ONLY in local component state and is NOT persisted to the backend. API persistence of item
+order is **OUT OF SCOPE for Phase 13** — it would require exposing the (already-existing) `ordering`
+column in `backend/apps/shopping_lists/serializers.py` `ShoppingListItemSerializer` and adding a
+reorder method to `frontend/src/api/listService.ts`; both are deferred. Therefore this task MUST NOT
+touch `listService.ts` or any backend file, and MUST NOT add any `updateItemOrder` / order-PATCH call.
+
 PART A — ListDetailScreen.tsx (shared, applies to both native & web):
 1. Export list (D-07, web-only): add an "Exportar lista" button (Ionicons `download-outline`, 24px,
    `textStyles.button` label) rendered only when `Platform.OS==='web'`. On press, build a plain-text
    body of `{quantity}x {name}` per item joined by `\n`, then
    `downloadFile(body, \`bargain-lista-${todayStamp()}.txt\`, 'text/plain;charset=utf-8;')`.
+   The button MUST have `accessibilityRole="button"` and `accessibilityLabel="Exportar lista"`.
 2. Share URL (D-08, web-only): add a `share-social-outline` button that calls
    `copyToClipboard(window.location.href)` and flips the button color to `colors.success` for 1500ms
    (use a `shareSuccess` state + setTimeout) then reverts. Tooltip "Copiar enlace" via WebTooltip.
+   The button MUST have `accessibilityRole="button"` and `accessibilityLabel="Compartir enlace"`.
 3. Keyboard (D-06, web-only): on the add-item TextInput set `onSubmitEditing` to submit the add-item
    form (Enter to add). Show the hint "Pulsa Enter para añadir" below the input only on web.
    For Esc-to-close on any open modal, add a web-only `document.addEventListener('keydown', ...)` in a
@@ -169,11 +182,10 @@ draggable list per RESEARCH Pattern 10:
   `onDragOver={(e) => { e.preventDefault(); }}` (preventDefault is MANDATORY or onDrop never fires —
   Pitfall 6), `onDrop={() => reorder(dragIndex, index)}`.
 - Visual lift: dragged row gets `shadows.elevated` and `backgroundColor: colors.surface` (UI-SPEC).
-- `reorder(from,to)`: optimistically reorder local item state, then persist. For persistence call the
-  list service. If `listService` exposes an item-order/update method use it; if NOT, persist by issuing
-  sequential `updateItem` calls writing a new `position`/`order` field, OR add a minimal
-  `updateItemOrder(listId, orderedIds)` method to `frontend/src/api/listService` (this file is in scope
-  for THIS task only if needed). Prefer the existing API surface; document the choice in the SUMMARY.
+- `reorder(from,to)`: reorder local item state ONLY (optimistic / session-only). Do NOT call any API,
+  do NOT call listService, do NOT issue an order-PATCH. The reordered array is held in this screen's
+  React state for the current session; it resets on remount. Document this session-only behaviour in
+  the SUMMARY (and that backend order persistence is deferred per the SCOPE NOTE above).
 - Drag handle tooltip "Arrastra para reordenar" via WebTooltip.
 The `.web.tsx` must still render the export/share/keyboard affordances from PART A (import/reuse the same
 handlers) so web users get both drag-drop AND export.
@@ -183,12 +195,14 @@ handlers) so web users get both drag-drop AND export.
   </verify>
   <acceptance_criteria>
     - ListDetailScreen.tsx contains `Exportar lista`, `downloadFile`, `bargain-lista-`, `onSubmitEditing`, and a `Platform.OS === 'web'` Escape keydown listener
+    - ListDetailScreen.tsx "Exportar lista" button has `accessibilityRole="button"` and `accessibilityLabel="Exportar lista"`; share button has `accessibilityLabel="Compartir enlace"`
     - ListDetailScreen.web.tsx exists and contains `onDragStart`, `onDrop`, `e.preventDefault` (in onDragOver), `shadows.elevated`
     - ListDetailScreen.web.tsx default export name matches ListDetailScreen (bundler resolution)
+    - Session-only reorder: `grep -nE "updateItemOrder|listService" ListDetailScreen.web.tsx ListDetailScreen.tsx` shows NO new order-persistence call (no `updateItemOrder`)
     - `cd frontend && npx jest "ListDetail|ListsScreen"` exits 0
     - `grep -c "frontend/web" ListDetailScreen.tsx ListDetailScreen.web.tsx` == 0
   </acceptance_criteria>
-  <done>Web list export+share+Enter/Esc work; .web.tsx drag-reorders items with optimistic+persisted order; mobile ListDetail unchanged.</done>
+  <done>Web list export+share+Enter/Esc work; .web.tsx drag-reorders items optimistically in-session (no backend persistence — deferred); mobile ListDetail unchanged.</done>
 </task>
 
 <task type="auto">
@@ -211,16 +225,18 @@ RouteScreen.tsx: add `const breakpoint = useBreakpoint();`.
    listing the ordered stops (store name + items per stop) plus the route summary (total cost, total
    distance, estimated time), then
    `downloadFile(body, \`bargain-ruta-${todayStamp()}.txt\`, 'text/plain;charset=utf-8;')`.
+   The button MUST have `accessibilityRole="button"` and `accessibilityLabel="Exportar ruta"`.
    Empty-route copy stays "Ruta vacía" per UI-SPEC.
 3. Hover on stop rows: `colors.primaryTint` tint via onMouseEnter/onMouseLeave (web).
-Tokens only; the only fixed numbers allowed are the documented 360px column width and the maxWidth
-layout constants (cite UI-SPEC in comments). Mobile branch must reproduce prior layout exactly.
+Tokens only; the only fixed number allowed is the documented 360px column width (stops column — planner
+discretion sizing, comment accordingly). Mobile branch must reproduce prior layout exactly.
   </action>
   <verify>
     <automated>cd frontend && npx jest --passWithNoTests RouteScreen</automated>
   </verify>
   <acceptance_criteria>
     - RouteScreen.tsx contains `useBreakpoint`, `Exportar ruta`, `downloadFile`, `bargain-ruta-`
+    - RouteScreen.tsx "Exportar ruta" button has `accessibilityRole="button"` and `accessibilityLabel="Exportar ruta"`
     - RouteScreen.tsx two-column block guarded by `breakpoint === 'desktop'`
     - Export button guarded by `Platform.OS === 'web'`
     - `cd frontend && npx jest --passWithNoTests RouteScreen` exits 0
@@ -244,13 +260,14 @@ layout constants (cite UI-SPEC in comments). Mobile branch must reproduce prior 
 | Threat ID | Category | Component | Disposition | Mitigation Plan |
 |-----------|----------|-----------|-------------|-----------------|
 | T-13-05 | Tampering | List/route .txt export | accept | Plain-text MIME `text/plain`; not interpreted as formula by spreadsheets; item names rendered as-is |
-| T-13-06 | Tampering | Drag-reorder persistence | mitigate | Reorder calls go through the typed list service (auth'd API); ids validated server-side; optimistic state reverts on API error |
+| T-13-06 | Tampering | Drag-reorder (session-only) | accept | Reorder mutates local React state ONLY; no API call, no persisted writes, no server-side state changed in this phase; order resets on remount |
 </threat_model>
 
 <verification>
 - `cd frontend && npx jest "ListDetail|ListsScreen|RouteScreen" --passWithNoTests` green
 - `cd frontend && npx eslint src/screens/lists/` clean
 - `grep -rc "frontend/web" frontend/src/screens/lists/` returns 0 across all files
+- No backend file and no `frontend/src/api/listService.ts` modified by this plan (drag-drop is session-only)
 - Mobile layout of all five screens verified visually <768px (manual smoke per VALIDATION.md)
 - No new screen / navigation route added (D-11)
 </verification>
@@ -258,10 +275,12 @@ layout constants (cite UI-SPEC in comments). Mobile branch must reproduce prior 
 <success_criteria>
 - ListsScreen/TemplatesScreen/OCRScreen responsive + hover/focus on web, mobile intact
 - ListDetailScreen exports .txt, shares URL, Enter-to-add/Esc-to-close on web
-- ListDetailScreen.web.tsx drag-reorders with optimistic + persisted order (D-10 divergence)
+- ListDetailScreen.web.tsx drag-reorders with optimistic session-only order (D-10 divergence; backend persistence deferred)
 - RouteScreen two-column desktop + export route .txt
 </success_criteria>
 
 <output>
 After completion, create `.planning/phases/13-mejorar-la-app-expo-existente-frontend-src-para-uso-web-a-ad/13-03-SUMMARY.md`
 </output>
+</content>
+</invoke>

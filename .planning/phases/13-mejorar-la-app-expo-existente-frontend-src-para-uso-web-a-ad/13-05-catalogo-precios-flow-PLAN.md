@@ -85,8 +85,8 @@ input.
 1. Responsive (D-05): on `breakpoint === 'desktop'` render the hero/quick-action buttons in a centered
    horizontal row (`flexDirection:'row'`, `maxWidth: 800, alignSelf:'center', width:'100%'`, gap
    `spacing.md`) instead of the existing vertical stack. On mobile/tablet keep the EXISTING stacked
-   layout byte-for-byte. (UI-SPEC: "hero section max-width 800px, centered; quick-action buttons in a
-   horizontal row on desktop instead of vertical stack".)
+   layout byte-for-byte. (UI-SPEC binding: "hero section max-width 800px, centered; quick-action buttons
+   in a horizontal row on desktop instead of vertical stack" — cite UI-SPEC for the 800 value.)
 2. Cmd/Ctrl+K (D-06, web-only): add a `useEffect` guarded by `Platform.OS==='web'` that registers a
    `keydown` listener: on `(e.metaKey || e.ctrlKey) && e.key === 'k'` call `e.preventDefault()` and
    `searchInputRef.current?.focus()`. Remove the listener on cleanup. Show the hint "⌘K / Ctrl+K" via a
@@ -122,6 +122,8 @@ ProductsCatalogScreen.tsx: add `const breakpoint = useBreakpoint();` and a `sear
 1. Responsive grid (D-05): `const numColumns = breakpoint === 'desktop' ? 4 : breakpoint === 'tablet' ? 3 : 2;`
    set FlatList `numColumns={numColumns}` + `key={numColumns}` (RN requirement). Center the grid on wide
    screens with `contentContainerStyle={breakpoint!=='mobile' ? { maxWidth: 1200, alignSelf:'center', width:'100%' } : undefined}`.
+   The `1200` maxWidth is planner discretion — a reasonable centred-content width (NOT a UI-SPEC binding
+   value); in the comment write "planner discretion — reasonable centred-content width" (do NOT cite UI-SPEC).
 2. Cmd/Ctrl+K (D-06, web-only): same keydown pattern as Task 1 to focus `searchInputRef`. Cleanup on unmount.
    Hover tint on product cards (`colors.primaryTint`).
 3. ?q= URL sync + share (D-08, web-only):
@@ -134,6 +136,7 @@ ProductsCatalogScreen.tsx: add `const breakpoint = useBreakpoint();` and a `sear
      empty). Guard with `Platform.OS==='web'`.
    - Add a `share-social-outline` button (shown on web when a search query is active) that calls
      `copyToClipboard(window.location.href)` with green-1500ms feedback. WebTooltip "Copiar enlace".
+     The button MUST have `accessibilityRole="button"` and `accessibilityLabel="Compartir enlace"`.
 Tokens only; empty-state copy "Sin resultados" / "No hay productos que coincidan con tu búsqueda. Prueba
 con otro término." preserved. Mobile branch (2-col, no keyboard/URL affordances) unchanged.
   </action>
@@ -142,6 +145,8 @@ con otro término." preserved. Mobile branch (2-col, no keyboard/URL affordances
   </verify>
   <acceptance_criteria>
     - ProductsCatalogScreen.tsx contains `useBreakpoint`, `numColumns`, `key={numColumns}`, a `metaKey || e.ctrlKey` + `'k'` listener, `URLSearchParams`, and `window.history.replaceState`
+    - ProductsCatalogScreen.tsx share button has `accessibilityRole="button"` and `accessibilityLabel="Compartir enlace"`
+    - ProductsCatalogScreen.tsx maxWidth comment does NOT cite UI-SPEC (it is planner discretion); `grep -n "UI-SPEC" ProductsCatalogScreen.tsx` shows no maxWidth=1200 provenance claim
     - URL/keyboard/share code guarded by `Platform.OS === 'web'`
     - `cd frontend && npx jest --passWithNoTests ProductsCatalog` exits 0
     - `grep -c "frontend/web" ProductsCatalogScreen.tsx` == 0
@@ -169,6 +174,7 @@ PriceCompareScreen.tsx: add `const breakpoint = useBreakpoint();`.
    `buildCsv(['Producto','Tienda','Precio','Precio unitario'], rows)` where `rows` maps each comparison
    entry to `[productName, storeName, priceString, unitPriceString]` (all coerced to string). Then
    `downloadFile(csv, \`bargain-comparativa-${todayStamp()}.csv\`, 'text/csv;charset=utf-8;')`.
+   The button MUST have `accessibilityRole="button"` and `accessibilityLabel="Exportar comparativa"`.
    IMPORTANT: do NOT build the CSV by hand — use `buildCsv` so the formula-injection escaping from Wave 0
    applies. Empty state copy unchanged.
 Tokens only; mobile table layout unchanged.
@@ -178,6 +184,7 @@ Tokens only; mobile table layout unchanged.
   </verify>
   <acceptance_criteria>
     - PriceCompareScreen.tsx contains `useBreakpoint`, `Exportar comparativa`, `buildCsv`, `bargain-comparativa-`, `position: 'sticky'`
+    - PriceCompareScreen.tsx "Exportar comparativa" button has `accessibilityRole="button"` and `accessibilityLabel="Exportar comparativa"`
     - Export button guarded by `Platform.OS === 'web'`; CSV built via `buildCsv` (not hand-concatenated)
     - `cd frontend && npx jest --passWithNoTests PriceCompare` exits 0
     - `grep -c "frontend/web" PriceCompareScreen.tsx` == 0
@@ -195,10 +202,11 @@ Tokens only; mobile table layout unchanged.
   </read_first>
   <action>
 ProductProposalScreen.tsx: add `const breakpoint = useBreakpoint();`. On `breakpoint !== 'mobile'` center
-the form content at `{ maxWidth: 560, alignSelf: 'center', width: '100%' }` (UI-SPEC). Add a web focus ring
-on inputs and the submit button (`outlineColor: colors.primary, outlineWidth: 2, outlineOffset: 2` when
-`Platform.OS==='web'`) and hover tint (`colors.primaryTint`) on the submit button via
-onMouseEnter/onMouseLeave. No structural form change; tokens only; mobile branch unchanged.
+the form content at `{ maxWidth: 560, alignSelf: 'center', width: '100%' }` (UI-SPEC binding 560 — cite
+UI-SPEC). Add a web focus ring on inputs and the submit button (`outlineColor: colors.primary,
+outlineWidth: 2, outlineOffset: 2` when `Platform.OS==='web'`) and hover tint (`colors.primaryTint`) on
+the submit button via onMouseEnter/onMouseLeave. No structural form change; tokens only; mobile branch
+unchanged.
   </action>
   <verify>
     <automated>cd frontend && npx jest --passWithNoTests ProductProposal</automated>
@@ -247,3 +255,4 @@ onMouseEnter/onMouseLeave. No structural form change; tokens only; mobile branch
 <output>
 After completion, create `.planning/phases/13-mejorar-la-app-expo-existente-frontend-src-para-uso-web-a-ad/13-05-SUMMARY.md`
 </output>
+</content>

@@ -74,6 +74,14 @@ colors.error=#C0392B, colors.errorBg=#FBEAEA, colors.text, colors.textMuted.
 sizes (frontend/src/theme/spacing.ts): sizes.tabBarHeight=50, sizes.tabIconSize=24.
 textStyles.caption (12px/400). All imports from '@/theme'. Path alias '@' = ./src (babel module-resolver + tsconfig).
 Tests live under frontend/src/__tests__/; jest preset jest-expo; run with `cd frontend && npx jest`.
+
+<!-- BottomTabBar icon model (confirmed from source): BottomTabBar does NOT render its own
+<Ionicons>. It receives pre-rendered icon nodes via tab.icon / tab.iconActive
+(type React.ReactNode) and renders them at line ~89 as
+`{isActive && tab.iconActive ? tab.iconActive : tab.icon}`. The <Ionicons size={sizes.tabIconSize}>
+(24px) is created by the CALLER (frontend/src/navigation/MainTabs.tsx). Therefore BottomTabBar
+cannot set an Ionicons `size` prop directly — to deliver "26px on desktop" without editing
+MainTabs.tsx it scales the rendered icon node by 26/24 on desktop. -->
 </interfaces>
 </context>
 
@@ -210,24 +218,47 @@ wrapped in `act`), assert `getByText('TIP')` visible. Mock Platform with
   </read_first>
   <behavior>
     - Desktop (width>=1024): container has maxWidth 900, alignSelf 'center', width '100%'
-    - Mobile (width<768): container has NO maxWidth constraint (unchanged from current behavior)
+    - Desktop (width>=1024): the rendered tab icon node is enlarged to an effective 26px. The passed-in icon node is sized 24 by the caller (MainTabs via sizes.tabIconSize); BottomTabBar wraps it and scales by 26/24 on desktop. iconSize is computed INSIDE BottomTabBar.tsx from the breakpoint.
+    - Mobile (width<768): container has NO maxWidth constraint and icons render at their native 24px (no scale) — unchanged from current behavior
     - Tab structure, tabPress handlers, badges, and active-index logic are byte-for-byte preserved
   </behavior>
   <action>
 Modify `frontend/src/components/ui/BottomTabBar.tsx`. Import `useBreakpoint` from '@/hooks/useBreakpoint'.
-Inside the `BottomTabBar` component body add `const breakpoint = useBreakpoint();`. Apply a desktop
-container style conditionally on the OUTER container `View` (the one with `styles.container`):
-when `breakpoint === 'desktop'`, append `{ maxWidth: 900, alignSelf: 'center', width: '100%' }`
-(per Pitfall 7 + UI-SPEC; 900 is a UI-SPEC-binding fixed value — add a comment). Add a new
-StyleSheet entry `containerDesktop: { maxWidth: 900, alignSelf: 'center', width: '100%' }` and
-compose `style={[styles.container, { paddingBottom: ... }, breakpoint === 'desktop' && styles.containerDesktop]}`.
-For desktop icon enlargement (24->26) and padding (spacing.lg side padding per tab), pass the breakpoint
-down to `TabItem` and add a `tabItemDesktop: { paddingHorizontal: spacing.lg }` style applied when desktop;
-icon size is controlled by the parent (MainTabs passes `sizes.tabIconSize`), so for icons leave a
-clear `// NOTE: icon size 24->26 on desktop is set by MainTabs via sizes; not changed here` comment —
-do NOT change MainTabs (out of this plan's files). Restyle ONLY; preserve all existing props, handlers,
-animations, badge logic, accessibility roles. Do NOT alter mobile rendering — verify no style change
-applies when `breakpoint !== 'desktop'`.
+Inside the `BottomTabBar` component body add `const breakpoint = useBreakpoint();`.
+
+Container centering: Apply a desktop container style conditionally on the OUTER container `View`
+(the one with `styles.container`): when `breakpoint === 'desktop'`, append
+`{ maxWidth: 900, alignSelf: 'center', width: '100%' }` (per Pitfall 7 + UI-SPEC; 900 is a
+UI-SPEC-binding fixed value — add a comment). Add a new StyleSheet entry
+`containerDesktop: { maxWidth: 900, alignSelf: 'center', width: '100%' }` and compose
+`style={[styles.container, { paddingBottom: ... }, breakpoint === 'desktop' && styles.containerDesktop]}`.
+
+Desktop icon enlargement to 26px (in scope, NO MainTabs.tsx edit):
+IMPORTANT — confirmed from source: `BottomTabBar` does NOT render its own `<Ionicons>`. It receives
+pre-rendered icon nodes via `tab.icon` / `tab.iconActive` (`React.ReactNode`) and renders them in
+`TabItem` (the line `{isActive && tab.iconActive ? tab.iconActive : tab.icon}`). The 24px size
+(`sizes.tabIconSize`) is set by the caller MainTabs.tsx, which this plan must NOT touch.
+Therefore BottomTabBar cannot set an Ionicons `size` prop. Instead, compute the desktop icon size
+INSIDE BottomTabBar.tsx from the breakpoint and scale the rendered node:
+  - In the `BottomTabBar` body compute:
+    `const iconSize = breakpoint === 'desktop' ? 26 : sizes.tabIconSize;`
+    (so the conditional `=== 'desktop' ? 26` literal lives in this file).
+  - Pass `iconSize` (and `breakpoint`) down to `TabItem` as a prop.
+  - In `TabItem`, wrap the rendered icon node in the existing `Animated.View` (around line 88) with
+    a scale transform derived from `iconSize`:
+    `const iconScale = iconSize / sizes.tabIconSize;` and add `{ scale: iconScale }` to the
+    `Animated.View` transform array (compose alongside the existing active-state `scale.value`,
+    e.g. `transform: [{ scale: scale.value * iconScale }]`), so on desktop the 24px node renders at
+    an effective 26px and on mobile `iconScale === 1` (visually identical to today).
+  - Add a comment citing UI-SPEC: `// 26px icons on desktop (D-12); icon node sized 24 by MainTabs, scaled 26/24 here — no MainTabs edit`.
+
+Also add desktop side padding per tab: add `tabItemDesktop: { paddingHorizontal: spacing.lg }` and
+apply it to each `TabItem`'s `TouchableOpacity` when `breakpoint === 'desktop'`.
+
+Restyle ONLY: preserve all existing props, handlers, animations, badge logic, accessibility roles.
+Do NOT alter mobile rendering — verify no maxWidth and no icon scale (`iconScale === 1`) when
+`breakpoint !== 'desktop'`. Do NOT add `frontend/src/navigation/MainTabs.tsx` to files_modified and
+do NOT edit it.
 
 Create `frontend/src/__tests__/components/ui/BottomTabBar.test.tsx`: mock `useWindowDimensions` to
 width 1280, render `<BottomTabBar tabs={[...2 stub tabs...]} activeIndex={0} onTabPress={jest.fn()} />`
@@ -242,11 +273,13 @@ used in existing tests if present; otherwise wrap manually with
   </verify>
   <acceptance_criteria>
     - `BottomTabBar.tsx` contains `useBreakpoint` and `maxWidth: 900` and `alignSelf: 'center'`
+    - `BottomTabBar.tsx` contains the literal `=== 'desktop' ? 26` (desktop icon size computed inside this file)
+    - `frontend/src/navigation/MainTabs.tsx` is NOT in this plan's `files_modified` and is NOT edited
     - `BottomTabBar.tsx` still contains `accessibilityRole="tablist"` and `onTabPress` (handlers preserved)
     - `cd frontend && npx jest BottomTabBar` exits 0 asserting maxWidth:900 at desktop and absent at mobile
     - `cd frontend && npx jest ListsScreen` still passes (no regression in tab-dependent rendering)
   </acceptance_criteria>
-  <done>Tab bar centers at 900px on desktop, identical on mobile; test verifies both; existing tests unaffected.</done>
+  <done>Tab bar centers at 900px with effective-26px icons on desktop, identical on mobile; test verifies both; MainTabs.tsx untouched; existing tests unaffected.</done>
 </task>
 
 </tasks>
@@ -274,11 +307,13 @@ used in existing tests if present; otherwise wrap manually with
 
 <success_criteria>
 - useBreakpoint, MasterDetailLayout, WebTooltip exist and are exported from '@/hooks' / '@/components/ui'
-- BottomTabBar centers at 900px on desktop, pixel-identical on mobile
+- BottomTabBar centers at 900px and renders effective-26px icons on desktop, pixel-identical on mobile
 - All 4 Wave-0 test files for this plan pass
-- Zero references to or edits of frontend/web/
+- Zero references to or edits of frontend/web/ and zero edits to frontend/src/navigation/MainTabs.tsx
 </success_criteria>
 
 <output>
 After completion, create `.planning/phases/13-mejorar-la-app-expo-existente-frontend-src-para-uso-web-a-ad/13-01-SUMMARY.md`
 </output>
+</content>
+</invoke>

@@ -88,7 +88,7 @@ map and the existing bottom panel. On `breakpoint === 'desktop'`:
 Add hover tint (`colors.primaryTint`) on store cards in the panel via onMouseEnter/onMouseLeave (web,
 `// @ts-ignore`). Preserve all existing map markers, "Buscar en esta zona" pill, error state copy
 ("Error al cargar el mapa. Recarga la página."), and data-fetch logic untouched. Tokens only; the only
-fixed number is the 320px panel width (UI-SPEC).
+fixed number is the 320px panel width (UI-SPEC binding).
   </action>
   <verify>
     <automated>cd frontend && npx jest MapScreen</automated>
@@ -154,6 +154,8 @@ FavoriteStoresScreen.tsx: add `const breakpoint = useBreakpoint();`. Make the fa
 `numColumns={numColumns}` and add `key={numColumns}` (RN requires a key change when numColumns changes).
 Center the grid on wide screens with
 `contentContainerStyle={breakpoint!=='mobile' ? { maxWidth: 900, alignSelf:'center', width:'100%' } : undefined}`.
+The `900` maxWidth is planner discretion — a reasonable centred-content width (NOT a UI-SPEC binding
+value); in the comment write "planner discretion — reasonable centred-content width" (do NOT cite UI-SPEC).
 Add hover tint (`colors.primaryTint`) on store cards via onMouseEnter/onMouseLeave (web, `// @ts-ignore`)
 and a web focus ring (`outlineColor: colors.primary, outlineWidth: 2, outlineOffset: 2` when
 `Platform.OS==='web'`). Preserve the empty-state copy "Sin tiendas favoritas" / "Marca tiendas como
@@ -164,6 +166,7 @@ favoritas desde el mapa para verlas aquí." Tokens only; mobile single-column br
   </verify>
   <acceptance_criteria>
     - FavoriteStoresScreen.tsx contains `useBreakpoint`, `numColumns`, `key={numColumns}`, `colors.primaryTint`
+    - FavoriteStoresScreen.tsx maxWidth comment does NOT cite UI-SPEC (it is planner discretion); `grep -n "UI-SPEC" FavoriteStoresScreen.tsx` shows no maxWidth=900 provenance claim
     - Mobile path keeps `numColumns === 1`
     - `cd frontend && npx jest --passWithNoTests FavoriteStores` exits 0
     - `grep -c "frontend/web" FavoriteStoresScreen.tsx` == 0
@@ -206,3 +209,4 @@ favoritas desde el mapa para verlas aquí." Tokens only; mobile single-column br
 <output>
 After completion, create `.planning/phases/13-mejorar-la-app-expo-existente-frontend-src-para-uso-web-a-ad/13-04-SUMMARY.md`
 </output>
+</content>

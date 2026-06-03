@@ -26,6 +26,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { colors, spacing, sizes } from "@/theme";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -59,17 +60,27 @@ interface TabItemProps {
   tab: TabDefinition;
   isActive: boolean;
   onPress: (event: GestureResponderEvent) => void;
+  // 26px icons on desktop (D-12); icon node sized 24 by MainTabs, scaled 26/24 here — no MainTabs edit
+  iconSize: number;
+  isDesktop: boolean;
 }
 
-const TabItem: React.FC<TabItemProps> = ({ tab, isActive, onPress }) => {
+const TabItem: React.FC<TabItemProps> = ({
+  tab,
+  isActive,
+  onPress,
+  iconSize,
+  isDesktop,
+}) => {
   const scale = useSharedValue(isActive ? 1.08 : 1);
+  const iconScale = iconSize / sizes.tabIconSize;
 
   useEffect(() => {
     scale.value = withSpring(isActive ? 1.08 : 1, ICON_SPRING);
   }, [isActive, scale]);
 
   const iconAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+    transform: [{ scale: scale.value * iconScale }],
   }));
 
   const labelColor = isActive ? colors.primary : colors.textMuted;
@@ -77,7 +88,7 @@ const TabItem: React.FC<TabItemProps> = ({ tab, isActive, onPress }) => {
   return (
     <TouchableOpacity
       onPress={onPress}
-      style={styles.tabItem}
+      style={[styles.tabItem, isDesktop && styles.tabItemDesktop]}
       activeOpacity={0.7}
       accessibilityRole="tab"
       accessibilityLabel={tab.accessibilityLabel ?? tab.label}
@@ -117,12 +128,17 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({
   onTabPress,
 }) => {
   const insets = useSafeAreaInsets();
+  const breakpoint = useBreakpoint();
+  const isDesktop = breakpoint === "desktop";
+  // 26px icons on desktop (D-12); icon node sized 24 by MainTabs, scaled 26/24 in TabItem — no MainTabs edit
+  const iconSize = isDesktop ? 26 : sizes.tabIconSize;
 
   return (
     <View
       style={[
         styles.container,
         { paddingBottom: Math.max(insets.bottom, spacing.xs) },
+        isDesktop && styles.containerDesktop,
       ]}
       accessibilityRole="tablist"
       accessibilityLabel="Navegación principal"
@@ -134,6 +150,8 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({
             tab={tab}
             isActive={index === activeIndex}
             onPress={() => onTabPress(index)}
+            iconSize={iconSize}
+            isDesktop={isDesktop}
           />
         ))}
       </View>
@@ -162,6 +180,12 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  // 900px: ancho máximo del tab bar centrado en desktop (valor vinculante de 13-UI-SPEC)
+  containerDesktop: {
+    maxWidth: 900,
+    alignSelf: "center",
+    width: "100%",
+  },
   tabRow: {
     flexDirection: "row",
     height: sizes.tabBarHeight,
@@ -174,6 +198,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     gap: 2,
     minHeight: 44,
+  },
+  tabItemDesktop: {
+    paddingHorizontal: spacing.lg,
   },
   iconWrapper: {
     position: "relative",

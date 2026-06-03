@@ -39,7 +39,9 @@ import { listService } from "@/api/listService";
 import type { ListCollaborator } from "@/api/listService";
 import { useListStore } from "@/store/listStore";
 import { SkeletonBox } from "@/components/ui/SkeletonBox";
+import { WebTooltip } from "@/components/ui";
 import { blurActiveElementOnWeb } from "@/utils/webA11y";
+import { downloadFile, copyToClipboard, todayStamp } from "@/utils/webExport";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -433,6 +435,43 @@ export const ListDetailScreen: React.FC<Props> = ({ route, navigation }) => {
     }
   }, [quickAddName, listId, loadList]);
 
+  // ─── Web: exportar / compartir / Escape (D-07/D-08/D-06) ──────────────────
+  const [shareSuccess, setShareSuccess] = useState(false);
+
+  const handleExportList = useCallback(() => {
+    const list = useListStore.getState().activeList;
+    const body = (list?.items ?? [])
+      .map((i) => `${i.quantity}x ${i.name ?? i.product_name ?? "Producto"}`)
+      .join("\n");
+    downloadFile(
+      body,
+      `bargain-lista-${todayStamp()}.txt`,
+      "text/plain;charset=utf-8;",
+    );
+  }, []);
+
+  const handleShareUrl = useCallback(async () => {
+    if (Platform.OS !== "web") return;
+    const ok = await copyToClipboard(window.location.href);
+    if (ok) {
+      setShareSuccess(true);
+      setTimeout(() => setShareSuccess(false), 1500);
+    }
+  }, []);
+
+  // Esc cierra cualquier modal abierto (web-only — RESEARCH Pattern 5)
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setAddPanelVisible(false);
+        setCollabModalVisible(false);
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   const renderItem = makeRenderItem(
     handleToggleItem,
     handleDeleteItem,
@@ -477,6 +516,49 @@ export const ListDetailScreen: React.FC<Props> = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.container} edges={[]}>
+      {/* Barra de acciones web: exportar lista + compartir enlace (D-07/D-08) */}
+      {Platform.OS === "web" && (
+        <View style={styles.webToolbar}>
+          <WebTooltip label="Descargar lista en .txt">
+            <TouchableOpacity
+              style={styles.webToolbarBtn}
+              onPress={handleExportList}
+              accessibilityRole="button"
+              accessibilityLabel="Exportar lista"
+            >
+              <Ionicons
+                name="download-outline"
+                size={20}
+                color={colors.primary}
+              />
+              <Text style={styles.webToolbarText}>Exportar lista</Text>
+            </TouchableOpacity>
+          </WebTooltip>
+          <WebTooltip label="Copiar enlace">
+            <TouchableOpacity
+              style={styles.webToolbarBtn}
+              onPress={handleShareUrl}
+              accessibilityRole="button"
+              accessibilityLabel="Compartir enlace"
+            >
+              <Ionicons
+                name={shareSuccess ? "checkmark" : "share-social-outline"}
+                size={20}
+                color={shareSuccess ? colors.success : colors.primary}
+              />
+              <Text
+                style={[
+                  styles.webToolbarText,
+                  shareSuccess && { color: colors.success },
+                ]}
+              >
+                {shareSuccess ? "¡Copiado!" : "Compartir"}
+              </Text>
+            </TouchableOpacity>
+          </WebTooltip>
+        </View>
+      )}
+
       {/* Items section */}
       {isLoading ? (
         skeletonItems
@@ -558,6 +640,10 @@ export const ListDetailScreen: React.FC<Props> = ({ route, navigation }) => {
                 )}
               </TouchableOpacity>
             </View>
+
+            {Platform.OS === "web" && (
+              <Text style={styles.enterHint}>Pulsa Enter para añadir</Text>
+            )}
 
             <View style={styles.panelDivider}>
               <View style={styles.panelDividerLine} />
@@ -707,6 +793,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.md,
     paddingBottom: spacing.xxxl,
+  },
+  // ─── Barra de acciones web (export/share) ─────────────────────────────────
+  webToolbar: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.sm,
+  },
+  webToolbarBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  webToolbarText: {
+    ...textStyles.bodyMedium,
+    color: colors.primary,
+  },
+  enterHint: {
+    ...textStyles.bodySmall,
+    color: colors.textMuted,
+    marginTop: spacing.xs,
   },
   emptyContentContainer: {
     flex: 1,

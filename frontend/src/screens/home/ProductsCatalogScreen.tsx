@@ -11,6 +11,7 @@ import {
   FlatList,
   Modal,
   PanResponder,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -37,7 +38,11 @@ import {
   spacing,
 } from "@/theme";
 import { SearchBar } from "@/components/ui/SearchBar";
+import type { SearchBarHandle } from "@/components/ui/SearchBar";
+import { WebTooltip } from "@/components/ui";
 import { SkeletonBox } from "@/components/ui/SkeletonBox";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
+import { copyToClipboard } from "@/utils/webExport";
 import { productService, type ProductCategory } from "@/api/productService";
 import { storeService } from "@/api/storeService";
 import { priceService } from "@/api/priceService";
@@ -197,6 +202,22 @@ export const ProductsCatalogScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute<any>();
 
+  const breakpoint = useBreakpoint();
+  const searchInputRef = useRef<SearchBarHandle>(null);
+
+  // D-06: Cmd/Ctrl+K focuses search bar (web only)
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
   const profile = useProfileStore((s) => s.profile);
   const preferredListId: string | undefined = route.params?.listId;
 
@@ -211,6 +232,7 @@ export const ProductsCatalogScreen: React.FC = () => {
   const [selectedBrand, setSelectedBrand] = useState<string>("all");
   const [selectedStoreId, setSelectedStoreId] = useState<string>("all");
   const [nameQuery, setNameQuery] = useState("");
+  const [shareCopied, setShareCopied] = useState(false);
 
   const [storeScopedProductIds, setStoreScopedProductIds] = useState<
     Set<string>
@@ -446,6 +468,38 @@ export const ProductsCatalogScreen: React.FC = () => {
       loadUserLists(),
     ]);
   }, [loadCategories, loadProductsPage, loadNearbyStores, loadUserLists]);
+
+  // D-08: Seed search query from ?q= URL param on mount (web only)
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q) setNameQuery(q);
+  }, []);
+
+  // D-08: Reflect search query in ?q= URL param as user types (web only)
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    if (nameQuery) {
+      // @ts-ignore — web-only API
+      window.history.replaceState(
+        null,
+        "",
+        `?q=${encodeURIComponent(nameQuery)}`,
+      );
+    } else {
+      // @ts-ignore — web-only API
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, [nameQuery]);
+
+  // D-07: Copy current URL to clipboard (share button, web only)
+  const handleShareUrl = useCallback(async () => {
+    if (Platform.OS !== "web") return;
+    // @ts-ignore — web-only API
+    await copyToClipboard(window.location.href);
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 1500);
+  }, []);
 
   const refreshAll = useCallback(async () => {
     setIsRefreshing(true);
@@ -704,12 +758,40 @@ export const ProductsCatalogScreen: React.FC = () => {
     <SafeAreaView style={styles.safeArea} edges={[]}>
       <View style={styles.container}>
         <View style={styles.searchWrap}>
-          <SearchBar
-            value={nameQuery}
-            onChangeText={setNameQuery}
-            placeholder="Buscar por nombre…"
-            onFilterPress={() => undefined}
-          />
+          {/* D-06: Cmd/Ctrl+K hint tooltip on web; flex:1 so bar fills row */}
+          <View style={{ flex: 1 }}>
+            <WebTooltip label="⌘K / Ctrl+K">
+              <SearchBar
+                ref={searchInputRef}
+                value={nameQuery}
+                onChangeText={setNameQuery}
+                placeholder="Buscar por nombre…"
+                onFilterPress={() => undefined}
+              />
+            </WebTooltip>
+          </View>
+          {/* D-07/D-08: Share button (web only, when query is active) */}
+          {Platform.OS === "web" && nameQuery.length > 0 && (
+            <TouchableOpacity
+              style={[
+                styles.shareBtn,
+                shareCopied && { backgroundColor: colors.success },
+              ]}
+              onPress={() => {
+                void handleShareUrl();
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Compartir enlace"
+            >
+              <WebTooltip label="Copiar enlace">
+                <Ionicons
+                  name="share-social-outline"
+                  size={20}
+                  color={shareCopied ? colors.white : colors.primary}
+                />
+              </WebTooltip>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.filtersPanel} {...filterPanResponder.panHandlers}>
@@ -833,21 +915,28 @@ export const ProductsCatalogScreen: React.FC = () => {
             <SkeletonBox width="100%" height={64} borderRadius={12} />
           </View>
         ) : (
+          // D-05: numColumns 2/3/4 by breakpoint; key required when numColumns changes (RN requirement)
           <FlatList
             data={filteredProducts}
             keyExtractor={(item) => item.id}
+            numColumns={
+              breakpoint === "desktop" ? 4 : breakpoint === "tablet" ? 3 : 2
+            }
+            key={breakpoint === "desktop" ? 4 : breakpoint === "tablet" ? 3 : 2}
             renderItem={({ item }) => (
-              <ProductRow
-                product={item}
-                lowestPrice={priceByProductId[item.id]}
-                isPriceLoading={loadingPriceIds.has(item.id)}
-                onPress={handleOpenProduct}
-                onAdd={handleAddFromCard}
-                quickMode={Boolean(preferredListId)}
-                quickQuantity={getQuickQuantity(item.id)}
-                onIncreaseQuickQuantity={handleIncreaseQuickQuantity}
-                onDecreaseQuickQuantity={handleDecreaseQuickQuantity}
-              />
+              <View style={{ flex: 1, padding: spacing.xs / 2 }}>
+                <ProductRow
+                  product={item}
+                  lowestPrice={priceByProductId[item.id]}
+                  isPriceLoading={loadingPriceIds.has(item.id)}
+                  onPress={handleOpenProduct}
+                  onAdd={handleAddFromCard}
+                  quickMode={Boolean(preferredListId)}
+                  quickQuantity={getQuickQuantity(item.id)}
+                  onIncreaseQuickQuantity={handleIncreaseQuickQuantity}
+                  onDecreaseQuickQuantity={handleDecreaseQuickQuantity}
+                />
+              </View>
             )}
             refreshControl={
               <RefreshControl
@@ -858,7 +947,17 @@ export const ProductsCatalogScreen: React.FC = () => {
             contentContainerStyle={
               filteredProducts.length === 0
                 ? styles.emptyContent
-                : styles.listContent
+                : [
+                    styles.listContent,
+                    // planner discretion — reasonable centred-content width
+                    breakpoint !== "mobile"
+                      ? ({
+                          maxWidth: 1200,
+                          alignSelf: "center",
+                          width: "100%",
+                        } as const)
+                      : undefined,
+                  ]
             }
             onScrollBeginDrag={() => {
               if (filterExpandedRef.current) {
@@ -1017,6 +1116,18 @@ const styles = StyleSheet.create({
   searchWrap: {
     paddingTop: 0,
     marginBottom: spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
+  shareBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.primaryTint,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
   },
   filtersPanel: {
     backgroundColor: colors.surface,

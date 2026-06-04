@@ -18,6 +18,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { isAxiosError } from "axios";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -53,6 +54,7 @@ interface StoreOption {
 }
 
 export const ProductProposalScreen: React.FC<Props> = ({ navigation }) => {
+  const breakpoint = useBreakpoint();
   const [name, setName] = useState("");
   const [brand, setBrand] = useState("");
   const [barcode, setBarcode] = useState("");
@@ -64,6 +66,7 @@ export const ProductProposalScreen: React.FC<Props> = ({ navigation }) => {
   const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitHovered, setSubmitHovered] = useState(false);
 
   useEffect(() => {
     // Use device location when available, fallback to 0,0 (shows all stores within 50 km).
@@ -179,187 +182,226 @@ export const ProductProposalScreen: React.FC<Props> = ({ navigation }) => {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.sectionLabel}>Información del producto</Text>
-
-          {/* Name */}
-          <View style={styles.fieldWrap}>
-            <Text style={styles.label}>Nombre *</Text>
-            <TextInput
-              style={[styles.input, errors.name ? styles.inputError : null]}
-              value={name}
-              onChangeText={setName}
-              placeholder="Ej. Leche semidesnatada 1L"
-              placeholderTextColor={colors.light.textSecondary}
-            />
-            {errors.name ? (
-              <Text style={styles.errorText}>{errors.name}</Text>
-            ) : null}
-          </View>
-
-          {/* Brand */}
-          <View style={styles.fieldWrap}>
-            <Text style={styles.label}>Marca</Text>
-            <TextInput
-              style={styles.input}
-              value={brand}
-              onChangeText={setBrand}
-              placeholder="Ej. Hacendado"
-              placeholderTextColor={colors.light.textSecondary}
-            />
-          </View>
-
-          {/* Barcode */}
-          <View style={styles.fieldWrap}>
-            <Text style={styles.label}>Código EAN-13</Text>
-            <TextInput
-              style={[styles.input, errors.barcode ? styles.inputError : null]}
-              value={barcode}
-              onChangeText={setBarcode}
-              placeholder="Ej. 8412345678901"
-              placeholderTextColor={colors.light.textSecondary}
-              keyboardType="numeric"
-              maxLength={13}
-            />
-            {errors.barcode ? (
-              <Text style={styles.errorText}>{errors.barcode}</Text>
-            ) : null}
-          </View>
-
-          <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>
-            Precio
-          </Text>
-
-          {/* Price */}
-          <View style={styles.fieldWrap}>
-            <Text style={styles.label}>Precio (€)</Text>
-            <TextInput
-              style={[styles.input, errors.price ? styles.inputError : null]}
-              value={price}
-              onChangeText={setPrice}
-              placeholder="0.00"
-              placeholderTextColor={colors.light.textSecondary}
-              keyboardType="decimal-pad"
-            />
-            {errors.price ? (
-              <Text style={styles.errorText}>{errors.price}</Text>
-            ) : null}
-          </View>
-
-          {/* Unit price */}
-          <View style={styles.fieldWrap}>
-            <Text style={styles.label}>Precio unitario (€/kg o €/L)</Text>
-            <TextInput
-              style={styles.input}
-              value={unitPrice}
-              onChangeText={setUnitPrice}
-              placeholder="Ej. 1.20"
-              placeholderTextColor={colors.light.textSecondary}
-              keyboardType="decimal-pad"
-            />
-          </View>
-
-          {/* Store picker */}
-          {stores.length > 0 && (
-            <View style={styles.fieldWrap}>
-              <Text style={styles.label}>Tienda</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.storeRow}
-              >
-                {stores.map((s) => (
-                  <TouchableOpacity
-                    key={s.id}
-                    style={[
-                      styles.storeChip,
-                      selectedStoreId === s.id && styles.storeChipSelected,
-                    ]}
-                    onPress={() =>
-                      setSelectedStoreId(selectedStoreId === s.id ? null : s.id)
-                    }
-                  >
-                    <Text
-                      style={[
-                        styles.storeChipText,
-                        selectedStoreId === s.id &&
-                          styles.storeChipTextSelected,
-                      ]}
-                    >
-                      {s.name}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-              {errors.store ? (
-                <Text style={styles.errorText}>{errors.store}</Text>
-              ) : null}
-            </View>
-          )}
-
-          {stores.length === 0 &&
-          (storesLoadFailed || price.trim().length > 0) ? (
-            <View style={styles.fieldWrap}>
-              <Text style={styles.label}>Tienda</Text>
-              <Text style={styles.helperText}>
-                No hemos podido cargar tiendas cercanas en este momento.
-              </Text>
-              {errors.store ? (
-                <Text style={styles.errorText}>{errors.store}</Text>
-              ) : null}
-            </View>
-          ) : null}
-
-          {/* Notes */}
-          <View style={styles.fieldWrap}>
-            <Text style={styles.label}>Notas adicionales</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              value={notes}
-              onChangeText={setNotes}
-              placeholder="Ej. Encontré este producto en el supermercado X pero no aparece en la app"
-              placeholderTextColor={colors.light.textSecondary}
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-            />
-          </View>
-
-          {/* Submit */}
-          <TouchableOpacity
-            style={[styles.submitBtn, submitting && styles.submitBtnDisabled]}
-            onPress={() => {
-              void handleSubmit();
-            }}
-            disabled={submitting}
-            activeOpacity={0.8}
+          {/* D-05: center form at max-width 560px on tablet/desktop (UI-SPEC binding) */}
+          <View
+            style={breakpoint !== "mobile" ? styles.formCentered : undefined}
           >
-            {submitting ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <>
-                <Ionicons
-                  name="send-outline"
-                  size={18}
-                  color="#fff"
-                  style={{ marginRight: 8 }}
-                />
-                <Text style={styles.submitBtnText}>Enviar propuesta</Text>
-              </>
-            )}
-          </TouchableOpacity>
+            <Text style={styles.sectionLabel}>Información del producto</Text>
 
-          <Text style={styles.disclaimer}>
-            Las propuestas son revisadas por el equipo de BarGAIN antes de
-            aparecer en el catálogo.
-          </Text>
+            {/* Name */}
+            <View style={styles.fieldWrap}>
+              <Text style={styles.label}>Nombre *</Text>
+              <TextInput
+                style={[styles.input, errors.name ? styles.inputError : null]}
+                value={name}
+                onChangeText={setName}
+                placeholder="Ej. Leche semidesnatada 1L"
+                placeholderTextColor={colors.light.textSecondary}
+              />
+              {errors.name ? (
+                <Text style={styles.errorText}>{errors.name}</Text>
+              ) : null}
+            </View>
+
+            {/* Brand */}
+            <View style={styles.fieldWrap}>
+              <Text style={styles.label}>Marca</Text>
+              <TextInput
+                style={styles.input}
+                value={brand}
+                onChangeText={setBrand}
+                placeholder="Ej. Hacendado"
+                placeholderTextColor={colors.light.textSecondary}
+              />
+            </View>
+
+            {/* Barcode */}
+            <View style={styles.fieldWrap}>
+              <Text style={styles.label}>Código EAN-13</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  errors.barcode ? styles.inputError : null,
+                ]}
+                value={barcode}
+                onChangeText={setBarcode}
+                placeholder="Ej. 8412345678901"
+                placeholderTextColor={colors.light.textSecondary}
+                keyboardType="numeric"
+                maxLength={13}
+              />
+              {errors.barcode ? (
+                <Text style={styles.errorText}>{errors.barcode}</Text>
+              ) : null}
+            </View>
+
+            <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>
+              Precio
+            </Text>
+
+            {/* Price */}
+            <View style={styles.fieldWrap}>
+              <Text style={styles.label}>Precio (€)</Text>
+              <TextInput
+                style={[styles.input, errors.price ? styles.inputError : null]}
+                value={price}
+                onChangeText={setPrice}
+                placeholder="0.00"
+                placeholderTextColor={colors.light.textSecondary}
+                keyboardType="decimal-pad"
+              />
+              {errors.price ? (
+                <Text style={styles.errorText}>{errors.price}</Text>
+              ) : null}
+            </View>
+
+            {/* Unit price */}
+            <View style={styles.fieldWrap}>
+              <Text style={styles.label}>Precio unitario (€/kg o €/L)</Text>
+              <TextInput
+                style={styles.input}
+                value={unitPrice}
+                onChangeText={setUnitPrice}
+                placeholder="Ej. 1.20"
+                placeholderTextColor={colors.light.textSecondary}
+                keyboardType="decimal-pad"
+              />
+            </View>
+
+            {/* Store picker */}
+            {stores.length > 0 && (
+              <View style={styles.fieldWrap}>
+                <Text style={styles.label}>Tienda</Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.storeRow}
+                >
+                  {stores.map((s) => (
+                    <TouchableOpacity
+                      key={s.id}
+                      style={[
+                        styles.storeChip,
+                        selectedStoreId === s.id && styles.storeChipSelected,
+                      ]}
+                      onPress={() =>
+                        setSelectedStoreId(
+                          selectedStoreId === s.id ? null : s.id,
+                        )
+                      }
+                    >
+                      <Text
+                        style={[
+                          styles.storeChipText,
+                          selectedStoreId === s.id &&
+                            styles.storeChipTextSelected,
+                        ]}
+                      >
+                        {s.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+                {errors.store ? (
+                  <Text style={styles.errorText}>{errors.store}</Text>
+                ) : null}
+              </View>
+            )}
+
+            {stores.length === 0 &&
+            (storesLoadFailed || price.trim().length > 0) ? (
+              <View style={styles.fieldWrap}>
+                <Text style={styles.label}>Tienda</Text>
+                <Text style={styles.helperText}>
+                  No hemos podido cargar tiendas cercanas en este momento.
+                </Text>
+                {errors.store ? (
+                  <Text style={styles.errorText}>{errors.store}</Text>
+                ) : null}
+              </View>
+            ) : null}
+
+            {/* Notes */}
+            <View style={styles.fieldWrap}>
+              <Text style={styles.label}>Notas adicionales</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={notes}
+                onChangeText={setNotes}
+                placeholder="Ej. Encontré este producto en el supermercado X pero no aparece en la app"
+                placeholderTextColor={colors.light.textSecondary}
+                multiline
+                numberOfLines={3}
+                textAlignVertical="top"
+              />
+            </View>
+
+            {/* Submit — D-06: hover tint + focus ring on web */}
+            <TouchableOpacity
+              style={[
+                styles.submitBtn,
+                submitting && styles.submitBtnDisabled,
+                submitHovered && { backgroundColor: colors.primaryTint },
+                // @ts-ignore — web-only focus ring props (react-native-web)
+                Platform.OS === "web"
+                  ? {
+                      outlineColor: colors.primary,
+                      outlineWidth: 2,
+                      outlineOffset: 2,
+                    }
+                  : null,
+              ]}
+              onPress={() => {
+                void handleSubmit();
+              }}
+              disabled={submitting}
+              activeOpacity={0.8}
+              // @ts-ignore — web-only hover props (react-native-web)
+              onMouseEnter={() => setSubmitHovered(true)}
+              // @ts-ignore — web-only hover props (react-native-web)
+              onMouseLeave={() => setSubmitHovered(false)}
+            >
+              {submitting ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <>
+                  <Ionicons
+                    name="send-outline"
+                    size={18}
+                    color="#fff"
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text style={styles.submitBtnText}>Enviar propuesta</Text>
+                </>
+              )}
+            </TouchableOpacity>
+
+            <Text style={styles.disclaimer}>
+              Las propuestas son revisadas por el equipo de BarGAIN antes de
+              aparecer en el catálogo.
+            </Text>
+          </View>
+          {/* /formCentered */}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
+// D-06: web focus ring applied via Platform.OS guard on inputs/button
+const webFocusRing =
+  Platform.OS === "web"
+    ? { outlineColor: colors.primary, outlineWidth: 2, outlineOffset: 2 }
+    : {};
+
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
+  // D-05: centered form at max-width 560px on tablet/desktop (UI-SPEC binding)
+  formCentered: {
+    maxWidth: 560,
+    alignSelf: "center",
+    width: "100%",
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -404,6 +446,7 @@ const styles = StyleSheet.create({
     fontSize: fontSize.md,
     color: colors.text,
     ...shadows.card,
+    ...webFocusRing,
   },
   inputError: { borderColor: colors.error },
   textArea: { minHeight: 80 },

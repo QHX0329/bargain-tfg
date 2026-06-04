@@ -7,6 +7,11 @@
  *  - Indicador de escritura animado (typing dots)
  *  - Mensajes con timestamps
  *
+ * Web enhancements (D-05/D-06/D-07):
+ *  - Centered chat bubbles + input bar at max-width 720px on desktop/tablet
+ *  - Autofocus input on web mount
+ *  - Per-message copy button on hover (assistant messages only)
+ *
  * Conecta con:
  *   POST /api/v1/assistant/chat/ → Claude API via backend proxy (F5-03)
  */
@@ -50,6 +55,9 @@ import {
 import type { AssistantMessage } from "@/types/domain";
 import { sendChatMessage } from "@/api/assistantService";
 import type { ChatMessage } from "@/api/assistantService";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
+import { copyToClipboard } from "@/utils/webExport";
+import { WebTooltip } from "@/components/ui/WebTooltip";
 
 // ─── Sugerencias rápidas ──────────────────────────────────────────────────────
 
@@ -69,10 +77,20 @@ interface MessageBubbleProps {
 
 const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
   const isUser = message.role === "user";
+  const [hovered, setHovered] = useState(false);
+  const [copied, setCopied] = useState(false);
+
   const time = new Date(message.timestamp).toLocaleTimeString("es-ES", {
     hour: "2-digit",
     minute: "2-digit",
   });
+
+  const handleCopy = useCallback(async () => {
+    if (Platform.OS !== "web") return;
+    await copyToClipboard(message.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }, [message.content]);
 
   return (
     <Animated.View
@@ -90,6 +108,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
           bubbleStyles.bubble,
           isUser ? bubbleStyles.bubbleUser : bubbleStyles.bubbleBot,
         ]}
+        // @ts-ignore — onMouseEnter/onMouseLeave son props solo-web (react-native-web)
+        onMouseEnter={Platform.OS === "web" && !isUser ? () => setHovered(true) : undefined}
+        // @ts-ignore — ver arriba
+        onMouseLeave={Platform.OS === "web" && !isUser ? () => setHovered(false) : undefined}
       >
         <Text style={[bubbleStyles.text, isUser && bubbleStyles.textUser]}>
           {message.content}
@@ -97,6 +119,29 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
         <Text style={[bubbleStyles.time, isUser && bubbleStyles.timeUser]}>
           {time}
         </Text>
+
+        {/* Copy button — web-only, assistant messages only, visible on hover */}
+        {Platform.OS === "web" && !isUser && (hovered || copied) && (
+          <View style={bubbleStyles.copyButtonWrapper}>
+            <WebTooltip label="Copiar">
+              <TouchableOpacity
+                style={[
+                  bubbleStyles.copyButton,
+                  hovered && !copied && { backgroundColor: colors.surfaceVariant },
+                ]}
+                onPress={handleCopy}
+                accessibilityRole="button"
+                accessibilityLabel="Copiar mensaje"
+              >
+                <Ionicons
+                  name="copy-outline"
+                  size={14}
+                  color={copied ? colors.success : colors.textMuted}
+                />
+              </TouchableOpacity>
+            </WebTooltip>
+          </View>
+        )}
       </View>
     </Animated.View>
   );
@@ -155,6 +200,7 @@ const TypingIndicator: React.FC = () => {
 // ─── Pantalla principal ───────────────────────────────────────────────────────
 
 export const AssistantScreen: React.FC = () => {
+  const breakpoint = useBreakpoint();
   const [messages, setMessages] = useState<AssistantMessage[]>([
     {
       id: "welcome",
@@ -169,6 +215,16 @@ export const AssistantScreen: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const listRef = useRef<FlatList>(null);
+  const inputRef = useRef<TextInput>(null);
+
+  // D-06: Autofocus input on web on mount
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    const timer = setTimeout(() => {
+      inputRef.current?.focus();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
@@ -246,6 +302,12 @@ export const AssistantScreen: React.FC = () => {
     setShowSuggestions(true);
   }, []);
 
+  // D-05: centered column style for desktop/tablet
+  const centeredStyle =
+    breakpoint !== "mobile"
+      ? { maxWidth: 720, alignSelf: "center" as const, width: "100%" as const }
+      : undefined;
+
   return (
     <SafeAreaView style={styles.safe} edges={[]}>
       {/* Header */}
@@ -277,7 +339,7 @@ export const AssistantScreen: React.FC = () => {
           data={messages}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <MessageBubble message={item} />}
-          contentContainerStyle={styles.messagesList}
+          contentContainerStyle={[styles.messagesList, centeredStyle]}
           showsVerticalScrollIndicator={false}
           ListFooterComponent={
             <>
@@ -316,9 +378,10 @@ export const AssistantScreen: React.FC = () => {
           onContentSizeChange={scrollToBottom}
         />
 
-        {/* Input */}
-        <View style={styles.inputContainer}>
+        {/* Input — D-05: centered at 720px on desktop/tablet */}
+        <View style={[styles.inputContainer, centeredStyle]}>
           <TextInput
+            ref={inputRef}
             style={styles.input}
             value={inputText}
             onChangeText={setInputText}
@@ -529,6 +592,18 @@ const bubbleStyles = StyleSheet.create({
     alignSelf: "flex-end",
   },
   timeUser: { color: colors.white, opacity: 0.7 },
+  copyButtonWrapper: {
+    position: "absolute",
+    top: spacing.xs,
+    right: -spacing.lg,
+  },
+  copyButton: {
+    width: 26,
+    height: 26,
+    borderRadius: borderRadius.sm,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });
 
 const typingStyles = StyleSheet.create({

@@ -23,6 +23,7 @@ import {
 import { storeService } from "@/api/storeService";
 import type { MapStackParamList } from "@/navigation/types";
 import type { Store, StoreChain } from "@/types/domain";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -89,6 +90,7 @@ const StoreCard: React.FC<StoreCardProps> = ({
 }) => {
   const chainColor = CHAIN_COLORS[store.chain] || colors.primary;
   const initial = CHAIN_INITIALS[store.chain] || "?";
+  const [isHovered, setIsHovered] = React.useState(false);
 
   return (
     <TouchableOpacity
@@ -96,9 +98,14 @@ const StoreCard: React.FC<StoreCardProps> = ({
         cardStyles.card,
         shadows.card,
         isSelected && { borderColor: colors.primary, borderWidth: 2 },
+        isHovered && { backgroundColor: colors.primaryTint },
       ]}
       onPress={() => onPress(store)}
       activeOpacity={0.85}
+      // @ts-ignore — onMouseEnter/onMouseLeave son props solo-web (react-native-web)
+      onMouseEnter={() => setIsHovered(true)}
+      // @ts-ignore — ver arriba
+      onMouseLeave={() => setIsHovered(false)}
     >
       <View style={[cardStyles.logo, { backgroundColor: chainColor + "18" }]}>
         <Text style={[cardStyles.logoText, { color: chainColor }]}>
@@ -131,6 +138,7 @@ export const MapScreen: React.FC = () => {
     useNavigation<NativeStackNavigationProp<MapStackParamList, "Map">>();
   const apiKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_KEY || "";
   const mapId = process.env.EXPO_PUBLIC_GOOGLE_MAPS_MAP_ID?.trim() || undefined;
+  const breakpoint = useBreakpoint();
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
@@ -315,6 +323,146 @@ export const MapScreen: React.FC = () => {
     );
   }
 
+  // ── Panel de tiendas (contenido compartido entre layouts) ───────────────
+  const storePanelContent = (
+    <>
+      <TouchableOpacity
+        style={styles.panelHandleButton}
+        onPress={() => setStoresPanelExpanded((prev) => !prev)}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={
+          storesPanelExpanded
+            ? "Plegar panel de tiendas"
+            : "Desplegar panel de tiendas"
+        }
+      >
+        {/* Grip solo en el layout inferior (mobile/tablet) */}
+        {breakpoint !== "desktop" && <View style={styles.panelHandleGrip} />}
+        <View style={styles.panelHandleMeta}>
+          <Text style={styles.panelTitle}>
+            {stores.length} tienda{stores.length !== 1 ? "s" : ""} en esta zona
+          </Text>
+          {breakpoint !== "desktop" && (
+            <Text style={styles.panelHandleChevron}>
+              {storesPanelExpanded ? "▾" : "▴"}
+            </Text>
+          )}
+        </View>
+      </TouchableOpacity>
+
+      {!storesPanelExpanded && breakpoint !== "desktop" ? null : stores.length > 0 ? (
+        <>
+          {selectedStore && (
+            <TouchableOpacity
+              style={[styles.storeProfileButton, shadows.card]}
+              onPress={() =>
+                navigation.navigate("StoreProfile", {
+                  storeId: selectedStore.id,
+                  storeName: selectedStore.name,
+                  userLat: userCoords.lat,
+                  userLng: userCoords.lng,
+                })
+              }
+              activeOpacity={0.9}
+            >
+              <Text style={styles.storeProfileButtonText}>
+                Ver perfil de tienda
+              </Text>
+            </TouchableOpacity>
+          )}
+          <FlatList
+            data={stores}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <StoreCard
+                store={item}
+                onPress={handleStoreCardPress}
+                isSelected={selectedStore?.id === item.id}
+              />
+            )}
+            horizontal={breakpoint !== "desktop"}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={
+              breakpoint === "desktop"
+                ? styles.storeListContentVertical
+                : styles.storeListContent
+            }
+          />
+        </>
+      ) : !isFetchingStores ? (
+        <View style={styles.emptyStores}>
+          <Text style={styles.emptyStoresText}>
+            No se encontraron tiendas en el area visible del mapa
+          </Text>
+        </View>
+      ) : null}
+    </>
+  );
+
+  // ── Desktop: layout en fila (mapa a la izquierda, panel a la derecha) ───
+  if (breakpoint === "desktop") {
+    return (
+      <View style={styles.containerDesktop}>
+        {/* Mapa ocupa el resto del ancho */}
+        <View style={styles.mapWrapDesktop}>
+          <GoogleMap
+            mapContainerStyle={MAP_CONTAINER_STYLE}
+            center={center}
+            zoom={14}
+            onLoad={onLoad}
+            onUnmount={onUnmount}
+            options={{
+              disableDefaultUI: false,
+              clickableIcons: false,
+              mapId,
+            }}
+          >
+            {selectedStore && selectedStore.location?.coordinates && (
+              <InfoWindow
+                position={{
+                  lat: selectedStore.location.coordinates[1],
+                  lng: selectedStore.location.coordinates[0],
+                }}
+                onCloseClick={() => setSelectedStore(null)}
+              >
+                <div style={infoWindowStyles.wrap}>
+                  <h4 style={infoWindowStyles.title}>{selectedStore.name}</h4>
+                  <p style={infoWindowStyles.meta}>
+                    {selectedStore.chain?.toUpperCase() ?? "TIENDA"} ·{" "}
+                    {selectedStore.isOpen ? "ABIERTO" : "CERRADO"}
+                  </p>
+                  <p style={infoWindowStyles.address}>{selectedStore.address}</p>
+                </div>
+              </InfoWindow>
+            )}
+          </GoogleMap>
+
+          <TouchableOpacity
+            style={[styles.searchAreaButton, shadows.elevated]}
+            onPress={fetchStoresInVisibleArea}
+            activeOpacity={0.9}
+          >
+            <Text style={styles.searchAreaText}>Buscar en esta zona</Text>
+          </TouchableOpacity>
+
+          {isFetchingStores && (
+            <View style={styles.mapLoadingOverlay}>
+              <ActivityIndicator size="small" color={colors.primary} />
+              <Text style={styles.mapLoadingText}>Buscando tiendas...</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Panel derecho — UI-SPEC: 320px fijo, altura completa */}
+        <View style={styles.rightPanel}>
+          {storePanelContent}
+        </View>
+      </View>
+    );
+  }
+
+  // ── Mobile / Tablet: layout original con panel inferior ─────────────────
   return (
     <View style={styles.container}>
       <GoogleMap
@@ -367,71 +515,7 @@ export const MapScreen: React.FC = () => {
 
       {/* ── Panel inferior ───────────── */}
       <View style={styles.bottomPanel}>
-        <TouchableOpacity
-          style={styles.panelHandleButton}
-          onPress={() => setStoresPanelExpanded((prev) => !prev)}
-          activeOpacity={0.85}
-          accessibilityRole="button"
-          accessibilityLabel={
-            storesPanelExpanded
-              ? "Plegar panel de tiendas"
-              : "Desplegar panel de tiendas"
-          }
-        >
-          <View style={styles.panelHandleGrip} />
-          <View style={styles.panelHandleMeta}>
-            <Text style={styles.panelTitle}>
-              {stores.length} tienda{stores.length !== 1 ? "s" : ""} en esta
-              zona
-            </Text>
-            <Text style={styles.panelHandleChevron}>
-              {storesPanelExpanded ? "▾" : "▴"}
-            </Text>
-          </View>
-        </TouchableOpacity>
-
-        {!storesPanelExpanded ? null : stores.length > 0 ? (
-          <>
-            {selectedStore && (
-              <TouchableOpacity
-                style={[styles.storeProfileButton, shadows.card]}
-                onPress={() =>
-                  navigation.navigate("StoreProfile", {
-                    storeId: selectedStore.id,
-                    storeName: selectedStore.name,
-                    userLat: userCoords.lat,
-                    userLng: userCoords.lng,
-                  })
-                }
-                activeOpacity={0.9}
-              >
-                <Text style={styles.storeProfileButtonText}>
-                  Ver perfil de tienda
-                </Text>
-              </TouchableOpacity>
-            )}
-            <FlatList
-              data={stores}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <StoreCard
-                  store={item}
-                  onPress={handleStoreCardPress}
-                  isSelected={selectedStore?.id === item.id}
-                />
-              )}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.storeListContent}
-            />
-          </>
-        ) : !isFetchingStores ? (
-          <View style={styles.emptyStores}>
-            <Text style={styles.emptyStoresText}>
-              No se encontraron tiendas en el area visible del mapa
-            </Text>
-          </View>
-        ) : null}
+        {storePanelContent}
       </View>
     </View>
   );
@@ -550,6 +634,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     gap: spacing.sm,
   },
+  storeListContentVertical: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+  },
   emptyStores: {
     alignItems: "center",
     paddingVertical: spacing.md,
@@ -559,6 +648,27 @@ const styles = StyleSheet.create({
     ...textStyles.bodySmall,
     color: colors.textMuted,
     textAlign: "center",
+  },
+  // ── Desktop layout styles ────────────────────────────────────────────────
+  containerDesktop: {
+    flex: 1,
+    flexDirection: "row",
+    backgroundColor: colors.background,
+  },
+  mapWrapDesktop: {
+    flex: 1,
+    position: "relative",
+  },
+  // UI-SPEC: panel derecho fijo a 320px, altura completa, divisor izquierdo
+  rightPanel: {
+    width: 320,
+    height: "100%",
+    backgroundColor: colors.surface,
+    borderLeftWidth: 1,
+    borderLeftColor: colors.border,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.lg,
+    overflow: "hidden",
   },
 });
 

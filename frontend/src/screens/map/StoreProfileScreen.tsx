@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   Linking,
+  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -29,6 +30,9 @@ import { productService } from "@/api/productService";
 import type { ProductCategory } from "@/api/productService";
 import type { PlacesDetail, Store } from "@/types/domain";
 import { SkeletonBox } from "@/components/ui/SkeletonBox";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
+import { WebTooltip } from "@/components/ui";
+import { copyToClipboard } from "@/utils/webExport";
 
 type Props = NativeStackScreenProps<MapStackParamList, "StoreProfile">;
 
@@ -105,6 +109,27 @@ function chainLabel(store: Store): string {
 
 export const StoreProfileScreen: React.FC<Props> = ({ route, navigation }) => {
   const { storeId, storeName, userLat, userLng } = route.params;
+  const breakpoint = useBreakpoint();
+
+  // Copy-address / share-URL feedback state (web-only)
+  const [addressCopied, setAddressCopied] = useState(false);
+  const [urlCopied, setUrlCopied] = useState(false);
+
+  const handleCopyAddress = useCallback(async (address: string) => {
+    const ok = await copyToClipboard(address);
+    if (ok) {
+      setAddressCopied(true);
+      setTimeout(() => setAddressCopied(false), 1500);
+    }
+  }, []);
+
+  const handleShareUrl = useCallback(async () => {
+    const ok = await copyToClipboard(window.location.href);
+    if (ok) {
+      setUrlCopied(true);
+      setTimeout(() => setUrlCopied(false), 1500);
+    }
+  }, []);
 
   const [store, setStore] = useState<Store | null>(null);
   const [categories, setCategories] = useState<ProductCategory[]>([]);
@@ -295,6 +320,334 @@ export const StoreProfileScreen: React.FC<Props> = ({ route, navigation }) => {
     );
   }
 
+  // ── Shared: store info section (left column on desktop, header on mobile) ─
+  const storeInfoSection = (
+    <View style={[styles.headerCard, shadows.card]}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() =>
+          navigation.canGoBack()
+            ? navigation.goBack()
+            : navigation.navigate("Map")
+        }
+        accessibilityRole="button"
+        accessibilityLabel="Volver"
+      >
+        <Ionicons name="chevron-back" size={18} color={colors.primary} />
+        <Text style={styles.backButtonText}>Volver</Text>
+      </TouchableOpacity>
+      <View style={styles.headerTopRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.storeName}>
+            {store.name ?? storeName ?? "Tienda"}
+          </Text>
+          <Text style={styles.chainText}>{chainLabel(store)}</Text>
+        </View>
+
+        <TouchableOpacity
+          style={[
+            styles.favoriteButton,
+            store.isFavorite ? styles.favoriteButtonActive : null,
+          ]}
+          onPress={handleToggleFavorite}
+          disabled={isTogglingFavorite}
+          accessibilityRole="button"
+          accessibilityLabel="Alternar favorito"
+        >
+          {isTogglingFavorite ? (
+            <ActivityIndicator size="small" color={colors.white} />
+          ) : (
+            <Ionicons
+              name={store.isFavorite ? "heart" : "heart-outline"}
+              size={16}
+              color={colors.white}
+            />
+          )}
+        </TouchableOpacity>
+      </View>
+
+      {/* Address row — copy button on web (D-07) */}
+      <View style={styles.addressRow}>
+        <Text style={[styles.addressText, { flex: 1 }]}>
+          {store.address || "Dirección no disponible"}
+        </Text>
+        {Platform.OS === "web" && store.address ? (
+          <WebTooltip label={addressCopied ? "¡Copiado!" : "Copiar dirección"}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => void handleCopyAddress(store.address!)}
+              accessibilityRole="button"
+              accessibilityLabel="Copiar dirección"
+            >
+              <Ionicons
+                name={addressCopied ? "checkmark" : "copy-outline"}
+                size={16}
+                color={addressCopied ? colors.success : colors.textMuted}
+              />
+            </TouchableOpacity>
+          </WebTooltip>
+        ) : null}
+      </View>
+
+      <Text style={styles.distanceText}>
+        {distanceFromUser !== null
+          ? distanceFromUser < 1
+            ? `${Math.round(distanceFromUser * 1000)} m · ≈${Math.max(1, Math.round(distanceFromUser * 3.5))} min`
+            : `${distanceFromUser.toFixed(1)} km · ≈${Math.max(1, Math.round(distanceFromUser * 3.5))} min`
+          : "Distancia no disponible"}
+      </Text>
+
+      {/* Share URL button — web only (D-08) */}
+      {Platform.OS === "web" && (
+        <WebTooltip label="Copiar enlace">
+          <TouchableOpacity
+            style={styles.shareButton}
+            onPress={() => void handleShareUrl()}
+            accessibilityRole="button"
+            accessibilityLabel="Copiar enlace de esta tienda"
+          >
+            <Ionicons
+              name={urlCopied ? "checkmark" : "share-social-outline"}
+              size={14}
+              color={urlCopied ? colors.success : colors.primary}
+            />
+            <Text
+              style={[
+                styles.shareButtonText,
+                urlCopied && { color: colors.success },
+              ]}
+            >
+              {urlCopied ? "¡Enlace copiado!" : "Compartir enlace"}
+            </Text>
+          </TouchableOpacity>
+        </WebTooltip>
+      )}
+
+      {/* Horario de BD — se oculta cuando Places está cargando o ya cargó datos */}
+      {placesDetail == null && !isLoadingPlaces && (
+        <View style={styles.hoursBox}>
+          <Text style={styles.hoursTitle}>Horario</Text>
+          <Text style={styles.hoursText}>{openingHoursText}</Text>
+        </View>
+      )}
+
+      {/* ── Google Places enrichment sections ──────────────────── */}
+      {isLoadingPlaces ? (
+        <View style={styles.placesLoadingRow}>
+          <SkeletonBox width="60%" height={14} />
+          <SkeletonBox width="40%" height={14} />
+        </View>
+      ) : (
+        <>
+          {/* Rating */}
+          {placesDetail?.rating != null && (
+            <View style={styles.placesRow}>
+              <Ionicons name="star" size={14} color={colors.warning} />
+              <Text style={styles.placesRatingText}>
+                {placesDetail.rating.toFixed(1)}
+                {placesDetail.user_rating_count != null
+                  ? ` (${placesDetail.user_rating_count} valoraciones)`
+                  : ""}
+              </Text>
+            </View>
+          )}
+
+          {/* Opening hours from Places */}
+          {placesDetail?.opening_hours != null && (
+            <View style={styles.placesOpenHoursBox}>
+              {placesDetail.opening_hours.openNow != null && (
+                <View
+                  style={[
+                    styles.openNowBadge,
+                    placesDetail.opening_hours.openNow
+                      ? styles.openNowBadgeOpen
+                      : styles.openNowBadgeClosed,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.openNowBadgeText,
+                      placesDetail.opening_hours.openNow
+                        ? styles.openNowBadgeTextOpen
+                        : styles.openNowBadgeTextClosed,
+                    ]}
+                  >
+                    {placesDetail.opening_hours.openNow
+                      ? "Abierto ahora"
+                      : "Cerrado"}
+                  </Text>
+                </View>
+              )}
+              {placesDetail.opening_hours.weekdayDescriptions?.map(
+                (line, i) => (
+                  <Text key={i} style={styles.placesHoursLine}>
+                    {line}
+                  </Text>
+                ),
+              )}
+            </View>
+          )}
+
+          {/* Website */}
+          {placesDetail?.website_url != null && (
+            <TouchableOpacity
+              style={styles.placesRow}
+              onPress={() =>
+                Linking.openURL(placesDetail.website_url!).catch(() => {})
+              }
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name="globe-outline"
+                size={14}
+                color={colors.primary}
+              />
+              <Text style={styles.placesLinkText}>Sitio web oficial</Text>
+            </TouchableOpacity>
+          )}
+        </>
+      )}
+    </View>
+  );
+
+  // ── Shared: category filter chips ────────────────────────────────────────
+  const categoryFilterRow = (
+    <>
+      <Text style={styles.productsTitle}>
+        Productos detectados en esta tienda ({productsCount})
+      </Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.categoryFiltersContent}
+        style={styles.categoryFilters}
+      >
+        <TouchableOpacity
+          style={[
+            styles.categoryChip,
+            selectedCategoryId === "all" ? styles.categoryChipActive : null,
+          ]}
+          onPress={() => {
+            void handleSelectCategory("all");
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Filtrar por todas las categorías"
+        >
+          <Text
+            style={[
+              styles.categoryChipText,
+              selectedCategoryId === "all"
+                ? styles.categoryChipTextActive
+                : null,
+            ]}
+          >
+            Todas
+          </Text>
+        </TouchableOpacity>
+
+        {categoryFilters.map((category) => {
+          const isActive = selectedCategoryId === category.id;
+          return (
+            <TouchableOpacity
+              key={category.id}
+              style={[
+                styles.categoryChip,
+                isActive ? styles.categoryChipActive : null,
+              ]}
+              onPress={() => {
+                void handleSelectCategory(category.id);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={`Filtrar por ${category.label}`}
+            >
+              <Text
+                style={[
+                  styles.categoryChipText,
+                  isActive ? styles.categoryChipTextActive : null,
+                ]}
+              >
+                {category.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    </>
+  );
+
+  // ── Shared: product list items ───────────────────────────────────────────
+  const renderProductItem = ({ item }: { item: StoreProductOffer }) => (
+    <View style={[styles.productRow, shadows.card]}>
+      <View style={styles.productInfo}>
+        <Text style={styles.productName} numberOfLines={1}>
+          {item.product.name}
+        </Text>
+        <Text style={styles.productMeta} numberOfLines={1}>
+          {item.product.category}
+          {item.product.brand ? ` · ${item.product.brand}` : ""}
+        </Text>
+      </View>
+      <View style={styles.productPriceWrap}>
+        <Text style={styles.productPrice}>
+          {(item.offerPrice ?? item.price).toFixed(2)} €
+        </Text>
+        <Text style={styles.productSource}>{item.source}</Text>
+      </View>
+    </View>
+  );
+
+  const listEmptyComponent = (
+    <View style={styles.emptyProducts}>
+      <Ionicons name="cube-outline" size={24} color={colors.textDisabled} />
+      <Text style={styles.emptyProductsText}>
+        No se encontraron productos con precio para esta tienda.
+      </Text>
+    </View>
+  );
+
+  const listFooterComponent = isLoadingMore ? (
+    <View style={styles.listFooterLoading}>
+      <ActivityIndicator size="small" color={colors.primary} />
+      <Text style={styles.listFooterText}>Cargando más productos...</Text>
+    </View>
+  ) : null;
+
+  // ── Desktop: two-column layout (D-05) ────────────────────────────────────
+  if (breakpoint === "desktop") {
+    return (
+      <SafeAreaView style={styles.containerDesktop} edges={[]}>
+        {/* Left column: store info (~50%) */}
+        <ScrollView
+          style={styles.desktopLeft}
+          contentContainerStyle={styles.desktopLeftContent}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+          }
+        >
+          {storeInfoSection}
+        </ScrollView>
+
+        {/* Right column: category filters + product list (~50%) */}
+        <View style={styles.desktopRight}>
+          <View style={styles.desktopRightHeader}>{categoryFilterRow}</View>
+          <FlatList
+            data={products}
+            keyExtractor={(item) => item.product.id}
+            onEndReached={() => {
+              void handleLoadMore();
+            }}
+            onEndReachedThreshold={0.3}
+            contentContainerStyle={styles.desktopRightList}
+            renderItem={renderProductItem}
+            ListEmptyComponent={listEmptyComponent}
+            ListFooterComponent={listFooterComponent}
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ── Mobile / Tablet: original single-column FlatList ────────────────────
   return (
     <SafeAreaView style={styles.container} edges={[]}>
       <FlatList
@@ -309,251 +662,14 @@ export const StoreProfileScreen: React.FC<Props> = ({ route, navigation }) => {
         }
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
-          <View style={[styles.headerCard, shadows.card]}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() =>
-                navigation.canGoBack()
-                  ? navigation.goBack()
-                  : navigation.navigate("Map")
-              }
-              accessibilityRole="button"
-              accessibilityLabel="Volver"
-            >
-              <Ionicons name="chevron-back" size={18} color={colors.primary} />
-              <Text style={styles.backButtonText}>Volver</Text>
-            </TouchableOpacity>
-            <View style={styles.headerTopRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.storeName}>
-                  {store.name ?? storeName ?? "Tienda"}
-                </Text>
-                <Text style={styles.chainText}>{chainLabel(store)}</Text>
-              </View>
-
-              <TouchableOpacity
-                style={[
-                  styles.favoriteButton,
-                  store.isFavorite ? styles.favoriteButtonActive : null,
-                ]}
-                onPress={handleToggleFavorite}
-                disabled={isTogglingFavorite}
-                accessibilityRole="button"
-                accessibilityLabel="Alternar favorito"
-              >
-                {isTogglingFavorite ? (
-                  <ActivityIndicator size="small" color={colors.white} />
-                ) : (
-                  <Ionicons
-                    name={store.isFavorite ? "heart" : "heart-outline"}
-                    size={16}
-                    color={colors.white}
-                  />
-                )}
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.addressText}>
-              {store.address || "Dirección no disponible"}
-            </Text>
-            <Text style={styles.distanceText}>
-              {distanceFromUser !== null
-                ? distanceFromUser < 1
-                  ? `${Math.round(distanceFromUser * 1000)} m · ≈${Math.max(1, Math.round(distanceFromUser * 3.5))} min`
-                  : `${distanceFromUser.toFixed(1)} km · ≈${Math.max(1, Math.round(distanceFromUser * 3.5))} min`
-                : "Distancia no disponible"}
-            </Text>
-
-            {/* Horario de BD — se oculta cuando Places está cargando o ya cargó datos */}
-            {placesDetail == null && !isLoadingPlaces && (
-              <View style={styles.hoursBox}>
-                <Text style={styles.hoursTitle}>Horario</Text>
-                <Text style={styles.hoursText}>{openingHoursText}</Text>
-              </View>
-            )}
-
-            {/* ── Google Places enrichment sections ──────────────────── */}
-            {isLoadingPlaces ? (
-              <View style={styles.placesLoadingRow}>
-                <SkeletonBox width="60%" height={14} />
-                <SkeletonBox width="40%" height={14} />
-              </View>
-            ) : (
-              <>
-                {/* Rating */}
-                {placesDetail?.rating != null && (
-                  <View style={styles.placesRow}>
-                    <Ionicons name="star" size={14} color={colors.warning} />
-                    <Text style={styles.placesRatingText}>
-                      {placesDetail.rating.toFixed(1)}
-                      {placesDetail.user_rating_count != null
-                        ? ` (${placesDetail.user_rating_count} valoraciones)`
-                        : ""}
-                    </Text>
-                  </View>
-                )}
-
-                {/* Opening hours from Places */}
-                {placesDetail?.opening_hours != null && (
-                  <View style={styles.placesOpenHoursBox}>
-                    {placesDetail.opening_hours.openNow != null && (
-                      <View
-                        style={[
-                          styles.openNowBadge,
-                          placesDetail.opening_hours.openNow
-                            ? styles.openNowBadgeOpen
-                            : styles.openNowBadgeClosed,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.openNowBadgeText,
-                            placesDetail.opening_hours.openNow
-                              ? styles.openNowBadgeTextOpen
-                              : styles.openNowBadgeTextClosed,
-                          ]}
-                        >
-                          {placesDetail.opening_hours.openNow
-                            ? "Abierto ahora"
-                            : "Cerrado"}
-                        </Text>
-                      </View>
-                    )}
-                    {placesDetail.opening_hours.weekdayDescriptions?.map(
-                      (line, i) => (
-                        <Text key={i} style={styles.placesHoursLine}>
-                          {line}
-                        </Text>
-                      ),
-                    )}
-                  </View>
-                )}
-
-                {/* Website */}
-                {placesDetail?.website_url != null && (
-                  <TouchableOpacity
-                    style={styles.placesRow}
-                    onPress={() =>
-                      Linking.openURL(placesDetail.website_url!).catch(() => {})
-                    }
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons
-                      name="globe-outline"
-                      size={14}
-                      color={colors.primary}
-                    />
-                    <Text style={styles.placesLinkText}>Sitio web oficial</Text>
-                  </TouchableOpacity>
-                )}
-              </>
-            )}
-
-            <Text style={styles.productsTitle}>
-              Productos detectados en esta tienda ({productsCount})
-            </Text>
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.categoryFiltersContent}
-              style={styles.categoryFilters}
-            >
-              <TouchableOpacity
-                style={[
-                  styles.categoryChip,
-                  selectedCategoryId === "all"
-                    ? styles.categoryChipActive
-                    : null,
-                ]}
-                onPress={() => {
-                  void handleSelectCategory("all");
-                }}
-                accessibilityRole="button"
-                accessibilityLabel="Filtrar por todas las categorías"
-              >
-                <Text
-                  style={[
-                    styles.categoryChipText,
-                    selectedCategoryId === "all"
-                      ? styles.categoryChipTextActive
-                      : null,
-                  ]}
-                >
-                  Todas
-                </Text>
-              </TouchableOpacity>
-
-              {categoryFilters.map((category) => {
-                const isActive = selectedCategoryId === category.id;
-                return (
-                  <TouchableOpacity
-                    key={category.id}
-                    style={[
-                      styles.categoryChip,
-                      isActive ? styles.categoryChipActive : null,
-                    ]}
-                    onPress={() => {
-                      void handleSelectCategory(category.id);
-                    }}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Filtrar por ${category.label}`}
-                  >
-                    <Text
-                      style={[
-                        styles.categoryChipText,
-                        isActive ? styles.categoryChipTextActive : null,
-                      ]}
-                    >
-                      {category.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
+          <View>
+            {storeInfoSection}
+            {categoryFilterRow}
           </View>
         }
-        ListEmptyComponent={
-          <View style={styles.emptyProducts}>
-            <Ionicons
-              name="cube-outline"
-              size={24}
-              color={colors.textDisabled}
-            />
-            <Text style={styles.emptyProductsText}>
-              No se encontraron productos con precio para esta tienda.
-            </Text>
-          </View>
-        }
-        renderItem={({ item }) => (
-          <View style={[styles.productRow, shadows.card]}>
-            <View style={styles.productInfo}>
-              <Text style={styles.productName} numberOfLines={1}>
-                {item.product.name}
-              </Text>
-              <Text style={styles.productMeta} numberOfLines={1}>
-                {item.product.category}
-                {item.product.brand ? ` · ${item.product.brand}` : ""}
-              </Text>
-            </View>
-            <View style={styles.productPriceWrap}>
-              <Text style={styles.productPrice}>
-                {(item.offerPrice ?? item.price).toFixed(2)} €
-              </Text>
-              <Text style={styles.productSource}>{item.source}</Text>
-            </View>
-          </View>
-        )}
-        ListFooterComponent={
-          isLoadingMore ? (
-            <View style={styles.listFooterLoading}>
-              <ActivityIndicator size="small" color={colors.primary} />
-              <Text style={styles.listFooterText}>
-                Cargando más productos...
-              </Text>
-            </View>
-          ) : null
-        }
+        ListEmptyComponent={listEmptyComponent}
+        renderItem={renderProductItem}
+        ListFooterComponent={listFooterComponent}
       />
     </SafeAreaView>
   );
@@ -813,6 +929,66 @@ const styles = StyleSheet.create({
     fontFamily: fontFamilies.bodyMedium,
     fontSize: fontSize.sm,
     color: colors.primary,
+  },
+  // ── Web convenience styles (D-07/D-08) ────────────────────────────────────
+  addressRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: spacing.sm,
+    gap: spacing.xs,
+  },
+  iconButton: {
+    width: 30,
+    height: 30,
+    borderRadius: borderRadius.sm,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surfaceVariant,
+  },
+  shareButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+    alignSelf: "flex-start",
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.pill,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  shareButtonText: {
+    fontFamily: fontFamilies.bodyMedium,
+    fontSize: fontSize.xs,
+    color: colors.primary,
+  },
+  // ── Desktop two-column layout styles (D-05) ───────────────────────────────
+  containerDesktop: {
+    flex: 1,
+    flexDirection: "row",
+    backgroundColor: colors.background,
+  },
+  desktopLeft: {
+    flex: 1,
+  },
+  desktopLeftContent: {
+    padding: spacing.md,
+    paddingBottom: spacing.xxl,
+  },
+  desktopRight: {
+    flex: 1,
+    borderLeftWidth: 1,
+    borderLeftColor: colors.border,
+    paddingLeft: spacing.xl, // spacing.xl = 32px column gap (UI-SPEC)
+    paddingRight: spacing.md,
+    paddingTop: spacing.md,
+  },
+  desktopRightHeader: {
+    paddingBottom: spacing.sm,
+  },
+  desktopRightList: {
+    paddingBottom: spacing.xxl,
   },
 });
 

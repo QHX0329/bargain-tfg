@@ -9,6 +9,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import {
   FlatList,
+  Platform,
   RefreshControl,
   StyleSheet,
   Text,
@@ -30,6 +31,7 @@ import {
 import { SkeletonBox } from "@/components/ui/SkeletonBox";
 import { storeService } from "@/api/storeService";
 import type { Store } from "@/types/domain";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 
 // ─── Store card ───────────────────────────────────────────────────────────────
 
@@ -45,10 +47,28 @@ const StoreCard: React.FC<StoreCardProps> = ({
   onToggleFavorite,
   onOpenProfile,
   isRemoving,
-}) => (
-  <View style={[cardStyles.card, shadows.card]}>
+}) => {
+  const [isHovered, setIsHovered] = React.useState(false);
+
+  // Web focus ring (D-06) — applied via inline style on web only
+  const focusStyle = Platform.OS === "web"
+    ? { outlineColor: colors.primary, outlineWidth: 2, outlineOffset: 2 }
+    : {};
+
+  return (
+  <View
+    style={[
+      cardStyles.card,
+      shadows.card,
+      isHovered && { backgroundColor: colors.primaryTint },
+    ]}
+    // @ts-ignore — onMouseEnter/onMouseLeave son props solo-web (react-native-web)
+    onMouseEnter={() => setIsHovered(true)}
+    // @ts-ignore — ver arriba
+    onMouseLeave={() => setIsHovered(false)}
+  >
     <TouchableOpacity
-      style={cardStyles.left}
+      style={[cardStyles.left, focusStyle]}
       onPress={() => onOpenProfile(store)}
       activeOpacity={0.85}
       accessibilityRole="button"
@@ -87,12 +107,16 @@ const StoreCard: React.FC<StoreCardProps> = ({
       />
     </TouchableOpacity>
   </View>
-);
+  );
+};
 
 // ─── Pantalla ─────────────────────────────────────────────────────────────────
 
 export const FavoriteStoresScreen: React.FC = () => {
   const navigation = useNavigation<any>();
+  const breakpoint = useBreakpoint();
+  // 2-col on tablet/desktop (>=768px), 1-col on mobile — UI-SPEC binding
+  const numColumns = breakpoint === "mobile" ? 1 : 2;
   const [stores, setStores] = useState<Store[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -191,17 +215,32 @@ export const FavoriteStoresScreen: React.FC = () => {
       <FlatList
         data={stores}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
+        // key must change when numColumns changes to force re-mount (RN requirement)
+        key={numColumns}
+        numColumns={numColumns}
+        contentContainerStyle={
+          breakpoint !== "mobile"
+            ? {
+                // planner discretion — reasonable centred-content width
+                maxWidth: 900,
+                alignSelf: "center",
+                width: "100%",
+                padding: spacing.md,
+              }
+            : styles.listContent
+        }
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
         }
         renderItem={({ item }) => (
-          <StoreCard
-            store={item}
-            onToggleFavorite={handleToggleFavorite}
-            onOpenProfile={handleOpenProfile}
-            isRemoving={removingId === item.id}
-          />
+          <View style={numColumns === 2 ? styles.gridCell : undefined}>
+            <StoreCard
+              store={item}
+              onToggleFavorite={handleToggleFavorite}
+              onOpenProfile={handleOpenProfile}
+              isRemoving={removingId === item.id}
+            />
+          </View>
         )}
       />
     </SafeAreaView>
@@ -239,6 +278,11 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     color: colors.textMuted,
     textAlign: "center",
+  },
+  // Cell wrapper for 2-column grid layout (tablet/desktop)
+  gridCell: {
+    flex: 1,
+    padding: spacing.xs,
   },
 });
 

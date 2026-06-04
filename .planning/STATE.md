@@ -2,22 +2,23 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 7 complete, milestone v1.0 ready for defense
-stopped_at: Completed 12-consumer-web-app-04-PLAN.md
-last_updated: "2026-05-27T19:25:59.550Z"
+status: Ready to execute
+stopped_at: Phase 13 UI-SPEC approved
+last_updated: "2026-06-04T07:22:59.234Z"
 progress:
-  total_phases: 6
-  completed_phases: 1
-  total_plans: 12
-  completed_plans: 10
-  percent: 83
+  total_phases: 7
+  completed_phases: 2
+  total_plans: 18
+  completed_plans: 16
+  percent: 89
 ---
 
 # Project State
 
 ## Current Position
 
-Phase: 07 COMPLETE — TFG BargAIn v1.0 listo para defensa
+Phase: 13 (mejorar-la-app-expo-existente-frontend-src-para-uso-web-a-ad) — EXECUTING
+Plan: 2 of 6
 
 ## Summary
 
@@ -65,6 +66,9 @@ Phase: 07 COMPLETE — TFG BargAIn v1.0 listo para defensa
 - 07-03: method ad-hoc en ExportOptions.plist permite re-firma con Sideloadly y Apple ID gratuito
 - 07-04: Capítulos 8-11 convertidos a LaTeX (cap08-11.tex); proyect.tex con fuente Helvetica y metadatos BargAIn
 - 07-05: Slides Marp en docs/defensa/slides.md; outline 20 slides 7 bloques ETSII; demo script 5 escenas
+- 13-04: Desktop map panel 320px right-side via flexDirection row in MapScreen.web.tsx; mobile bottom-panel preserved
+- 13-04: StoreProfile two-column desktop split using flex:1 each side, spacing.xl gap; copy address + share URL web-only (Platform.OS=web guard)
+- 13-04: FavoriteStores maxWidth 900 for centred grid (planner discretion); numColumns + key change pattern for RN FlatList re-mount
 
 ## Roadmap Evolution
 
@@ -72,11 +76,12 @@ Phase: 07 COMPLETE — TFG BargAIn v1.0 listo para defensa
 - Phase 6 complete: service extraction, 11 integration tests, UAT verification, frontend screen validation
 - Phase 7 complete: ORS+Render deploy, E2E Playwright, iOS build CI, memoria LaTeX, defensa slides
 - Phase 11 added: Auditoria memoria TFG contra guias oficiales y preparacion de despliegue reproducible
+- Phase 13 added: Mejorar la app Expo existente (frontend/src) para uso web — añadir funcionalidades web dentro de las screens ya existentes, sin crear nuevas pantallas (redirige el enfoque de la fase 12)
 
 ## Last Session
 
-- **Stopped at:** Completed 12-consumer-web-app-04-PLAN.md
-- **Date:** 2026-04-09
+- **Stopped at:** Completed 13-04-mapa-tiendas-flow-PLAN.md
+- **Date:** 2026-06-04
 
 ---
-Last updated: 2026-04-09
+Last updated: 2026-06-04

@@ -20,7 +20,13 @@
  * />
  */
 
-import React, { useCallback, useRef, useState } from "react";
+import React, {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -79,6 +85,12 @@ export interface SearchBarProps {
   >;
 }
 
+/** Métodos imperativos expuestos por SearchBar (p.ej. para enfocar con Cmd/Ctrl+K). */
+export interface SearchBarHandle {
+  focus: () => void;
+  blur: () => void;
+}
+
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
 const FOCUS_DURATION = 180;
@@ -97,157 +109,174 @@ const ClearIcon: React.FC<{ color: string }> = ({ color }) => (
 
 // ─── Componente ───────────────────────────────────────────────────────────────
 
-export const SearchBar: React.FC<SearchBarProps> = ({
-  value,
-  onChangeText,
-  placeholder = "Busca productos, tiendas…",
-  onSubmit,
-  onFilterPress,
-  activeFilterCount = 0,
-  loading = false,
-  disabled = false,
-  autoFocus = false,
-  style,
-  inputProps,
-}) => {
-  const inputRef = useRef<TextInput>(null);
-  const [isFocused, setIsFocused] = useState(false);
+export const SearchBar = forwardRef<SearchBarHandle, SearchBarProps>(
+  (
+    {
+      value,
+      onChangeText,
+      placeholder = "Busca productos, tiendas…",
+      onSubmit,
+      onFilterPress,
+      activeFilterCount = 0,
+      loading = false,
+      disabled = false,
+      autoFocus = false,
+      style,
+      inputProps,
+    },
+    ref,
+  ) => {
+    const inputRef = useRef<TextInput>(null);
+    const [isFocused, setIsFocused] = useState(false);
 
-  // ─── Animación de foco ─────────────────────────────────────────────────────
-  const focusProgress = useSharedValue(0);
+    // Expone focus()/blur() al padre (Cmd/Ctrl+K en HomeScreen/Catálogo)
+    useImperativeHandle(
+      ref,
+      () => ({
+        focus: () => inputRef.current?.focus(),
+        blur: () => inputRef.current?.blur(),
+      }),
+      [],
+    );
 
-  const animatedContainerStyle = useAnimatedStyle(() => ({
-    borderColor: interpolateColor(
-      focusProgress.value,
-      [0, 1],
-      [colors.border, colors.primary],
-    ),
-    backgroundColor: interpolateColor(
-      focusProgress.value,
-      [0, 1],
-      [colors.surface, colors.white],
-    ),
-  }));
+    // ─── Animación de foco ─────────────────────────────────────────────────────
+    const focusProgress = useSharedValue(0);
 
-  const handleFocus = useCallback(() => {
-    focusProgress.value = withTiming(1, { duration: FOCUS_DURATION });
-    setIsFocused(true);
-  }, [focusProgress]);
+    const animatedContainerStyle = useAnimatedStyle(() => ({
+      borderColor: interpolateColor(
+        focusProgress.value,
+        [0, 1],
+        [colors.border, colors.primary],
+      ),
+      backgroundColor: interpolateColor(
+        focusProgress.value,
+        [0, 1],
+        [colors.surface, colors.white],
+      ),
+    }));
 
-  const handleBlur = useCallback(() => {
-    focusProgress.value = withTiming(0, { duration: FOCUS_DURATION });
-    setIsFocused(false);
-  }, [focusProgress]);
+    const handleFocus = useCallback(() => {
+      focusProgress.value = withTiming(1, { duration: FOCUS_DURATION });
+      setIsFocused(true);
+    }, [focusProgress]);
 
-  const handleClear = useCallback(() => {
-    onChangeText("");
-    inputRef.current?.focus();
-  }, [onChangeText]);
+    const handleBlur = useCallback(() => {
+      focusProgress.value = withTiming(0, { duration: FOCUS_DURATION });
+      setIsFocused(false);
+    }, [focusProgress]);
 
-  const handleContainerPress = useCallback(() => {
-    if (!disabled) inputRef.current?.focus();
-  }, [disabled]);
+    const handleClear = useCallback(() => {
+      onChangeText("");
+      inputRef.current?.focus();
+    }, [onChangeText]);
 
-  const iconColor = isFocused ? colors.primary : colors.textMuted;
-  const hasValue = value.length > 0;
-  const showClear = hasValue && !loading;
-  const showFilters = !!onFilterPress && !showClear;
-  const hasActiveFilters = activeFilterCount > 0;
+    const handleContainerPress = useCallback(() => {
+      if (!disabled) inputRef.current?.focus();
+    }, [disabled]);
 
-  return (
-    <TouchableOpacity
-      onPress={handleContainerPress}
-      activeOpacity={1}
-      disabled={disabled}
-      accessibilityRole="search"
-      style={[styles.outerContainer, disabled && styles.disabled, style]}
-    >
-      <Animated.View style={[styles.container, animatedContainerStyle]}>
-        {/* Icono de búsqueda izquierdo */}
-        <View style={[styles.leftIcon, styles.pointerNone]}>
-          <SearchIcon color={iconColor} />
-        </View>
+    const iconColor = isFocused ? colors.primary : colors.textMuted;
+    const hasValue = value.length > 0;
+    const showClear = hasValue && !loading;
+    const showFilters = !!onFilterPress && !showClear;
+    const hasActiveFilters = activeFilterCount > 0;
 
-        {/* Input */}
-        <TextInput
-          ref={inputRef}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          placeholderTextColor={colors.textMuted}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          onSubmitEditing={() => onSubmit?.(value)}
-          returnKeyType="search"
-          autoCorrect={false}
-          autoCapitalize="none"
-          editable={!disabled}
-          autoFocus={autoFocus}
-          style={[styles.input]}
-          accessibilityLabel="Campo de búsqueda"
-          accessibilityHint={placeholder}
-          {...inputProps}
-        />
+    return (
+      <TouchableOpacity
+        onPress={handleContainerPress}
+        activeOpacity={1}
+        disabled={disabled}
+        accessibilityRole="search"
+        style={[styles.outerContainer, disabled && styles.disabled, style]}
+      >
+        <Animated.View style={[styles.container, animatedContainerStyle]}>
+          {/* Icono de búsqueda izquierdo */}
+          <View style={[styles.leftIcon, styles.pointerNone]}>
+            <SearchIcon color={iconColor} />
+          </View>
 
-        {/* Lado derecho: clear / filtros / spinner */}
-        {loading && (
-          <ActivityIndicator
-            size="small"
-            color={colors.primary}
-            style={styles.rightSlot}
-            accessibilityLabel="Buscando"
+          {/* Input */}
+          <TextInput
+            ref={inputRef}
+            value={value}
+            onChangeText={onChangeText}
+            placeholder={placeholder}
+            placeholderTextColor={colors.textMuted}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onSubmitEditing={() => onSubmit?.(value)}
+            returnKeyType="search"
+            autoCorrect={false}
+            autoCapitalize="none"
+            editable={!disabled}
+            autoFocus={autoFocus}
+            style={[styles.input]}
+            accessibilityLabel="Campo de búsqueda"
+            accessibilityHint={placeholder}
+            {...inputProps}
           />
-        )}
 
-        {showClear && (
-          <Animated.View
-            entering={FadeIn.duration(150)}
-            exiting={FadeOut.duration(150)}
-          >
-            <TouchableOpacity
-              onPress={handleClear}
-              style={styles.clearButton}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              accessibilityRole="button"
-              accessibilityLabel="Limpiar búsqueda"
-            >
-              <ClearIcon color={colors.textMuted} />
-            </TouchableOpacity>
-          </Animated.View>
-        )}
-
-        {showFilters && (
-          <TouchableOpacity
-            onPress={onFilterPress}
-            style={styles.filterButton}
-            hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
-            accessibilityRole="button"
-            accessibilityLabel={
-              hasActiveFilters
-                ? `Filtros: ${activeFilterCount} activos`
-                : "Abrir filtros"
-            }
-          >
-            <FilterIcon
-              color={hasActiveFilters ? colors.primary : colors.textMuted}
+          {/* Lado derecho: clear / filtros / spinner */}
+          {loading && (
+            <ActivityIndicator
+              size="small"
+              color={colors.primary}
+              style={styles.rightSlot}
+              accessibilityLabel="Buscando"
             />
-            {hasActiveFilters && (
-              <View
-                style={styles.filterBadge}
-                accessible={false}
-                importantForAccessibility="no"
+          )}
+
+          {showClear && (
+            <Animated.View
+              entering={FadeIn.duration(150)}
+              exiting={FadeOut.duration(150)}
+            >
+              <TouchableOpacity
+                onPress={handleClear}
+                style={styles.clearButton}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel="Limpiar búsqueda"
               >
-                <Animated.Text style={styles.filterBadgeText}>
-                  {activeFilterCount}
-                </Animated.Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        )}
-      </Animated.View>
-    </TouchableOpacity>
-  );
-};
+                <ClearIcon color={colors.textMuted} />
+              </TouchableOpacity>
+            </Animated.View>
+          )}
+
+          {showFilters && (
+            <TouchableOpacity
+              onPress={onFilterPress}
+              style={styles.filterButton}
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel={
+                hasActiveFilters
+                  ? `Filtros: ${activeFilterCount} activos`
+                  : "Abrir filtros"
+              }
+            >
+              <FilterIcon
+                color={hasActiveFilters ? colors.primary : colors.textMuted}
+              />
+              {hasActiveFilters && (
+                <View
+                  style={styles.filterBadge}
+                  accessible={false}
+                  importantForAccessibility="no"
+                >
+                  <Animated.Text style={styles.filterBadgeText}>
+                    {activeFilterCount}
+                  </Animated.Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          )}
+        </Animated.View>
+      </TouchableOpacity>
+    );
+  },
+);
+
+SearchBar.displayName = "SearchBar";
 
 // ─── Estilos ─────────────────────────────────────────────────────────────────
 

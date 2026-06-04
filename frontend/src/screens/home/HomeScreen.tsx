@@ -9,10 +9,11 @@
  * Icono de campana en header con badge de no leídas.
  */
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Linking,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -45,6 +46,8 @@ import {
 } from "@/theme";
 import { SearchBar } from "@/components/ui/SearchBar";
 import { SkeletonBox } from "@/components/ui/SkeletonBox";
+import { WebTooltip } from "@/components/ui";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { useAuthStore } from "@/store/authStore";
 import { useListStore } from "@/store/listStore";
 import { useNotificationStore } from "@/store/notificationStore";
@@ -117,6 +120,7 @@ const QuickActionTile: React.FC<{ action: QuickAction; delay: number }> = ({
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
+  const [hovered, setHovered] = useState(false);
 
   return (
     <Animated.View
@@ -132,9 +136,16 @@ const QuickActionTile: React.FC<{ action: QuickAction; delay: number }> = ({
             scale.value = withSpring(1, { damping: 12, stiffness: 300 });
           }}
           onPress={action.onPress}
-          style={[quickStyles.tile, { backgroundColor: action.bg }]}
+          style={[
+            quickStyles.tile,
+            { backgroundColor: hovered ? colors.primaryTint : action.bg },
+          ]}
           accessibilityRole="button"
           accessibilityLabel={action.label}
+          // @ts-ignore — web-only hover props (react-native-web)
+          onMouseEnter={() => setHovered(true)}
+          // @ts-ignore — web-only hover props (react-native-web)
+          onMouseLeave={() => setHovered(false)}
         >
           <View
             style={[
@@ -349,6 +360,9 @@ export const HomeScreen: React.FC = () => {
     setNotifications: setStoreNotifications,
   } = useNotificationStore();
 
+  const breakpoint = useBreakpoint();
+  const searchInputRef = useRef<any>(null);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [nearbyStores, setNearbyStores] = useState<Store[]>([]);
   const [priceAlerts, setPriceAlerts] = useState<PriceAlert[]>([]);
@@ -504,6 +518,19 @@ export const HomeScreen: React.FC = () => {
     loadAll();
   }, [loadAll]);
 
+  // Cmd/Ctrl+K focuses the search bar — web only (D-06)
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       void silentRefreshAll();
@@ -648,20 +675,32 @@ export const HomeScreen: React.FC = () => {
           entering={FadeInDown.delay(60).duration(250)}
           style={styles.searchWrap}
         >
-          <SearchBar
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder="Leche, pan, aceite de oliva…"
-          />
+          <WebTooltip label="⌘K / Ctrl+K">
+            <SearchBar
+              ref={searchInputRef}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Leche, pan, aceite de oliva…"
+            />
+          </WebTooltip>
         </Animated.View>
 
         {/* ── Acciones rápidas ───────────────────────────────────────── */}
+        {/* D-05: horizontal row centered at max-width 800px on desktop (UI-SPEC binding) */}
         <Animated.View
           entering={FadeInDown.delay(120).duration(250)}
-          style={styles.section}
+          style={[
+            styles.section,
+            breakpoint === "desktop" && quickStyles.desktopSection,
+          ]}
         >
           <Text style={styles.sectionTitle}>Acciones rápidas</Text>
-          <View style={quickStyles.grid}>
+          <View
+            style={[
+              quickStyles.grid,
+              breakpoint === "desktop" && quickStyles.gridDesktop,
+            ]}
+          >
             {QUICK_ACTIONS.map((action, i) => (
               <QuickActionTile
                 key={action.id}
@@ -983,6 +1022,16 @@ const quickStyles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     gap: spacing.sm,
+  },
+  // D-05: desktop — horizontal row of quick-action buttons centered at 800px (UI-SPEC binding)
+  gridDesktop: {
+    maxWidth: 800,
+    alignSelf: "center",
+    width: "100%",
+    gap: spacing.md,
+  },
+  desktopSection: {
+    alignItems: "stretch",
   },
   tileWrap: {
     flex: 1,

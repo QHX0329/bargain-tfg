@@ -17,6 +17,7 @@ import {
   Alert,
   FlatList,
   Modal,
+  Platform,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -41,7 +42,9 @@ import {
   fontSize,
   shadows,
   spacing,
+  textStyles,
 } from "@/theme";
+import { buildCsv, downloadFile, todayStamp } from "@/utils/webExport";
 import { priceService } from "@/api/priceService";
 import type { PriceCompare, Product } from "@/types/domain";
 import { blurActiveElementOnWeb } from "@/utils/webA11y";
@@ -266,6 +269,7 @@ export const PriceCompareScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
+  // useBreakpoint available for future layout splits; not needed for current D-05 (full-width table)
   const { productId, productName, product } = route.params as {
     productId: string;
     productName: string;
@@ -281,6 +285,26 @@ export const PriceCompareScreen: React.FC = () => {
     null,
   );
   const [alertVisible, setAlertVisible] = useState(false);
+
+  // D-07: CSV export handler (web only). Uses buildCsv for injection-safe escaping (OWASP).
+  const handleExportCsv = useCallback(() => {
+    if (Platform.OS !== "web") return;
+    const rows = prices.map((item) => [
+      productName,
+      item.store_name,
+      bestPrice(item).toFixed(2) + " €",
+      fmt(item.offer_price ?? item.price),
+    ]);
+    const csv = buildCsv(
+      ["Producto", "Tienda", "Precio", "Precio unitario"],
+      rows,
+    );
+    downloadFile(
+      csv,
+      `bargain-comparativa-${todayStamp()}.csv`,
+      "text/csv;charset=utf-8;",
+    );
+  }, [prices, productName]);
 
   const fetchPrices = useCallback(
     async (silent = false) => {
@@ -341,7 +365,22 @@ export const PriceCompareScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={[]}>
-      <View style={[styles.header, { paddingTop: spacing.xs + insets.top }]}>
+      {/* D-05: sticky header on web — position:'sticky' is a web-only CSS value, ignored on native */}
+      <View
+        style={[
+          styles.header,
+          { paddingTop: spacing.xs + insets.top },
+          Platform.OS === "web"
+            ? // @ts-ignore — web-only CSS property
+              ({
+                position: "sticky",
+                top: 0,
+                zIndex: 1,
+                backgroundColor: colors.surface,
+              } as any)
+            : null,
+        ]}
+      >
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.back}
@@ -395,6 +434,19 @@ export const PriceCompareScreen: React.FC = () => {
           <Text style={styles.countLabel}>
             {prices.length} tienda{prices.length !== 1 ? "s" : ""}
           </Text>
+        )}
+
+        {/* D-07: CSV export button — web only, shown when there are prices */}
+        {Platform.OS === "web" && prices.length > 0 && (
+          <TouchableOpacity
+            style={styles.exportBtn}
+            onPress={handleExportCsv}
+            accessibilityRole="button"
+            accessibilityLabel="Exportar comparativa"
+          >
+            <Ionicons name="download-outline" size={18} color={colors.white} />
+            <Text style={styles.exportBtnText}>Exportar comparativa</Text>
+          </TouchableOpacity>
         )}
       </View>
 
@@ -600,6 +652,20 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     color: colors.textMuted,
     textAlign: "center",
+  },
+  exportBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.md,
+    marginLeft: "auto",
+  },
+  exportBtnText: {
+    ...textStyles.button,
+    color: colors.white,
   },
 });
 

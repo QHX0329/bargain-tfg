@@ -47,6 +47,8 @@ import {
 } from "@/theme";
 import type { ListsStackParamList } from "@/navigation/types";
 import { SkeletonBox } from "@/components/ui/SkeletonBox";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
+import { downloadFile, todayStamp } from "@/utils/webExport";
 import { authService } from "@/api/authService";
 import {
   getLatestOptimizedRoute,
@@ -311,11 +313,17 @@ const RouteStopRow: React.FC<{
     (acc, product) => acc + product.price * product.quantity,
     0,
   );
+  // Hover (web-only): tinte primario suave al pasar el ratón sobre la parada
+  const [hovered, setHovered] = useState(false);
 
   return (
     <Animated.View
       entering={FadeInDown.delay(100 + index * 80).springify()}
-      style={stopRowStyles.container}
+      style={[stopRowStyles.container, hovered && stopRowStyles.containerHover]}
+      // @ts-ignore — onMouseEnter/onMouseLeave son props solo-web (react-native-web)
+      onMouseEnter={() => setHovered(true)}
+      // @ts-ignore — ver arriba
+      onMouseLeave={() => setHovered(false)}
     >
       <TouchableOpacity
         style={stopRowStyles.headerPressable}
@@ -485,6 +493,8 @@ export const RouteScreen: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteP>();
   const { listId, listName } = route.params;
+  const breakpoint = useBreakpoint();
+  const isDesktop = breakpoint === "desktop";
   const profile = useProfileStore((state) => state.profile);
   const setProfile = useProfileStore((state) => state.setProfile);
   const initialPrefs = getOptimizerPrefsFromProfile(profile);
@@ -808,6 +818,33 @@ export const RouteScreen: React.FC = () => {
     }
   };
 
+  // Exportar ruta a .txt (solo web — D-07): paradas + productos + resumen
+  const handleExportRoute = useCallback(() => {
+    if (!result) return;
+    const lines: string[] = [];
+    result.route.forEach((stop, idx) => {
+      lines.push(
+        `${idx + 1}. ${stop.store_name} (${stop.distance_km.toFixed(1)} km, ~${Math.round(
+          stop.time_minutes,
+        )} min)`,
+      );
+      stop.products.forEach((p) => {
+        lines.push(`   - ${p.quantity}x ${p.query_text}`);
+      });
+    });
+    lines.push("");
+    lines.push(`Precio total: ${result.total_price.toFixed(2)} €`);
+    lines.push(`Distancia total: ${result.total_distance_km.toFixed(1)} km`);
+    lines.push(
+      `Tiempo estimado: ${Math.round(result.estimated_time_minutes)} min`,
+    );
+    downloadFile(
+      lines.join("\n"),
+      `bargain-ruta-${todayStamp()}.txt`,
+      "text/plain;charset=utf-8;",
+    );
+  }, [result]);
+
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       {/* Header */}
@@ -955,103 +992,157 @@ export const RouteScreen: React.FC = () => {
         {/* Result: hero card + stops */}
         {!isBusy && result && (
           <Animated.View entering={FadeInDown.springify()}>
-            {/* Hero price card */}
-            <View style={styles.heroCard}>
-              <Text style={styles.heroPriceLabel}>Precio total estimado</Text>
-              <Text style={styles.heroPrice}>
-                {result.total_price.toFixed(2)} €
-              </Text>
-              <View style={styles.heroMeta}>
-                <View style={styles.heroMetaItem}>
-                  <Ionicons
-                    name="navigate-outline"
-                    size={14}
-                    color={colors.textMuted}
-                  />
-                  <Text style={styles.heroMetaText}>
-                    {result.total_distance_km.toFixed(1)} km
+            {(() => {
+              // Hero price card
+              const heroCard = (
+                <View style={styles.heroCard}>
+                  <Text style={styles.heroPriceLabel}>
+                    Precio total estimado
                   </Text>
-                </View>
-                <View style={styles.heroMetaItem}>
-                  <Ionicons
-                    name="time-outline"
-                    size={14}
-                    color={colors.textMuted}
-                  />
-                  <Text style={styles.heroMetaText}>
-                    ~{Math.round(result.estimated_time_minutes)} min
+                  <Text style={styles.heroPrice}>
+                    {result.total_price.toFixed(2)} €
                   </Text>
+                  <View style={styles.heroMeta}>
+                    <View style={styles.heroMetaItem}>
+                      <Ionicons
+                        name="navigate-outline"
+                        size={14}
+                        color={colors.textMuted}
+                      />
+                      <Text style={styles.heroMetaText}>
+                        {result.total_distance_km.toFixed(1)} km
+                      </Text>
+                    </View>
+                    <View style={styles.heroMetaItem}>
+                      <Ionicons
+                        name="time-outline"
+                        size={14}
+                        color={colors.textMuted}
+                      />
+                      <Text style={styles.heroMetaText}>
+                        ~{Math.round(result.estimated_time_minutes)} min
+                      </Text>
+                    </View>
+                    <View style={styles.heroMetaItem}>
+                      <Ionicons
+                        name="storefront-outline"
+                        size={14}
+                        color={colors.textMuted}
+                      />
+                      <Text style={styles.heroMetaText}>
+                        {result.route.length} paradas
+                      </Text>
+                    </View>
+                  </View>
                 </View>
-                <View style={styles.heroMetaItem}>
-                  <Ionicons
-                    name="storefront-outline"
-                    size={14}
-                    color={colors.textMuted}
-                  />
-                  <Text style={styles.heroMetaText}>
-                    {result.route.length} paradas
-                  </Text>
+              );
+
+              // Stop list
+              const stopsList = (
+                <>
+                  <Text style={styles.sectionTitle}>Paradas de la ruta</Text>
+                  {result.route.map((stop, idx) => (
+                    <RouteStopRow
+                      key={stop.store_id}
+                      stop={stop}
+                      index={idx}
+                      isSelected={selectedStoreId === stop.store_id}
+                      interactionDisabled={isBusy}
+                      onSelect={() =>
+                        setSelectedStoreId((prev) =>
+                          prev === stop.store_id ? null : stop.store_id,
+                        )
+                      }
+                      onApplySemanticOption={handleApplySemanticOption}
+                    />
+                  ))}
+                </>
+              );
+
+              // Action buttons (incl. exportar ruta en web)
+              const actions = (
+                <>
+                  <TouchableOpacity
+                    style={[
+                      styles.lockscreenBtn,
+                      (activatingChecklistNotification || isBusy) &&
+                        styles.lockscreenBtnDisabled,
+                    ]}
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      void handleActivateChecklistNotification();
+                    }}
+                    disabled={activatingChecklistNotification || isBusy}
+                    accessibilityRole="button"
+                    accessibilityLabel="Publicar checklist dinámico en notificaciones"
+                  >
+                    <Ionicons
+                      name="notifications-outline"
+                      size={16}
+                      color={colors.primary}
+                    />
+                    <Text style={styles.lockscreenBtnText}>
+                      {activatingChecklistNotification
+                        ? "Publicando checklist..."
+                        : "Checklist dinámico en notificaciones"}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* "Ver en mapa" secondary button */}
+                  <TouchableOpacity
+                    style={styles.mapBtn}
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      void handleOpenRouteInMap();
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel="Abrir ruta circular en Google Maps"
+                  >
+                    <Ionicons
+                      name="map-outline"
+                      size={18}
+                      color={colors.primary}
+                    />
+                    <Text style={styles.mapBtnText}>Ver en mapa</Text>
+                  </TouchableOpacity>
+
+                  {/* Exportar ruta (.txt) — solo web (D-07) */}
+                  {Platform.OS === "web" && (
+                    <TouchableOpacity
+                      style={styles.mapBtn}
+                      activeOpacity={0.7}
+                      onPress={handleExportRoute}
+                      accessibilityRole="button"
+                      accessibilityLabel="Exportar ruta"
+                    >
+                      <Ionicons
+                        name="download-outline"
+                        size={18}
+                        color={colors.primary}
+                      />
+                      <Text style={styles.mapBtnText}>Exportar ruta</Text>
+                    </TouchableOpacity>
+                  )}
+                </>
+              );
+
+              // Desktop: dos columnas (paradas izquierda, resumen+acciones derecha)
+              return isDesktop ? (
+                <View style={styles.resultRow}>
+                  <View style={styles.resultLeft}>{stopsList}</View>
+                  <View style={styles.resultRight}>
+                    {heroCard}
+                    {actions}
+                  </View>
                 </View>
-              </View>
-            </View>
-
-            {/* Stop list */}
-            <Text style={styles.sectionTitle}>Paradas de la ruta</Text>
-            {result.route.map((stop, idx) => (
-              <RouteStopRow
-                key={stop.store_id}
-                stop={stop}
-                index={idx}
-                isSelected={selectedStoreId === stop.store_id}
-                interactionDisabled={isBusy}
-                onSelect={() =>
-                  setSelectedStoreId((prev) =>
-                    prev === stop.store_id ? null : stop.store_id,
-                  )
-                }
-                onApplySemanticOption={handleApplySemanticOption}
-              />
-            ))}
-
-            <TouchableOpacity
-              style={[
-                styles.lockscreenBtn,
-                (activatingChecklistNotification || isBusy) &&
-                  styles.lockscreenBtnDisabled,
-              ]}
-              activeOpacity={0.8}
-              onPress={() => {
-                void handleActivateChecklistNotification();
-              }}
-              disabled={activatingChecklistNotification || isBusy}
-              accessibilityRole="button"
-              accessibilityLabel="Publicar checklist dinámico en notificaciones"
-            >
-              <Ionicons
-                name="notifications-outline"
-                size={16}
-                color={colors.primary}
-              />
-              <Text style={styles.lockscreenBtnText}>
-                {activatingChecklistNotification
-                  ? "Publicando checklist..."
-                  : "Checklist dinámico en notificaciones"}
-              </Text>
-            </TouchableOpacity>
-
-            {/* "Ver en mapa" secondary button */}
-            <TouchableOpacity
-              style={styles.mapBtn}
-              activeOpacity={0.7}
-              onPress={() => {
-                void handleOpenRouteInMap();
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="Abrir ruta circular en Google Maps"
-            >
-              <Ionicons name="map-outline" size={18} color={colors.primary} />
-              <Text style={styles.mapBtnText}>Ver en mapa</Text>
-            </TouchableOpacity>
+              ) : (
+                <>
+                  {heroCard}
+                  {stopsList}
+                  {actions}
+                </>
+              );
+            })()}
           </Animated.View>
         )}
 
@@ -1095,6 +1186,20 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.md,
+    gap: spacing.md,
+  },
+  // Dos columnas en desktop: paradas (izquierda) + resumen/acciones (derecha)
+  resultRow: {
+    flexDirection: "row",
+    gap: spacing.xl,
+    alignItems: "flex-start",
+  },
+  resultLeft: {
+    flex: 1,
+  },
+  // 360px: ancho de la columna de resumen en desktop (planner discretion sizing)
+  resultRight: {
+    width: 360,
     gap: spacing.md,
   },
   prefRow: {
@@ -1326,6 +1431,9 @@ const stopRowStyles = StyleSheet.create({
     paddingVertical: spacing.sm,
     marginBottom: spacing.xs,
     ...shadows.card,
+  },
+  containerHover: {
+    backgroundColor: colors.primaryTint,
   },
   headerPressable: {
     flexDirection: "row",

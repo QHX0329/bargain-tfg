@@ -8,6 +8,11 @@
  * - Header "Marcar todo leído" → PATCH bulk
  * - Paginación infinita mediante onEndReached
  * - Estado vacío y skeletons de carga
+ *
+ * Web enhancements (D-05/D-06):
+ * - List centered at max-width 680px on desktop/tablet
+ * - Hover tint (colors.primaryTint) on notification rows
+ * - Focus ring on notification rows (web)
  */
 
 import React, {
@@ -20,6 +25,7 @@ import React, {
 import {
   Alert,
   Modal,
+  Platform,
   Pressable,
   SectionList,
   SectionListData,
@@ -47,6 +53,7 @@ import { notificationService } from "@/api/notificationService";
 import type { Notification } from "@/types/domain";
 import type { HomeStackParamList } from "@/navigation/types";
 import { blurActiveElementOnWeb } from "@/utils/webA11y";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 
 // ─── Day grouping ─────────────────────────────────────────────────────────────
 
@@ -102,6 +109,13 @@ function groupByDay(
   return sections;
 }
 
+// ─── Focus ring style (web keyboard navigation) ───────────────────────────────
+
+const webFocusStyle =
+  Platform.OS === "web"
+    ? { outlineColor: colors.primary, outlineWidth: 2, outlineOffset: 2 }
+    : {};
+
 // ─── Notification row ─────────────────────────────────────────────────────────
 
 interface NotificationRowProps {
@@ -116,6 +130,7 @@ const NotificationRow: React.FC<NotificationRowProps> = ({
   onDelete,
 }) => {
   const swipeableRef = useRef<Swipeable>(null);
+  const [hovered, setHovered] = useState(false);
 
   const renderRightActions = () => (
     <TouchableOpacity
@@ -138,11 +153,21 @@ const NotificationRow: React.FC<NotificationRowProps> = ({
         style={[
           rowStyles.container,
           !notification.is_read && rowStyles.unreadBorder,
+          hovered && rowStyles.hovered,
+          Platform.OS === "web" ? webFocusStyle : undefined,
         ]}
         onPress={() => onTap(notification)}
         activeOpacity={0.85}
         accessibilityRole="button"
         accessibilityLabel={notification.title}
+        // @ts-ignore — onMouseEnter/onMouseLeave son props solo-web (react-native-web)
+        onMouseEnter={
+          Platform.OS === "web" ? () => setHovered(true) : undefined
+        }
+        // @ts-ignore — ver arriba
+        onMouseLeave={
+          Platform.OS === "web" ? () => setHovered(false) : undefined
+        }
       >
         {/* Unread indicator */}
         <View style={rowStyles.indicatorWrap}>
@@ -183,6 +208,7 @@ const NotificationRow: React.FC<NotificationRowProps> = ({
 export const NotificationScreen: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const breakpoint = useBreakpoint();
   const {
     notifications,
     hasMore,
@@ -290,6 +316,12 @@ export const NotificationScreen: React.FC = () => {
 
   const sections = groupByDay(notifications);
 
+  // D-05: centered container style for desktop/tablet
+  const centeredContentStyle =
+    breakpoint !== "mobile"
+      ? { maxWidth: 680, alignSelf: "center" as const, width: "100%" as const }
+      : undefined;
+
   // Skeleton loading
   if (initialLoading) {
     return (
@@ -331,7 +363,7 @@ export const NotificationScreen: React.FC = () => {
           />
         )}
         renderSectionHeader={({ section: { title } }) => (
-          <View style={styles.sectionHeader}>
+          <View style={[styles.sectionHeader, centeredContentStyle]}>
             <Text style={styles.sectionTitle}>{title}</Text>
           </View>
         )}
@@ -339,12 +371,12 @@ export const NotificationScreen: React.FC = () => {
           <TouchableOpacity
             testID="mark-all-read-btn"
             onPress={handleMarkAllRead}
-            style={styles.markAllHeader}
+            style={[styles.markAllHeader, centeredContentStyle]}
           >
             <Text style={headerStyles.markAllText}>Marcar todo leído</Text>
           </TouchableOpacity>
         }
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, centeredContentStyle]}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.3}
         stickySectionHeadersEnabled={false}
@@ -446,6 +478,9 @@ const rowStyles = StyleSheet.create({
     alignItems: "flex-start",
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border,
+  },
+  hovered: {
+    backgroundColor: colors.primaryTint,
   },
   unreadBorder: {
     borderLeftWidth: 3,

@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   Modal,
+  Platform,
   Pressable,
   TextInput,
   RefreshControl,
@@ -25,11 +26,14 @@ import {
   shadows,
 } from "@/theme";
 import { SkeletonBox } from "@/components/ui/SkeletonBox";
+import { WebTooltip } from "@/components/ui";
 import { priceService } from "@/api/priceService";
 import { productService } from "@/api/productService";
 import type { HomeStackParamList } from "@/navigation/types";
 import type { PriceAlert, Product } from "@/types/domain";
 import { blurActiveElementOnWeb } from "@/utils/webA11y";
+import { copyToClipboard } from "@/utils/webExport";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 
 type Props = NativeStackScreenProps<HomeStackParamList, "PriceAlerts">;
 
@@ -56,13 +60,34 @@ const PriceAlertRow: React.FC<{
   onPress: (alert: PriceAlert) => void;
 }> = ({ alert, onPress }) => {
   const productName = getAlertProductName(alert);
+  // Hover (web) + feedback de copia
+  const [hovered, setHovered] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopySummary = useCallback(() => {
+    const target = `objetivo €${Number(alert.target_price ?? 0).toFixed(2)}`;
+    const current =
+      alert.current_price != null
+        ? ` (actual €${Number(alert.current_price).toFixed(2)})`
+        : "";
+    void copyToClipboard(`${productName} — ${target}${current}`).then((ok) => {
+      if (ok) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      }
+    });
+  }, [alert.target_price, alert.current_price, productName]);
 
   return (
     <TouchableOpacity
       testID={`price-alert-${alert.id}`}
-      style={[styles.row, shadows.card]}
+      style={[styles.row, shadows.card, hovered && styles.rowHover]}
       onPress={() => onPress(alert)}
       activeOpacity={0.85}
+      // @ts-ignore — onMouseEnter/onMouseLeave son props solo-web (react-native-web)
+      onMouseEnter={() => setHovered(true)}
+      // @ts-ignore — ver arriba
+      onMouseLeave={() => setHovered(false)}
     >
       <View style={styles.rowIcon}>
         <Ionicons name="pricetag-outline" size={18} color={colors.accentDark} />
@@ -80,12 +105,30 @@ const PriceAlertRow: React.FC<{
         </Text>
       </View>
 
+      {Platform.OS === "web" && (
+        <WebTooltip label="Copiar alerta">
+          <TouchableOpacity
+            style={styles.copyBtn}
+            onPress={handleCopySummary}
+            accessibilityRole="button"
+            accessibilityLabel="Copiar alerta"
+          >
+            <Ionicons
+              name={copied ? "checkmark" : "copy-outline"}
+              size={16}
+              color={copied ? colors.success : colors.textMuted}
+            />
+          </TouchableOpacity>
+        </WebTooltip>
+      )}
+
       <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
     </TouchableOpacity>
   );
 };
 
 export const PriceAlertsScreen: React.FC<Props> = ({ navigation }) => {
+  const breakpoint = useBreakpoint();
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -281,9 +324,15 @@ export const PriceAlertsScreen: React.FC<Props> = ({ navigation }) => {
       <FlatList
         data={activeAlerts}
         keyExtractor={(item) => String(item.id)}
-        contentContainerStyle={
-          activeAlerts.length === 0 ? styles.emptyContainer : styles.listContent
-        }
+        contentContainerStyle={[
+          activeAlerts.length === 0
+            ? styles.emptyContainer
+            : styles.listContent,
+          // Lista centrada en tablet/desktop (maxWidth 680 — valor vinculante 13-UI-SPEC)
+          breakpoint !== "mobile" &&
+            activeAlerts.length > 0 &&
+            styles.listContentWide,
+        ]}
         renderItem={({ item }) => (
           <PriceAlertRow alert={item} onPress={handleOpenAlertModal} />
         )}
@@ -496,6 +545,12 @@ const styles = StyleSheet.create({
   listContent: {
     padding: spacing.md,
   },
+  // maxWidth 680: lista centrada en tablet/desktop (valor vinculante 13-UI-SPEC)
+  listContentWide: {
+    maxWidth: 680,
+    alignSelf: "center",
+    width: "100%",
+  },
   row: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
@@ -506,6 +561,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
+  },
+  rowHover: {
+    backgroundColor: colors.primaryTint,
+  },
+  copyBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: borderRadius.sm,
+    alignItems: "center",
+    justifyContent: "center",
   },
   rowIcon: {
     width: 34,

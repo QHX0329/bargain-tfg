@@ -157,7 +157,7 @@ Plans:
 **Goal:** Hacer que las 15 screens existentes de la app Expo (`frontend/src`) ofrezcan una experiencia web real (layout ancho/master-detail, ratón/teclado, conveniencias web y deep-linking) sin crear pantallas nuevas, sin tocar `frontend/web/` ni `auth/`/`profile/`, y manteniendo la UX móvil intacta por debajo de 768px.
 **Decisions:** D-01..D-13 (CONTEXT.md) — cobertura colectiva de D-05/D-06/D-07/D-08 en las 15 screens + D-09/D-10/D-12.
 **Depends on:** Phase 12
-**Plans:** 5/6 plans executed
+**Plans:** 6/6 plans complete
 
 Plans:
 - [x] 13-01-foundation-layout-PLAN.md — useBreakpoint + MasterDetailLayout + WebTooltip + BottomTabBar restyle (Wave 0)
@@ -165,7 +165,7 @@ Plans:
 - [x] 13-03-listas-flow-PLAN.md — Listas: responsive + ListDetail.web.tsx drag-drop + export/share (Wave 1)
 - [x] 13-04-mapa-tiendas-flow-PLAN.md — Mapa/Tiendas: panel lateral + ficha 2-col + copiar/compartir (Wave 1)
 - [x] 13-05-catalogo-precios-flow-PLAN.md — Catálogo/Precios: grid 2-4col + Cmd+K + ?q= + CSV (Wave 1)
-- [ ] 13-06-asistente-notif-flow-PLAN.md — Asistente/Notif.: chat centrado + copiar mensaje/alerta (Wave 1)
+- [x] 13-06-asistente-notif-flow-PLAN.md — Asistente/Notif.: chat centrado + copiar mensaje/alerta (Wave 1)
 
 ---
 Last updated: 2026-06-02

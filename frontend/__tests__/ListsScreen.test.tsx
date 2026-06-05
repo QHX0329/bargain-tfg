@@ -46,7 +46,6 @@ jest.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 
-
 // ─── Imports ──────────────────────────────────────────────────────────────────
 
 import React from "react";
@@ -100,7 +99,10 @@ describe("ListsScreen", () => {
     alertPromptSpy = jest.spyOn(Alert, "prompt").mockImplementation(() => {});
     // Reset store to clean state
     useListStore.setState({ lists: [], activeList: null, isLoading: false });
-    (listService.getLists as jest.Mock).mockResolvedValue([mockList, mockList2]);
+    (listService.getLists as jest.Mock).mockResolvedValue([
+      mockList,
+      mockList2,
+    ]);
   });
 
   afterEach(() => {
@@ -205,7 +207,10 @@ describe("ListsScreen", () => {
   // Test 7: pull-to-refresh calls listService.getLists
   it("Test 7: pull-to-refresh calls listService.getLists and updates store", async () => {
     useListStore.setState({ lists: [mockList], isLoading: false });
-    (listService.getLists as jest.Mock).mockResolvedValue([mockList, mockList2]);
+    (listService.getLists as jest.Mock).mockResolvedValue([
+      mockList,
+      mockList2,
+    ]);
 
     const { getByTestId } = render(<ListsScreen />);
 
@@ -216,7 +221,9 @@ describe("ListsScreen", () => {
 
     // Trigger the onRefresh handler on the FlatList's refreshControl
     const flatList = getByTestId("lists-flatlist");
-    const { refreshControl } = flatList.props as { refreshControl?: { props: { onRefresh: () => void } } };
+    const { refreshControl } = flatList.props as {
+      refreshControl?: { props: { onRefresh: () => void } };
+    };
     if (refreshControl?.props?.onRefresh) {
       await act(async () => {
         refreshControl.props.onRefresh();
@@ -261,7 +268,10 @@ describe("ListDetailScreen", () => {
   // Test 8: fetches and renders items
   it("Test 8: fetches and renders items from listService.getList", async () => {
     const { getByText } = render(
-      <ListDetailScreen route={mockRoute} navigation={mockNavigation as never} />,
+      <ListDetailScreen
+        route={mockRoute}
+        navigation={mockNavigation as never}
+      />,
     );
 
     await waitFor(() => {
@@ -274,6 +284,22 @@ describe("ListDetailScreen", () => {
     });
   });
 
+  // Test 8b: web-only export/share toolbar is ABSENT on native (Platform.OS !== 'web', D-07)
+  it("Test 8b: does NOT render the web export/share toolbar on native", async () => {
+    const { getByText, queryByText } = render(
+      <ListDetailScreen
+        route={mockRoute}
+        navigation={mockNavigation as never}
+      />,
+    );
+    await waitFor(() => {
+      expect(getByText("Leche entera")).toBeTruthy();
+    });
+    // jest-expo defaults Platform.OS to a native platform — web affordances must not appear
+    expect(queryByText("Exportar lista")).toBeNull();
+    expect(queryByText("Compartir")).toBeNull();
+  });
+
   // Test 9: increase quantity triggers updateItem with +1 quantity
   it("Test 9: pressing increase quantity calls listService.updateItem", async () => {
     (listService.updateItem as jest.Mock).mockResolvedValue({
@@ -281,7 +307,10 @@ describe("ListDetailScreen", () => {
       quantity: 3,
     });
     const { getByTestId } = render(
-      <ListDetailScreen route={mockRoute} navigation={mockNavigation as never} />,
+      <ListDetailScreen
+        route={mockRoute}
+        navigation={mockNavigation as never}
+      />,
     );
 
     await waitFor(() => {
@@ -292,16 +321,23 @@ describe("ListDetailScreen", () => {
     fireEvent.press(increaseButton);
 
     await waitFor(() => {
-      expect(listService.updateItem).toHaveBeenCalledWith("list1", mockItem.id, {
-        quantity: 3,
-      });
+      expect(listService.updateItem).toHaveBeenCalledWith(
+        "list1",
+        mockItem.id,
+        {
+          quantity: 3,
+        },
+      );
     });
   });
 
   // Test 10: catalog FAB opens panel and catalog option navigates to ProductsCatalog
   it("Test 10: pressing catalog option in add panel navigates to ProductsCatalog", async () => {
     const { getByTestId } = render(
-      <ListDetailScreen route={mockRoute} navigation={mockNavigation as never} />,
+      <ListDetailScreen
+        route={mockRoute}
+        navigation={mockNavigation as never}
+      />,
     );
     await waitFor(() => {
       expect(listService.getList).toHaveBeenCalled();
@@ -310,7 +346,9 @@ describe("ListDetailScreen", () => {
     const openCatalogFab = getByTestId("fab-open-product-catalog");
     fireEvent.press(openCatalogFab);
 
-    const openCatalogOption = await waitFor(() => getByTestId("add-panel-open-catalog"));
+    const openCatalogOption = await waitFor(() =>
+      getByTestId("add-panel-open-catalog"),
+    );
     fireEvent.press(openCatalogOption);
 
     await waitFor(() => {
@@ -329,7 +367,10 @@ describe("ListDetailScreen", () => {
     });
 
     const { getByTestId } = render(
-      <ListDetailScreen route={mockRoute} navigation={mockNavigation as never} />,
+      <ListDetailScreen
+        route={mockRoute}
+        navigation={mockNavigation as never}
+      />,
     );
 
     // Wait for items to load
@@ -343,9 +384,13 @@ describe("ListDetailScreen", () => {
     });
 
     await waitFor(() => {
-      expect(listService.updateItem).toHaveBeenCalledWith("list1", mockItem.id, {
-        is_checked: true,
-      });
+      expect(listService.updateItem).toHaveBeenCalledWith(
+        "list1",
+        mockItem.id,
+        {
+          is_checked: true,
+        },
+      );
     });
   });
 
@@ -353,13 +398,20 @@ describe("ListDetailScreen", () => {
   it("Test 12: long-pressing item shows delete confirmation and calls listService.deleteItem", async () => {
     (listService.deleteItem as jest.Mock).mockResolvedValue(undefined);
     alertAlertSpy.mockImplementation(
-      (_title: string, _msg: string, buttons?: Array<{ onPress?: () => void }>) => {
+      (
+        _title: string,
+        _msg: string,
+        buttons?: Array<{ onPress?: () => void }>,
+      ) => {
         buttons?.[1]?.onPress?.();
       },
     );
 
     const { getByTestId } = render(
-      <ListDetailScreen route={mockRoute} navigation={mockNavigation as never} />,
+      <ListDetailScreen
+        route={mockRoute}
+        navigation={mockNavigation as never}
+      />,
     );
 
     await waitFor(() => {
@@ -381,7 +433,10 @@ describe("ListDetailScreen", () => {
     (listService.getList as jest.Mock).mockReturnValue(new Promise(() => {})); // never resolves
 
     const { getAllByTestId } = render(
-      <ListDetailScreen route={mockRoute} navigation={mockNavigation as never} />,
+      <ListDetailScreen
+        route={mockRoute}
+        navigation={mockNavigation as never}
+      />,
     );
 
     const skeletons = getAllByTestId(/skeleton-item-/);

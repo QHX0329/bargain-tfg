@@ -17,6 +17,7 @@ El usuario introduce su lista y obtiene rutas optimas entre varias tiendas, equi
 - F5 IA/Optimizador/Scraping: pendiente.
 - F6 Cierre y defensa: pendiente.
 - Progreso global estimado: ~62%.
+- Phase 13 (mejoras web de la app Expo) completada (2026-06-05): responsive D-05, ratón/teclado D-06, conveniencias web D-07 y deep-linking D-08 aplicados en las 15 pantallas en alcance, sin crear nuevas pantallas. Quedan 10 ítems de verificación manual en navegador (13-HUMAN-UAT.md).
 
 ## Active Scope
 
@@ -44,4 +45,4 @@ El usuario introduce su lista y obtiene rutas optimas entre varias tiendas, equi
 | Integracion LLM productiva | Pendiente (F5) |
 
 ---
-Last updated: 2026-03-19
+Last updated: 2026-06-05

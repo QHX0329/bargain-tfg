@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const DEFAULT_API_BASE_URL = 'https://bargain-api-8yr0.onrender.com/api/v1';
+const DEFAULT_API_BASE_URL = 'https://localhost:8000/api/v1';
 
 export const API_BASE_URL: string =
   ((typeof import.meta !== 'undefined'

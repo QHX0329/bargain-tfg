@@ -16,7 +16,12 @@
  * variante nativa) y expone exportar/compartir/Enter/Esc de la misma forma.
  */
 
-import React, { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -139,7 +144,8 @@ export const ListDetailScreen: React.FC<Props> = ({ route, navigation }) => {
     (from: number | null, to: number) => {
       if (from === null || from === to) return;
       setOrder((prev) => {
-        const base = prev.length === items.length ? prev : items.map((i) => i.id);
+        const base =
+          prev.length === items.length ? prev : items.map((i) => i.id);
         const next = [...base];
         const [moved] = next.splice(from, 1);
         next.splice(to, 0, moved);
@@ -276,7 +282,11 @@ export const ListDetailScreen: React.FC<Props> = ({ route, navigation }) => {
             accessibilityRole="button"
             accessibilityLabel="Exportar lista"
           >
-            <Ionicons name="download-outline" size={20} color={colors.primary} />
+            <Ionicons
+              name="download-outline"
+              size={20}
+              color={colors.primary}
+            />
             <Text style={styles.webToolbarText}>Exportar lista</Text>
           </TouchableOpacity>
         </WebTooltip>
@@ -306,9 +316,24 @@ export const ListDetailScreen: React.FC<Props> = ({ route, navigation }) => {
 
       {isLoading ? (
         <View style={styles.skeletonContainer}>
-          <SkeletonBox width="100%" height={48} borderRadius={8} style={styles.skeletonRow} />
-          <SkeletonBox width="100%" height={48} borderRadius={8} style={styles.skeletonRow} />
-          <SkeletonBox width="100%" height={48} borderRadius={8} style={styles.skeletonRow} />
+          <SkeletonBox
+            width="100%"
+            height={48}
+            borderRadius={8}
+            style={styles.skeletonRow}
+          />
+          <SkeletonBox
+            width="100%"
+            height={48}
+            borderRadius={8}
+            style={styles.skeletonRow}
+          />
+          <SkeletonBox
+            width="100%"
+            height={48}
+            borderRadius={8}
+            style={styles.skeletonRow}
+          />
         </View>
       ) : items.length === 0 ? (
         <View style={styles.emptyState}>
@@ -323,81 +348,104 @@ export const ListDetailScreen: React.FC<Props> = ({ route, navigation }) => {
             const isChecked = item.isChecked ?? item.is_checked ?? false;
             const isDragging = dragIndex === index;
             return (
-              <View
+              // react-native-web NO reenvía draggable/onDrag* a un <View>, así que
+              // usamos un <div> DOM real (solo-web) que sí soporta HTML5 Drag&Drop;
+              // el <View> interno conserva todo el estilo RN. El índice origen viaja
+              // por dataTransfer para evitar closures obsoletos.
+              <div
                 key={item.id}
-                style={[styles.itemRow, isDragging && styles.itemRowDragging]}
-                // @ts-ignore — props de arrastre HTML5 solo-web (react-native-web)
                 draggable
-                // @ts-ignore — ver arriba
-                onDragStart={() => setDragIndex(index)}
-                // @ts-ignore — preventDefault OBLIGATORIO o onDrop nunca dispara (Pitfall 6)
-                onDragOver={(e: { preventDefault: () => void }) => {
-                  e.preventDefault();
+                onDragStart={(e) => {
+                  e.dataTransfer.setData("text/plain", String(index));
+                  e.dataTransfer.effectAllowed = "move";
+                  setDragIndex(index);
                 }}
-                // @ts-ignore — ver arriba
-                onDrop={() => reorder(dragIndex, index)}
+                // preventDefault en onDragOver es OBLIGATORIO o onDrop nunca dispara (Pitfall 6)
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const from = Number(e.dataTransfer.getData("text/plain"));
+                  reorder(Number.isNaN(from) ? dragIndex : from, index);
+                }}
+                onDragEnd={() => setDragIndex(null)}
+                style={{ cursor: "grab" }}
               >
-                <WebTooltip label="Arrastra para reordenar">
-                  <View style={styles.dragHandle}>
-                    <Ionicons name="reorder-three" size={20} color={colors.textMuted} />
-                  </View>
-                </WebTooltip>
-
-                <TouchableOpacity
-                  onPress={() => handleToggleItem(item)}
-                  style={styles.checkbox}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: isChecked }}
-                  accessibilityLabel={`Marcar ${productName}`}
+                <View
+                  style={[styles.itemRow, isDragging && styles.itemRowDragging]}
                 >
-                  <Ionicons
-                    name={isChecked ? "checkbox" : "square-outline"}
-                    size={22}
-                    color={isChecked ? colors.primary : colors.textMuted}
-                  />
-                </TouchableOpacity>
+                  <WebTooltip label="Arrastra para reordenar">
+                    <View style={styles.dragHandle}>
+                      <Ionicons
+                        name="reorder-three"
+                        size={20}
+                        color={colors.textMuted}
+                      />
+                    </View>
+                  </WebTooltip>
 
-                <View style={styles.itemContent}>
-                  <Text
-                    style={[styles.itemName, isChecked && styles.itemNameChecked]}
-                    numberOfLines={1}
+                  <TouchableOpacity
+                    onPress={() => handleToggleItem(item)}
+                    style={styles.checkbox}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: isChecked }}
+                    accessibilityLabel={`Marcar ${productName}`}
                   >
-                    {productName}
-                  </Text>
-                  <Text style={styles.itemMeta}>
-                    {`x${item.quantity}`}
-                    {item.note ? ` · ${item.note}` : ""}
-                  </Text>
-                </View>
+                    <Ionicons
+                      name={isChecked ? "checkbox" : "square-outline"}
+                      size={22}
+                      color={isChecked ? colors.primary : colors.textMuted}
+                    />
+                  </TouchableOpacity>
 
-                <View style={styles.quantityControls}>
-                  <TouchableOpacity
-                    onPress={() => handleChangeQuantity(item, -1)}
-                    style={styles.quantityButton}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Reducir cantidad de ${productName}`}
-                  >
-                    <Ionicons name="remove" size={14} color={colors.text} />
-                  </TouchableOpacity>
-                  <Text style={styles.quantityValue}>{item.quantity}</Text>
-                  <TouchableOpacity
-                    onPress={() => handleChangeQuantity(item, 1)}
-                    style={styles.quantityButton}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Aumentar cantidad de ${productName}`}
-                  >
-                    <Ionicons name="add" size={14} color={colors.text} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => handleDeleteItem(item)}
-                    style={styles.quantityButton}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Eliminar ${productName}`}
-                  >
-                    <Ionicons name="trash-outline" size={14} color={colors.error} />
-                  </TouchableOpacity>
+                  <View style={styles.itemContent}>
+                    <Text
+                      style={[
+                        styles.itemName,
+                        isChecked && styles.itemNameChecked,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {productName}
+                    </Text>
+                    <Text style={styles.itemMeta}>
+                      {`x${item.quantity}`}
+                      {item.note ? ` · ${item.note}` : ""}
+                    </Text>
+                  </View>
+
+                  <View style={styles.quantityControls}>
+                    <TouchableOpacity
+                      onPress={() => handleChangeQuantity(item, -1)}
+                      style={styles.quantityButton}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Reducir cantidad de ${productName}`}
+                    >
+                      <Ionicons name="remove" size={14} color={colors.text} />
+                    </TouchableOpacity>
+                    <Text style={styles.quantityValue}>{item.quantity}</Text>
+                    <TouchableOpacity
+                      onPress={() => handleChangeQuantity(item, 1)}
+                      style={styles.quantityButton}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Aumentar cantidad de ${productName}`}
+                    >
+                      <Ionicons name="add" size={14} color={colors.text} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleDeleteItem(item)}
+                      style={styles.quantityButton}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Eliminar ${productName}`}
+                    >
+                      <Ionicons
+                        name="trash-outline"
+                        size={14}
+                        color={colors.error}
+                      />
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
+              </div>
             );
           })}
         </ScrollView>
@@ -466,8 +514,14 @@ export const ListDetailScreen: React.FC<Props> = ({ route, navigation }) => {
               }}
             >
               <Ionicons name="cube-outline" size={20} color={colors.primary} />
-              <Text style={styles.catalogOptionText}>Buscar en el catálogo</Text>
-              <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+              <Text style={styles.catalogOptionText}>
+                Buscar en el catálogo
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={colors.textMuted}
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -496,7 +550,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xxxl,
     paddingTop: spacing.xxxl,
   },
-  emptyText: { ...textStyles.body, color: colors.textMuted, textAlign: "center" },
+  emptyText: {
+    ...textStyles.body,
+    color: colors.textMuted,
+    textAlign: "center",
+  },
   webToolbar: {
     flexDirection: "row",
     justifyContent: "flex-end",
@@ -638,7 +696,11 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     minHeight: 48,
   },
-  catalogOptionText: { flex: 1, ...textStyles.bodyMedium, color: colors.primary },
+  catalogOptionText: {
+    flex: 1,
+    ...textStyles.bodyMedium,
+    color: colors.primary,
+  },
 });
 
 export default ListDetailScreen;

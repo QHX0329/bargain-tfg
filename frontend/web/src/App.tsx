@@ -16,25 +16,6 @@ import AdminApprovalPage from './pages/AdminApprovalPage';
 import LandingPage from './pages/LandingPage';
 import MerchantOnboardingPage from './pages/MerchantOnboardingPage';
 import DocsPage from './pages/DocsPage';
-import ConsumerLayout from './pages/consumer/ConsumerLayout';
-import ListsPage from './pages/consumer/ListsPage';
-import ListDetailPage from './pages/consumer/ListDetailPage';
-import TemplatesPage from './pages/consumer/TemplatesPage';
-import RoutePage from './pages/consumer/RoutePage';
-import ProductsCatalogPage from './pages/consumer/ProductsCatalogPage';
-import PriceComparePage from './pages/consumer/PriceComparePage';
-import ProductProposalPage from './pages/consumer/ProductProposalPage';
-import MapPage from './pages/consumer/MapPage';
-import StoreProfilePage from './pages/consumer/StoreProfilePage';
-import FavoritesPage from './pages/consumer/FavoritesPage';
-import AssistantPage from './pages/consumer/AssistantPage';
-import OCRPage from './pages/consumer/OCRPage';
-import ProfilePage from './pages/consumer/ProfilePage';
-import EditProfilePage from './pages/consumer/EditProfilePage';
-import ChangePasswordPage from './pages/consumer/ChangePasswordPage';
-import OptimizerConfigPage from './pages/consumer/OptimizerConfigPage';
-import NotificationsPage from './pages/consumer/NotificationsPage';
-import PriceAlertsPage from './pages/consumer/PriceAlertsPage';
 
 /** Auth guard: redirect to /login if no token in localStorage */
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -147,35 +128,6 @@ const App: React.FC = () => {
             }
           >
             <Route path="/admin" element={<AdminApprovalPage />} />
-          </Route>
-
-          {/* Consumer routes — /app/* — auth required, no business-profile guard */}
-          <Route
-            element={
-              <RequireAuth>
-                <ConsumerLayout />
-              </RequireAuth>
-            }
-          >
-            <Route path="/app" element={<Navigate to="/app/lists" replace />} />
-            <Route path="/app/lists" element={<ListsPage />} />
-            <Route path="/app/lists/:listId" element={<ListDetailPage />} />
-            <Route path="/app/lists/:listId/route" element={<RoutePage />} />
-            <Route path="/app/templates" element={<TemplatesPage />} />
-            <Route path="/app/catalog" element={<ProductsCatalogPage />} />
-            <Route path="/app/catalog/compare/:productId" element={<PriceComparePage />} />
-            <Route path="/app/catalog/propose" element={<ProductProposalPage />} />
-            <Route path="/app/map" element={<MapPage />} />
-            <Route path="/app/map/store/:storeId" element={<StoreProfilePage />} />
-            <Route path="/app/favorites" element={<FavoritesPage />} />
-            <Route path="/app/assistant" element={<AssistantPage />} />
-            <Route path="/app/ocr" element={<OCRPage />} />
-            <Route path="/app/profile" element={<ProfilePage />} />
-            <Route path="/app/profile/edit" element={<EditProfilePage />} />
-            <Route path="/app/profile/password" element={<ChangePasswordPage />} />
-            <Route path="/app/profile/optimizer" element={<OptimizerConfigPage />} />
-            <Route path="/app/notifications" element={<NotificationsPage />} />
-            <Route path="/app/alerts" element={<PriceAlertsPage />} />
           </Route>
 
           {/* Catch-all */}

@@ -16,7 +16,7 @@ Roadmap operativo sincronizado a 2026-04-05. El proyecto tiene F1-F6 finalizadas
 - [ ] Phase 8: Milestone Evidence Recovery - Pendiente
 - [ ] Phase 9: Traceability Normalization - Pendiente
 - [ ] Phase 10: Contract Alignment Cleanup - Pendiente
-- [ ] Phase 12: Consumer Web App - Pendiente
+- [x] Phase 13: Mejorar app Expo existente para web - Completada
 
 ## Current Execution Focus
 
@@ -122,7 +122,7 @@ Plans:
 | 8. Milestone Evidence Recovery | Not started | Backfill de VERIFICATION.md y cierre formal de evidencia |
 | 9. Traceability Normalization | Not started | Reparacion de requirements-completed y trazabilidad audit-ready |
 | 10. Contract Alignment Cleanup | Not started | Alinear IDs ambiguos y contrato OCR antes de re-auditar |
-| 12. Consumer Web App | Not started | 6 planes en 3 waves |
+| 13. Expo Web App Improvements | Complete | Mejoras web implementadas en `frontend/src`, sin app consumidor separada |
 
 ### Phase 11: Auditar memoria TFG contra guías oficiales y preparar despliegue reproducible
 
@@ -136,27 +136,11 @@ Plans:
 
 ---
 
-### Phase 12: Consumer Web App
-
-**Goal:** Implement all consumer-facing mobile features as web pages in `frontend/web/` under routes `/app/*`, using React Leaflet for the map (OpenStreetMap) and file upload for OCR.
-
-**Requirements:** [WEB-01, WEB-02, WEB-03, WEB-04, WEB-05, WEB-06]
-
-**Plans:** 4/6 plans executed
-
-Plans:
-- [x] 12-01-PLAN.md — Consumer section scaffold (layout, routing, stores, services)
-- [x] 12-02-PLAN.md — Shopping lists + list detail + templates
-- [x] 12-03-PLAN.md — Optimizer result + product catalog + price comparison + proposal
-- [x] 12-04-PLAN.md — Map (React Leaflet) + store profile + favorites
-- [ ] 12-05-PLAN.md — AI assistant chat + OCR file upload
-- [ ] 12-06-PLAN.md — Profile + optimizer config + notifications + price alerts
-
 ### Phase 13: Mejorar la app Expo existente (frontend/src) para uso web: añadir nuevas funcionalidades dentro de las screens ya existentes orientadas al uso web, sin crear nuevas pantallas
 
 **Goal:** Hacer que las 15 screens existentes de la app Expo (`frontend/src`) ofrezcan una experiencia web real (layout ancho/master-detail, ratón/teclado, conveniencias web y deep-linking) sin crear pantallas nuevas, sin tocar `frontend/web/` ni `auth/`/`profile/`, y manteniendo la UX móvil intacta por debajo de 768px.
 **Decisions:** D-01..D-13 (CONTEXT.md) — cobertura colectiva de D-05/D-06/D-07/D-08 en las 15 screens + D-09/D-10/D-12.
-**Depends on:** Phase 12
+**Depends on:** Phase 11
 **Plans:** 6/6 plans complete
 
 Plans:
@@ -168,4 +152,4 @@ Plans:
 - [x] 13-06-asistente-notif-flow-PLAN.md — Asistente/Notif.: chat centrado + copiar mensaje/alerta (Wave 1)
 
 ---
-Last updated: 2026-06-02
+Last updated: 2026-06-08

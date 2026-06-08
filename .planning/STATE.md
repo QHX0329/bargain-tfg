@@ -76,7 +76,7 @@ Plan: Not started
 - Phase 6 complete: service extraction, 11 integration tests, UAT verification, frontend screen validation
 - Phase 7 complete: ORS+Render deploy, E2E Playwright, iOS build CI, memoria LaTeX, defensa slides
 - Phase 11 added: Auditoria memoria TFG contra guias oficiales y preparacion de despliegue reproducible
-- Phase 13 added: Mejorar la app Expo existente (frontend/src) para uso web — añadir funcionalidades web dentro de las screens ya existentes, sin crear nuevas pantallas (redirige el enfoque de la fase 12)
+- Phase 13 complete: Mejorar la app Expo existente (`frontend/src`) para uso web es el enfoque canonico; la app consumidor separada queda retirada.
 
 ## Last Session
 
@@ -84,4 +84,4 @@ Plan: Not started
 - **Date:** 2026-06-04
 
 ---
-Last updated: 2026-06-04
+Last updated: 2026-06-08

@@ -2,7 +2,7 @@
  * Configuración de deep-linking de React Navigation para BargAIn.
  *
  * Refleja la jerarquía exacta del navegador:
- * RootStack → Main → {HomeTab, ListsTab, MapTab, AssistantTab} → stacks de screens
+ * RootStack → Main → {HomeTab, ListsTab, MapTab, AssistantTab, ProfileTab} → stacks de screens
  * RootStack → Auth → {Login, Register}
  *
  * IMPORTANTE (Pitfall 8): FavoriteStores vive en HomeStack, NO en MapStack.
@@ -55,6 +55,14 @@ export const linking: LinkingOptions<RootStackParamList> = {
           AssistantTab: {
             screens: {
               Assistant: 'app/assistant',
+            },
+          },
+          ProfileTab: {
+            screens: {
+              Profile: 'app/profile',
+              EditProfile: 'app/profile/edit',
+              ChangePassword: 'app/profile/password',
+              OptimizerConfig: 'app/profile/optimizer',
             },
           },
         },

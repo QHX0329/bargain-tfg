@@ -1,19 +1,18 @@
 /**
- * Tab Navigator principal de BargAIn (variante NATIVA — iOS/Android).
+ * Tab Navigator principal de BargAIn (variante WEB — react-native-web).
  *
- * 5 tabs: Inicio, Listas, Mapa, Asistente, Perfil.
- * Cada tab tiene su propio Stack Navigator anidado (ver mainTabsShared.tsx).
+ * Idéntico a MainTabs.tsx en estructura (mismos 5 stacks + BottomTabBar custom),
+ * pero usa @react-navigation/bottom-tabs en lugar de material-top-tabs.
  *
- * Usa @react-navigation/material-top-tabs (sobre react-native-pager-view)
- * para transiciones lado-a-lado sin pantalla blanca entre tabs.
- * El swipe sigue el dedo en tiempo real.
- *
- * NOTA WEB: react-native-pager-view no funciona en react-native-web, por lo que
- * la web usa MainTabs.web.tsx (bottom-tabs). Metro resuelve el sufijo .web automáticamente.
+ * MOTIVO: material-top-tabs depende de react-native-pager-view, que NO tiene
+ * implementación web (solo android/ + ios/), por lo que en navegador el pager no
+ * pagina entre tabs (se ve una sola pantalla, "swipe" roto, tabs en blanco).
+ * bottom-tabs sí es compatible con react-native-web. Metro resuelve el sufijo
+ * .web automáticamente, dejando el comportamiento nativo intacto.
  */
 
 import React from "react";
-import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
 import type { MainTabParamList } from "./types";
 import {
@@ -28,15 +27,14 @@ import {
 
 // ── Tab Navigator ─────────────────────────────────────
 
-const Tab = createMaterialTopTabNavigator<MainTabParamList>();
+const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export const MainTabs: React.FC = () => {
   const tabs = useMainTabDefinitions();
 
   return (
     <Tab.Navigator
-      tabBarPosition="bottom"
-      screenOptions={{ swipeEnabled: true }}
+      screenOptions={{ headerShown: false }}
       tabBar={(props) => renderMainTabBar(props, tabs)}
     >
       <Tab.Screen name="HomeTab" component={HomeStackNavigator} />

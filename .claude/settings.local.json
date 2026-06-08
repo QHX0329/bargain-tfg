@@ -20,7 +20,11 @@
       "mcp__claude_ai_Notion__notion-search",
       "mcp__claude_ai_Notion__notion-update-page",
       "Skill(gsd:add-phase)",
-      "Skill(gsd:add-phase:*)"
+      "Skill(gsd:add-phase:*)",
+      "Read(//c/Users/xxnii/.claude/**)",
+      "PowerShell(npm list get-shit-done 2>$null)",
+      "Skill(gsd-add-phase)",
+      "Skill(gsd-add-phase:*)"
     ],
     "additionalDirectories": [
       "c:\\Users\\xxnii\\.claude\\projects\\c--Users-xxnii-OneDrive-Documentos-TFG-bargain-tfg\\memory"

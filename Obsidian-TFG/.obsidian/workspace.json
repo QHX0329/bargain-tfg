@@ -4,11 +4,11 @@
     "type": "split",
     "children": [
       {
-        "id": "04e49a3a60e710a3",
+        "id": "89a968ec512ed28c",
         "type": "tabs",
         "children": [
           {
-            "id": "a8c73e6bc91c1abd",
+            "id": "bfa2e2397284d7ca",
             "type": "leaf",
             "state": {
               "type": "empty",
@@ -176,12 +176,12 @@
       "bases:Crear nueva base": false
     }
   },
-  "active": "a8c73e6bc91c1abd",
+  "active": "bfa2e2397284d7ca",
   "lastOpenFiles": [
+    "00 Dashboard/Inicio.md",
     "04 Producto/Portal PYME.md",
     "Fases/F3 — Backend Core.md",
     "09 Operativa/Inbox.md",
-    "00 Dashboard/Inicio.md",
     "BargAIn — TFG.md",
     "Memoria TFG.md",
     "Sin título.canvas",

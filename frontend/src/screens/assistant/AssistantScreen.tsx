@@ -320,7 +320,7 @@ export const AssistantScreen: React.FC = () => {
             <Text style={styles.headerTitle}>Asistente BargAIn</Text>
             <View style={styles.statusRow}>
               <View style={styles.onlineDot} />
-              <Text style={styles.statusText}>IA de compras · Claude API</Text>
+              <Text style={styles.statusText}>IA de compras</Text>
             </View>
           </View>
         </View>

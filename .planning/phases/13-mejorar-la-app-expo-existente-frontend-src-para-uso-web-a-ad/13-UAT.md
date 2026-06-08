@@ -4,7 +4,7 @@ phase: 13-mejorar-la-app-expo-existente-frontend-src-para-uso-web-a-ad
 source: [13-01-foundation-layout-SUMMARY.md, 13-02-foundation-web-utils-linking-SUMMARY.md, 13-03-listas-flow-SUMMARY.md, 13-04-mapa-tiendas-flow-SUMMARY.md, 13-05-catalogo-precios-flow-SUMMARY.md, 13-06-asistente-notif-flow-SUMMARY.md]
 started: 2026-06-08T18:19:46Z
 updated: 2026-06-08T19:05:00Z
-status_note: 13/13 passed — 2 blockers found & fixed during UAT (web tab nav shell, drag-drop); Test 13 web affordances accepted as platform-gated by design
+status_note: 13/13 web passed + 5/5 native regression (Expo Go) passed; 2 blockers found & fixed during UAT (web tab nav shell, drag-drop); Test 13 web affordances accepted as platform-gated by design
 ---
 
 ## Current Test
@@ -147,3 +147,32 @@ blocked: 0
       - "ListDetailScreen.web.tsx — row wrapped in <div draggable> with dataTransfer-based source index; onDragOver preventDefault; onDragEnd clears dragIndex; cursor:grab"
     verification: "ESLint clean; tsc --noEmit 0 errors; user confirmed drag reorder works"
   debug_session: ""
+
+## Native Regression (Expo Go)
+
+Closes the native-verification gap flagged in Test 13. Run on a physical device via Expo Go
+(`cd frontend && npx expo start`). Confirms Phase 13 web changes + the 2 UAT fixes did not
+regress the native app. Safety net beforehand: full Jest suite 112/112 passed.
+
+date: 2026-06-08
+result: 5/5 passed
+
+### N1. Tab navigation — tap + horizontal swipe
+expected: All 5 tabs reachable by tapping; swipe between tabs follows the finger, fluid, no blank screens (native MainTabs.tsx still uses material-top-tabs after the mainTabsShared refactor).
+result: pass
+
+### N2. Lists → ListDetail item CRUD
+expected: Toggle checkbox, +/- quantity, delete, add item all work; NO drag handle, NO export/share buttons (web-only).
+result: pass
+
+### N3. No web affordances on native
+expected: No Export/Share/Copy buttons on PriceCompare, ProductsCatalog, StoreProfile, Assistant, PriceAlerts, Route (Platform.OS guards hold).
+result: pass
+
+### N4. Native-API screens render
+expected: Map loads with store markers; StoreProfile shows info + products; Assistant accepts a message and replies.
+result: pass
+
+### N5. Profile + sub-screens
+expected: Profile tab opens; EditProfile, ChangePassword, OptimizerConfig all open and render; back navigation works (ProfileTab linking addition does not affect native).
+result: pass

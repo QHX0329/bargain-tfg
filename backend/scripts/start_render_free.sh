@@ -9,8 +9,8 @@ set -e
 echo "[start] Aplicando migraciones..."
 python manage.py migrate --noinput
 
-echo "[start] Recopilando ficheros estáticos..."
-python manage.py collectstatic --noinput
+# collectstatic NO se ejecuta aquí: los estáticos se generan en el build de la
+# imagen (ver Dockerfile.render) para acelerar el arranque en frío del free tier.
 
 echo "[start] Asegurando superusuario (desde variables DJANGO_SUPERUSER_*)..."
 python manage.py createsuperuser --noinput 2>/dev/null \

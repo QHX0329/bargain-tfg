@@ -36,6 +36,13 @@ RUN playwright install --with-deps chromium
 COPY backend/ /app/
 COPY scraping/ /scraping/
 
+# Pre-generar estáticos en el build (WhiteNoise) para que el arranque en frío del
+# free tier NO tenga que ejecutar collectstatic en cada despertar. No requiere BD;
+# se usa un SECRET_KEY ficticio solo para que carguen los settings de prod.
+RUN DJANGO_SETTINGS_MODULE=config.settings.prod \
+    SECRET_KEY="build-time-collectstatic-placeholder-not-a-secret" \
+    python manage.py collectstatic --noinput
+
 EXPOSE 8000
 
 CMD ["sh", "/app/scripts/start_render_free.sh"]

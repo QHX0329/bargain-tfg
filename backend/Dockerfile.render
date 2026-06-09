@@ -1,0 +1,41 @@
+# Dockerfile.render — Imagen única para el despliegue gratuito en Render.
+#
+# Combina en un solo contenedor el web service Django (Gunicorn) y los procesos
+# Celery (worker + beat) embebidos, porque el free tier de Render no ofrece
+# background workers gratuitos. Incluye Playwright/Chromium para los spiders.
+#
+# Contexto de build: raíz del repo (incluye backend/ y scraping/).
+# Arranque: scripts/start_render_free.sh
+
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV SCRAPING_PROJECT_DIR=/scraping
+ENV PYTHONPATH="/app:/scraping"
+
+# Dependencias de sistema para PostGIS (GeoDjango) y runtime de scraping.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gdal-bin \
+    libgdal-dev \
+    libgeos-dev \
+    libproj-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Dependencias Python de producción (incluye gunicorn, whitenoise, celery, scrapy).
+COPY backend/requirements/ /tmp/requirements/
+RUN pip install --no-cache-dir -r /tmp/requirements/prod.txt
+
+# Navegador Chromium para scrapy-playwright (spiders Mercadona/Carrefour/...).
+RUN playwright install --with-deps chromium
+
+# Código del backend Django y proyecto Scrapy independiente.
+COPY backend/ /app/
+COPY scraping/ /scraping/
+
+EXPOSE 8000
+
+CMD ["sh", "/app/scripts/start_render_free.sh"]

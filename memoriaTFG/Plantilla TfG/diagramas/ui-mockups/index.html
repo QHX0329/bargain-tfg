@@ -1,0 +1,3394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BargAIn — Wireframes & Mockups UI (F1-14)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+<style>
+/* ══════════════════════════════════════════════
+   DESIGN TOKENS — Sistema de diseño BargAIn
+   ══════════════════════════════════════════════ */
+:root {
+  --primary:        #2E7D32;
+  --primary-light:  #60AD5E;
+  --primary-dark:   #1B5E20;
+  --primary-bg:     #E8F5E9;
+  --secondary:      #FF6F00;
+  --secondary-light:#FFB74D;
+  --secondary-bg:   #FFF3E0;
+  --surface:        #FAFAFA;
+  --surface-2:      #F5F5F5;
+  --surface-3:      #EEEEEE;
+  --border:         #E0E0E0;
+  --error:          #C62828;
+  --error-bg:       #FFEBEE;
+  --text-primary:   #212121;
+  --text-secondary: #757575;
+  --text-hint:      #BDBDBD;
+  --white:          #FFFFFF;
+  --shadow-sm:      0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-md:      0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.05);
+  --shadow-lg:      0 10px 24px rgba(0,0,0,.10), 0 4px 8px rgba(0,0,0,.06);
+  --radius-sm:      8px;
+  --radius-md:      12px;
+  --radius-lg:      16px;
+  --radius-xl:      24px;
+  --font-body:      'DM Sans', sans-serif;
+  --font-display:   'Plus Jakarta Sans', sans-serif;
+}
+
+/* ══════════════════════════════════════════════
+   RESET & BASE
+   ══════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-body);
+  background: #0F1923;
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ══════════════════════════════════════════════
+   LAYOUT — Shell de la galería
+   ══════════════════════════════════════════════ */
+.gallery-header {
+  padding: 28px 32px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.gallery-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.gallery-logo {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.gallery-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 22px;
+  color: #fff;
+  letter-spacing: -0.3px;
+}
+.gallery-subtitle {
+  font-size: 12px;
+  color: #8899AA;
+  margin-top: 2px;
+}
+.badge-tfg {
+  background: rgba(46,125,50,.25);
+  border: 1px solid rgba(96,173,94,.35);
+  color: var(--primary-light);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* NAV TABS */
+.nav-tabs-wrapper {
+  padding: 20px 32px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav-tabs-wrapper::-webkit-scrollbar { display: none; }
+.nav-tabs {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  padding-bottom: 0;
+  white-space: nowrap;
+}
+.nav-tab {
+  padding: 8px 16px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8899AA;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all .2s;
+  user-select: none;
+  letter-spacing: 0.2px;
+}
+.nav-tab:hover { color: #ccd; }
+.nav-tab.active {
+  color: var(--primary-light);
+  border-bottom-color: var(--primary-light);
+}
+
+/* MAIN STAGE */
+.stage {
+  display: flex;
+  justify-content: center;
+  padding: 36px 24px 48px;
+  min-height: calc(100vh - 200px);
+}
+
+/* ══════════════════════════════════════════════
+   PHONE FRAME
+   ══════════════════════════════════════════════ */
+.phone-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+.screen-label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: #8899AA;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+.phone-frame {
+  width: 375px;
+  height: 812px;
+  background: #1a1a1a;
+  border-radius: 50px;
+  padding: 14px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.08),
+    0 30px 80px rgba(0,0,0,.6),
+    inset 0 0 0 1px rgba(255,255,255,.04);
+  position: relative;
+  flex-shrink: 0;
+}
+.phone-notch {
+  position: absolute;
+  top: 14px; left: 50%;
+  transform: translateX(-50%);
+  width: 120px; height: 34px;
+  background: #1a1a1a;
+  border-radius: 0 0 22px 22px;
+  z-index: 10;
+}
+.phone-screen {
+  width: 100%;
+  height: 100%;
+  background: var(--surface);
+  border-radius: 38px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* STATUS BAR */
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px 6px;
+  background: var(--white);
+  position: relative;
+  z-index: 5;
+}
+.status-time {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+}
+.status-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.status-icon {
+  font-size: 12px;
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* SCROLLABLE CONTENT */
+.screen-content {
+  height: calc(100% - 36px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  display: flex;
+  flex-direction: column;
+}
+.screen-content::-webkit-scrollbar { display: none; }
+
+/* ══════════════════════════════════════════════
+   COMPONENTS LIBRARY
+   ══════════════════════════════════════════════ */
+
+/* App Bar */
+.app-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 4;
+}
+.app-bar-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--text-primary);
+}
+.app-bar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.logo-icon {
+  width: 30px; height: 30px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.logo-text {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--primary);
+  letter-spacing: -0.5px;
+}
+.logo-text span { color: var(--secondary); }
+
+/* Icon button */
+.icon-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  transition: background .15s;
+}
+.icon-btn:hover { background: var(--surface-2); }
+
+/* Tab Bar */
+.tab-bar {
+  display: flex;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  padding: 6px 0 2px;
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  margin-top: auto;
+}
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 4px;
+  cursor: pointer;
+}
+.tab-icon { font-size: 20px; }
+.tab-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-hint);
+  letter-spacing: 0.2px;
+}
+.tab-item.active .tab-label { color: var(--primary); }
+.tab-item.active .tab-icon { filter: none; }
+.tab-item .tab-icon { opacity: .5; }
+.tab-item.active .tab-icon { opacity: 1; }
+
+/* Cards */
+.card {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 16px;
+  border: 1px solid var(--border);
+}
+
+/* Primary button */
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--primary);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 14px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  cursor: pointer;
+  width: 100%;
+  letter-spacing: 0.2px;
+  transition: background .15s;
+}
+.btn-primary:hover { background: var(--primary-dark); }
+
+/* Secondary button */
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  border-radius: var(--radius-md);
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  cursor: pointer;
+  width: 100%;
+  letter-spacing: 0.2px;
+  transition: all .15s;
+}
+.btn-secondary:hover { background: var(--primary-bg); }
+
+/* Input */
+.field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.input-field {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 14px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  background: var(--white);
+  outline: none;
+  transition: border-color .15s;
+}
+.input-field:focus { border-color: var(--primary); }
+.input-field.with-icon { padding-left: 40px; }
+.input-wrap { position: relative; }
+.input-icon {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: var(--text-hint);
+}
+
+/* Chip / tag */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.chip-green  { background: var(--primary-bg); color: var(--primary); }
+.chip-orange { background: var(--secondary-bg); color: var(--secondary); }
+.chip-red    { background: var(--error-bg); color: var(--error); }
+.chip-gray   { background: var(--surface-3); color: var(--text-secondary); }
+
+/* Section header */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+.section-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+}
+
+/* Savings pill */
+.savings-pill {
+  background: linear-gradient(135deg, var(--secondary) 0%, #FF8F00 100%);
+  color: var(--white);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ══════════════════════════════════════════════
+   SCREENS
+   ══════════════════════════════════════════════ */
+
+/* — SCREEN: LOGIN — */
+.s-login {
+  background: var(--white);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.login-hero {
+  background: linear-gradient(160deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%);
+  padding: 48px 28px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.login-hero::before {
+  content: '';
+  position: absolute;
+  width: 200px; height: 200px;
+  background: rgba(255,255,255,.05);
+  border-radius: 50%;
+  top: -60px; right: -60px;
+}
+.login-hero::after {
+  content: '';
+  position: absolute;
+  width: 150px; height: 150px;
+  background: rgba(255,255,255,.04);
+  border-radius: 50%;
+  bottom: -40px; left: -40px;
+}
+.login-app-logo {
+  width: 72px; height: 72px;
+  background: rgba(255,255,255,.15);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(255,255,255,.2);
+  position: relative;
+  z-index: 1;
+}
+.login-app-name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 32px;
+  color: var(--white);
+  letter-spacing: -1px;
+  position: relative;
+  z-index: 1;
+}
+.login-app-name span { color: var(--secondary-light); }
+.login-tagline {
+  font-size: 13px;
+  color: rgba(255,255,255,.75);
+  margin-top: 6px;
+  position: relative;
+  z-index: 1;
+  line-height: 1.5;
+}
+.login-form {
+  flex: 1;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.login-form-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.login-form-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.login-divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.login-divider-text {
+  font-size: 12px;
+  color: var(--text-hint);
+  font-weight: 500;
+}
+.btn-social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  width: 100%;
+}
+.login-footer {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 4px 0 8px;
+}
+.login-footer a {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+.forgot-link {
+  text-align: right;
+  font-size: 12px;
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* — SCREEN: REGISTRO — */
+.s-register {
+  background: var(--surface);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.register-header {
+  background: var(--white);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.back-btn {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: var(--surface-2);
+  font-size: 18px;
+  cursor: pointer;
+}
+.register-header-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--text-primary);
+}
+.progress-steps {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 24px 0;
+}
+.step-dot {
+  width: 28px; height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+}
+.step-dot.done { background: var(--primary); }
+.step-dot.current {
+  background: var(--primary);
+  width: 40px;
+}
+.register-form {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.register-form-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--text-primary);
+}
+.register-form-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: -8px;
+  line-height: 1.5;
+}
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+.form-row .form-group { flex: 1; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.terms-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.checkbox-mock {
+  width: 18px; height: 18px;
+  min-width: 18px;
+  border: 2px solid var(--primary);
+  border-radius: 4px;
+  background: var(--primary-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--primary);
+  margin-top: 1px;
+}
+
+/* — SCREEN: DASHBOARD — */
+.s-dashboard {
+  background: var(--surface);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.dash-scroll { flex: 1; overflow-y: auto; scrollbar-width: none; }
+.dash-scroll::-webkit-scrollbar { display: none; }
+.dash-greeting-bar {
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+  padding: 16px 20px 20px;
+  color: var(--white);
+}
+.dash-greeting-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.dash-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dash-logo-icon {
+  font-size: 20px;
+  background: rgba(255,255,255,.15);
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+}
+.dash-logo-name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--white);
+  letter-spacing: -0.5px;
+}
+.dash-logo-name span { color: var(--secondary-light); }
+.dash-notif-btn {
+  width: 36px; height: 36px;
+  background: rgba(255,255,255,.15);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  position: relative;
+}
+.notif-badge {
+  position: absolute;
+  top: 6px; right: 6px;
+  width: 8px; height: 8px;
+  background: var(--secondary);
+  border-radius: 50%;
+  border: 1.5px solid var(--primary);
+}
+.dash-greeting-text {
+  font-size: 13px;
+  color: rgba(255,255,255,.75);
+}
+.dash-greeting-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--white);
+  margin-top: 2px;
+}
+.dash-savings-card {
+  margin: -16px 16px 0;
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 16px;
+  border: 1px solid rgba(0,0,0,.05);
+}
+.dash-savings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.dash-savings-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.dash-savings-amount {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 30px;
+  color: var(--primary);
+  letter-spacing: -1px;
+  margin-bottom: 4px;
+}
+.dash-savings-sub {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.dash-stats-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.dash-stat {
+  flex: 1;
+  text-align: center;
+}
+.dash-stat-value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+.dash-stat-label {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.dash-stat-divider {
+  width: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+.dash-section { padding: 20px 16px 0; }
+/* Quick actions */
+.quick-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.quick-action {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+.qa-icon {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.qa-icon-green { background: var(--primary-bg); }
+.qa-icon-orange { background: var(--secondary-bg); }
+.qa-icon-blue { background: #E3F2FD; }
+.qa-icon-purple { background: #F3E5F5; }
+.qa-text {}
+.qa-title {
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+}
+.qa-sub {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+/* Nearby stores list */
+.store-card {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  box-shadow: var(--shadow-sm);
+}
+.store-logo {
+  width: 42px; height: 42px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+.store-info { flex: 1; min-width: 0; }
+.store-name {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+}
+.store-meta {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+  display: flex;
+  gap: 8px;
+}
+.store-price {
+  text-align: right;
+}
+.store-price-amount {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--primary);
+}
+.store-price-label {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+/* Alert card */
+.alert-card {
+  background: var(--secondary-bg);
+  border: 1px solid rgba(255,111,0,.2);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.alert-icon { font-size: 22px; flex-shrink: 0; }
+.alert-text { flex: 1; }
+.alert-title {
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--secondary);
+  font-family: var(--font-display);
+}
+.alert-sub {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* — SCREEN: MI LISTA — */
+.s-lista {
+  background: var(--surface);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.lista-top {
+  background: var(--white);
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 4;
+}
+.lista-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+}
+.lista-search-icon { font-size: 16px; color: var(--text-hint); }
+.lista-search-placeholder {
+  font-size: 14px;
+  color: var(--text-hint);
+  flex: 1;
+}
+.lista-search-scan { font-size: 18px; cursor: pointer; }
+.lista-stats {
+  display: flex;
+  gap: 12px;
+  padding: 8px 16px;
+  background: var(--primary-bg);
+  border-bottom: 1px solid rgba(46,125,50,.15);
+}
+.lista-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.lista-stat-number {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--primary);
+}
+.lista-stat-text {
+  font-size: 11px;
+  color: var(--primary-dark);
+}
+.lista-stat-sep {
+  width: 1px;
+  background: rgba(46,125,50,.2);
+}
+.lista-scroll { flex: 1; overflow-y: auto; scrollbar-width: none; padding-bottom: 16px; }
+.lista-scroll::-webkit-scrollbar { display: none; }
+.categoria-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px 8px;
+}
+.categoria-icon { font-size: 16px; }
+.categoria-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.categoria-count {
+  font-size: 11px;
+  color: var(--text-hint);
+}
+.product-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--white);
+  border-bottom: 1px solid var(--surface-2);
+}
+.product-check {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.product-check.done {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+  font-size: 12px;
+}
+.product-info { flex: 1; min-width: 0; }
+.product-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.product-name.done {
+  text-decoration: line-through;
+  color: var(--text-hint);
+}
+.product-brand {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.product-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.product-price {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+.product-qty {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.qty-btn {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary);
+  cursor: pointer;
+  border: 1px solid var(--border);
+}
+.qty-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  min-width: 18px;
+  text-align: center;
+}
+.lista-optimize-btn {
+  position: sticky;
+  bottom: 0;
+  margin: 0;
+  padding: 12px 16px;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+}
+.optimize-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+  border-radius: var(--radius-lg);
+  padding: 12px 18px;
+  cursor: pointer;
+}
+.optimize-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.optimize-icon {
+  width: 36px; height: 36px;
+  background: rgba(255,255,255,.15);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.optimize-text {}
+.optimize-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--white);
+}
+.optimize-sub {
+  font-size: 11px;
+  color: rgba(255,255,255,.7);
+}
+.optimize-arrow {
+  font-size: 20px;
+  color: var(--white);
+  opacity: .8;
+}
+
+/* — SCREEN: EXPLORAR — */
+.s-explorar {
+  background: var(--surface);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.map-container {
+  flex: 1;
+  background: #E8EEE8;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+.map-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(46,125,50,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(46,125,50,.03) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+/* SVG-like map roads */
+.map-road {
+  position: absolute;
+  background: #fff;
+  border-radius: 3px;
+}
+.map-road-h { height: 6px; }
+.map-road-v { width: 6px; }
+.map-road-thick { height: 10px; }
+.map-marker {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+.map-marker-bubble {
+  background: var(--primary);
+  color: var(--white);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  border: 2px solid var(--white);
+  box-shadow: var(--shadow-md);
+  white-space: nowrap;
+  position: relative;
+}
+.map-marker-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -6px; left: 50%;
+  transform: translateX(-50%);
+  border: 3px solid transparent;
+  border-top-color: var(--primary);
+}
+.map-marker-bubble.selected {
+  background: var(--secondary);
+}
+.map-marker-bubble.selected::after {
+  border-top-color: var(--secondary);
+}
+.map-user {
+  position: absolute;
+  width: 20px; height: 20px;
+  background: #2979FF;
+  border-radius: 50%;
+  border: 3px solid var(--white);
+  box-shadow: 0 0 0 4px rgba(41,121,255,.2);
+}
+.map-search-bar {
+  position: absolute;
+  top: 10px; left: 10px; right: 10px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 9px 12px;
+  box-shadow: var(--shadow-lg);
+}
+.map-search-icon { font-size: 15px; color: var(--text-hint); }
+.map-search-text { font-size: 13px; color: var(--text-hint); flex: 1; }
+.map-filter-row {
+  position: absolute;
+  top: 56px; left: 10px;
+  z-index: 3;
+  display: flex;
+  gap: 6px;
+}
+.map-filter-chip {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  border: 1px solid var(--border);
+}
+.map-filter-chip.active {
+  background: var(--primary);
+  color: var(--white);
+  border-color: var(--primary);
+}
+.store-bottom-panel {
+  background: var(--white);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  box-shadow: 0 -4px 20px rgba(0,0,0,.1);
+  padding: 0 0 0;
+}
+.panel-handle {
+  width: 40px; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 10px auto 14px;
+}
+.panel-store-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.panel-store-icon {
+  width: 48px; height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px;
+  border: 1px solid var(--border);
+}
+.panel-store-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+.panel-store-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+  display: flex;
+  gap: 8px;
+}
+.panel-store-open {
+  color: var(--primary);
+  font-weight: 600;
+}
+.panel-products {
+  padding: 12px 16px;
+}
+.panel-products-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 10px;
+}
+.panel-product-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--surface-2);
+}
+.panel-product-name {
+  font-size: 12px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.panel-product-price {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--primary);
+}
+.panel-btn {
+  padding: 8px 16px 14px;
+}
+
+/* — SCREEN: OPTIMIZADOR — */
+.s-optimizer {
+  background: var(--surface);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.opt-scroll { flex: 1; overflow-y: auto; scrollbar-width: none; }
+.opt-scroll::-webkit-scrollbar { display: none; }
+.opt-config {
+  background: var(--white);
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.opt-config-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 14px;
+}
+.slider-row {
+  margin-bottom: 14px;
+}
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.slider-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.slider-value {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--primary);
+}
+.slider-track {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  position: relative;
+}
+.slider-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  border-radius: 3px;
+}
+.slider-thumb {
+  width: 18px; height: 18px;
+  background: var(--white);
+  border: 2.5px solid var(--primary);
+  border-radius: 50%;
+  position: absolute;
+  top: -6px;
+  transform: translateX(-50%);
+  box-shadow: var(--shadow-sm);
+}
+.opt-stops-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--border);
+}
+.opt-stops-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.stops-selector {
+  display: flex;
+  gap: 6px;
+}
+.stop-opt {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1.5px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-display);
+}
+.stop-opt.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--white);
+}
+.opt-results { padding: 16px; }
+.opt-results-header {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 12px;
+}
+.route-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--border);
+  padding: 14px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+.route-card.best {
+  border-color: var(--primary);
+  background: linear-gradient(135deg, var(--primary-bg) 0%, var(--white) 100%);
+}
+.route-card.best::before {
+  content: 'MEJOR OPCIÓN';
+  position: absolute;
+  top: 10px; right: -20px;
+  background: var(--primary);
+  color: var(--white);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 3px 28px;
+  transform: rotate(45deg);
+}
+.route-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.route-stops {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  flex: 1;
+  padding-right: 24px;
+}
+.route-stop {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.stop-icon {
+  width: 24px; height: 24px;
+  background: var(--primary-bg);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  border: 1px solid rgba(46,125,50,.2);
+}
+.stop-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+}
+.stop-arrow { font-size: 12px; color: var(--text-hint); }
+.route-metrics {
+  display: flex;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.route-metric {
+  flex: 1;
+  text-align: center;
+}
+.route-metric-val {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+.route-metric-val.green { color: var(--primary); }
+.route-metric-val.orange { color: var(--secondary); }
+.route-metric-label {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.route-metric-sep {
+  width: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+.route-select-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--primary);
+  color: var(--white);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 10px;
+  cursor: pointer;
+  font-family: var(--font-display);
+}
+.route-card:not(.best) .route-select-btn {
+  background: transparent;
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+}
+
+/* — SCREEN: PERFIL — */
+.s-perfil {
+  background: var(--surface);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.perfil-scroll { flex: 1; overflow-y: auto; scrollbar-width: none; }
+.perfil-scroll::-webkit-scrollbar { display: none; }
+.perfil-hero {
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+  padding: 20px 20px 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.avatar {
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.2);
+  border: 3px solid rgba(255,255,255,.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+}
+.perfil-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--white);
+}
+.perfil-email {
+  font-size: 12px;
+  color: rgba(255,255,255,.7);
+  margin-top: 3px;
+}
+.perfil-stats {
+  display: flex;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 0;
+}
+.perfil-stat {
+  flex: 1;
+  text-align: center;
+  padding: 0 8px;
+}
+.perfil-stat + .perfil-stat {
+  border-left: 1px solid var(--border);
+}
+.perfil-stat-val {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--primary);
+}
+.perfil-stat-label {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+  line-height: 1.3;
+}
+.menu-group { padding: 12px 0; }
+.menu-group-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 0 16px 6px;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  background: var(--white);
+  border-bottom: 1px solid var(--surface-2);
+  cursor: pointer;
+}
+.menu-item-icon {
+  width: 34px; height: 34px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+}
+.menu-item-text { flex: 1; }
+.menu-item-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.menu-item-sub {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.menu-item-arrow {
+  font-size: 16px;
+  color: var(--text-hint);
+}
+.menu-item-badge {
+  background: var(--error-bg);
+  color: var(--error);
+  border-radius: 10px;
+  padding: 2px 7px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.menu-item.danger .menu-item-label { color: var(--error); }
+
+/* — SCREEN: OCR CAPTURA — */
+.s-ocr-cap {
+  background: #000;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.cam-viewfinder {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cam-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, #2a2a2a 0%, #0a0a0a 100%);
+}
+.cam-grid {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+.cam-frame {
+  position: relative;
+  z-index: 2;
+  width: 290px;
+  height: 200px;
+}
+.cam-corner {
+  position: absolute;
+  width: 24px; height: 24px;
+  border-color: var(--primary-light);
+  border-style: solid;
+}
+.cam-corner.tl { top: 0; left: 0; border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+.cam-corner.tr { top: 0; right: 0; border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+.cam-corner.bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+.cam-corner.br { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+.cam-scan-line {
+  position: absolute;
+  left: 4px; right: 4px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary-light), transparent);
+  top: 40%;
+  box-shadow: 0 0 8px var(--primary-light);
+}
+.cam-hint {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+  padding: 12px;
+  font-size: 13px;
+  color: rgba(255,255,255,.7);
+}
+.cam-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 16px 20px 24px;
+  background: #111;
+}
+.cam-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.cam-btn-icon {
+  width: 42px; height: 42px;
+  background: rgba(255,255,255,.1);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  border: 1px solid rgba(255,255,255,.15);
+}
+.cam-btn-label {
+  font-size: 10px;
+  color: rgba(255,255,255,.6);
+  font-weight: 500;
+}
+.cam-shutter {
+  width: 68px; height: 68px;
+  background: var(--white);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 5px solid rgba(255,255,255,.3);
+  cursor: pointer;
+  font-size: 26px;
+}
+.cam-wizard-steps {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 10px;
+  background: #111;
+}
+.wizard-step {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.wizard-step-dot {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-display);
+}
+.wizard-step-dot.active {
+  background: var(--primary-light);
+  color: var(--white);
+}
+.wizard-step-dot.done {
+  background: rgba(255,255,255,.15);
+  color: rgba(255,255,255,.6);
+  font-size: 12px;
+}
+.wizard-step-dot.pending {
+  background: rgba(255,255,255,.1);
+  color: rgba(255,255,255,.3);
+}
+.wizard-step-label {
+  font-size: 10px;
+  color: rgba(255,255,255,.5);
+  font-weight: 500;
+}
+.wizard-step.active .wizard-step-label { color: var(--primary-light); font-weight: 700; }
+.wizard-connector {
+  width: 20px; height: 1px;
+  background: rgba(255,255,255,.15);
+  margin: 0 2px;
+}
+
+/* — SCREEN: OCR REVISIÓN — */
+.s-ocr-rev {
+  background: var(--surface);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.ocr-rev-header {
+  background: var(--white);
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.ocr-rev-steps {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--primary-bg);
+  border-bottom: 1px solid rgba(46,125,50,.15);
+}
+.ocr-rev-step { display: flex; align-items: center; gap: 6px; }
+.ocr-step-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-display);
+}
+.ocr-step-pill.done { background: var(--primary); color: var(--white); }
+.ocr-step-pill.active { background: var(--secondary); color: var(--white); }
+.ocr-step-pill.pending { background: var(--border); color: var(--text-secondary); }
+.ocr-rev-scroll { flex: 1; overflow-y: auto; scrollbar-width: none; }
+.ocr-rev-scroll::-webkit-scrollbar { display: none; }
+.ocr-summary {
+  padding: 12px 16px;
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ocr-summary-text {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.ocr-summary-sub {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.ocr-product-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--white);
+  border-bottom: 1px solid var(--surface-2);
+}
+.ocr-product-text { flex: 1; min-width: 0; }
+.ocr-product-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.ocr-product-match {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.conf-badge {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.conf-high { background: var(--primary-bg); color: var(--primary); }
+.conf-mid  { background: var(--secondary-bg); color: var(--secondary); }
+.conf-low  { background: var(--error-bg); color: var(--error); }
+.ocr-del-btn {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--error-bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  color: var(--error);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.ocr-footer {
+  padding: 12px 16px;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+}
+.ocr-footer-btn-sec {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 11px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-display);
+}
+.ocr-footer-btn-pri {
+  flex: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--primary);
+  border-radius: var(--radius-md);
+  padding: 11px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--white);
+  cursor: pointer;
+  font-family: var(--font-display);
+}
+
+/* — SCREEN: ASISTENTE — */
+.s-asistente {
+  background: var(--surface-2);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.chat-scroll {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: 12px 12px 0;
+}
+.chat-scroll::-webkit-scrollbar { display: none; }
+.chat-bubble {
+  max-width: 85%;
+  padding: 10px 13px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.chat-bubble.assistant {
+  background: var(--white);
+  color: var(--text-primary);
+  border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) 4px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  align-self: flex-start;
+}
+.chat-bubble.user {
+  background: var(--primary);
+  color: var(--white);
+  border-radius: var(--radius-lg) var(--radius-lg) 4px var(--radius-lg);
+  align-self: flex-end;
+  margin-left: auto;
+}
+.chat-bubble.assistant p + p { margin-top: 6px; }
+.chat-assistant-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.assistant-avatar {
+  width: 24px; height: 24px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.assistant-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: var(--font-display);
+}
+.chat-timestamp {
+  font-size: 10px;
+  color: var(--text-hint);
+  text-align: center;
+  margin: 6px 0;
+}
+.chat-savings-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin-top: 8px;
+}
+.chat-savings-header {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.chat-savings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--surface-2);
+}
+.chat-savings-product { font-size: 11px; color: var(--text-secondary); }
+.chat-savings-amount { font-size: 11px; font-weight: 700; color: var(--primary); }
+.chat-savings-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 8px;
+}
+.chat-savings-total-label { font-size: 12px; font-weight: 700; color: var(--text-primary); }
+.chat-savings-total-val { font-family: var(--font-display); font-weight: 800; font-size: 16px; color: var(--primary); }
+.chat-suggestions {
+  padding: 6px 12px;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+.chat-suggestions::-webkit-scrollbar { display: none; }
+.suggestion-chip {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 7px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+.chat-input-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px 14px;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.chat-input {
+  flex: 1;
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  padding: 9px 14px;
+  font-size: 13px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  outline: none;
+}
+.chat-send-btn {
+  width: 38px; height: 38px;
+  background: var(--primary);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════
+   SCREEN VISIBILITY
+   ══════════════════════════════════════════════ */
+.screen-panel { display: none; width: 100%; height: 100%; }
+.screen-panel.visible { display: flex; flex-direction: column; }
+
+/* ══════════════════════════════════════════════
+   INFO PANEL
+   ══════════════════════════════════════════════ */
+.info-panel {
+  width: 280px;
+  margin-left: 32px;
+  flex-shrink: 0;
+}
+.info-card {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.info-card-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--primary-light);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+.info-item {
+  margin-bottom: 10px;
+}
+.info-item-label {
+  font-size: 10px;
+  color: #667788;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
+}
+.info-item-value {
+  font-size: 12px;
+  color: #AABBCC;
+  line-height: 1.4;
+}
+.info-item-code {
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--primary-light);
+  background: rgba(46,125,50,.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.req-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(46,125,50,.2);
+  border: 1px solid rgba(96,173,94,.3);
+  color: var(--primary-light);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  margin: 2px 2px 0 0;
+}
+
+@media (max-width: 768px) {
+  .stage { flex-direction: column; align-items: center; }
+  .info-panel { width: 100%; margin-left: 0; margin-top: 24px; }
+  .gallery-header { padding: 20px 16px 0; }
+  .nav-tabs-wrapper { padding: 16px 16px 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="gallery-header">
+  <div class="gallery-brand">
+    <div class="gallery-logo">🛒</div>
+    <div>
+      <div class="gallery-title">BargAIn — UI Mockups</div>
+      <div class="gallery-subtitle">F1-14 · Wireframes &amp; Mockups · diagramas/ui-mockups/</div>
+    </div>
+  </div>
+  <span class="badge-tfg">TFG · ETSII-US · 2025</span>
+</header>
+
+<!-- NAV TABS -->
+<nav class="nav-tabs-wrapper">
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="showScreen('login', this)">01 · Login</div>
+    <div class="nav-tab" onclick="showScreen('registro', this)">02 · Registro</div>
+    <div class="nav-tab" onclick="showScreen('dashboard', this)">03 · Dashboard</div>
+    <div class="nav-tab" onclick="showScreen('lista', this)">04 · Mi Lista</div>
+    <div class="nav-tab" onclick="showScreen('explorar', this)">05 · Explorar</div>
+    <div class="nav-tab" onclick="showScreen('optimizer', this)">06 · Optimizador</div>
+    <div class="nav-tab" onclick="showScreen('perfil', this)">07 · Perfil</div>
+    <div class="nav-tab" onclick="showScreen('ocr-cap', this)">08 · OCR Captura</div>
+    <div class="nav-tab" onclick="showScreen('ocr-rev', this)">09 · OCR Revisión</div>
+    <div class="nav-tab" onclick="showScreen('asistente', this)">10 · Asistente</div>
+  </div>
+</nav>
+
+<!-- STAGE -->
+<main class="stage">
+
+  <!-- PHONE FRAME -->
+  <div class="phone-wrap">
+    <div class="screen-label" id="screen-label">01 — Inicio de Sesión</div>
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+
+        <!-- STATUS BAR -->
+        <div class="status-bar">
+          <span class="status-time">9:41</span>
+          <div class="status-icons">
+            <span class="status-icon">▲▲▲</span>
+            <span class="status-icon">WiFi</span>
+            <span class="status-icon">🔋</span>
+          </div>
+        </div>
+
+        <!-- ════ SCREEN: LOGIN ════ -->
+        <div class="screen-panel visible" id="screen-login">
+          <div class="s-login screen-content">
+            <div class="login-hero">
+              <div class="login-app-logo">🛒</div>
+              <div class="login-app-name">Barg<span>AIn</span></div>
+              <div class="login-tagline">Optimiza tu cesta de la compra.<br/>Ahorra en tiempo, distancia y dinero.</div>
+            </div>
+            <div class="login-form">
+              <div>
+                <div class="login-form-title">Bienvenido de nuevo</div>
+                <div class="login-form-sub">Inicia sesión en tu cuenta</div>
+              </div>
+              <div class="form-group">
+                <div class="field-label">Correo electrónico</div>
+                <div class="input-wrap">
+                  <span class="input-icon">✉</span>
+                  <input class="input-field with-icon" placeholder="tu@email.com" readonly />
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="field-label">Contraseña</div>
+                <div class="input-wrap">
+                  <span class="input-icon">🔑</span>
+                  <input class="input-field with-icon" type="password" placeholder="••••••••" readonly />
+                </div>
+                <div class="forgot-link">¿Olvidaste tu contraseña?</div>
+              </div>
+              <button class="btn-primary">Iniciar sesión</button>
+              <div class="login-divider">
+                <div class="login-divider-line"></div>
+                <span class="login-divider-text">o continúa con</span>
+                <div class="login-divider-line"></div>
+              </div>
+              <button class="btn-social">🅶 Google</button>
+              <div class="login-footer">
+                ¿No tienes cuenta? <a href="#">Regístrate gratis</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════ SCREEN: REGISTRO ════ -->
+        <div class="screen-panel" id="screen-registro">
+          <div class="s-register screen-content">
+            <div class="register-header">
+              <div class="back-btn">←</div>
+              <div class="register-header-title">Crear cuenta</div>
+            </div>
+            <div class="progress-steps">
+              <div class="step-dot current"></div>
+              <div class="step-dot"></div>
+              <div class="step-dot"></div>
+            </div>
+            <div class="register-form">
+              <div>
+                <div class="register-form-title">Datos personales</div>
+                <div class="register-form-sub">Paso 1 de 3 — Cuéntanos quién eres</div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <div class="field-label">Nombre</div>
+                  <input class="input-field" placeholder="Nicolás" readonly />
+                </div>
+                <div class="form-group">
+                  <div class="field-label">Apellidos</div>
+                  <input class="input-field" placeholder="García" readonly />
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="field-label">Correo electrónico</div>
+                <div class="input-wrap">
+                  <span class="input-icon">✉</span>
+                  <input class="input-field with-icon" placeholder="nicolas@gmail.com" readonly />
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="field-label">Contraseña</div>
+                <div class="input-wrap">
+                  <span class="input-icon">🔑</span>
+                  <input class="input-field with-icon" type="password" placeholder="Mínimo 8 caracteres" readonly />
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="field-label">Tipo de cuenta</div>
+                <div style="display:flex;gap:8px;">
+                  <div style="flex:1;border:2px solid var(--primary);border-radius:var(--radius-sm);padding:10px;text-align:center;background:var(--primary-bg);">
+                    <div style="font-size:20px">👤</div>
+                    <div style="font-size:11px;font-weight:700;color:var(--primary);margin-top:4px">Consumidor</div>
+                  </div>
+                  <div style="flex:1;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px;text-align:center;">
+                    <div style="font-size:20px">🏪</div>
+                    <div style="font-size:11px;font-weight:700;color:var(--text-secondary);margin-top:4px">Comercio/PYME</div>
+                  </div>
+                </div>
+              </div>
+              <div class="terms-text">
+                <div class="checkbox-mock">✓</div>
+                <span>Acepto los <a style="color:var(--primary);font-weight:600">Términos de Servicio</a> y la <a style="color:var(--primary);font-weight:600">Política de Privacidad</a> de BargAIn.</span>
+              </div>
+              <button class="btn-primary">Continuar →</button>
+              <div class="login-footer">
+                ¿Ya tienes cuenta? <a href="#">Inicia sesión</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════ SCREEN: DASHBOARD ════ -->
+        <div class="screen-panel" id="screen-dashboard">
+          <div class="s-dashboard">
+            <div class="dash-scroll">
+              <div class="dash-greeting-bar">
+                <div class="dash-greeting-top">
+                  <div class="dash-logo">
+                    <div class="dash-logo-icon">🛒</div>
+                    <div class="dash-logo-name">Barg<span>AIn</span></div>
+                  </div>
+                  <div class="dash-notif-btn">🔔<div class="notif-badge"></div></div>
+                </div>
+                <div class="dash-greeting-text">Miércoles, 11 mar 2026</div>
+                <div class="dash-greeting-name">¡Hola, Nicolás! 👋</div>
+              </div>
+
+              <!-- Savings summary card -->
+              <div style="padding:0 16px 0;">
+                <div class="dash-savings-card">
+                  <div class="dash-savings-header">
+                    <span class="dash-savings-label">Ahorro este mes</span>
+                    <span class="chip chip-green">↑ 12% vs mes anterior</span>
+                  </div>
+                  <div class="dash-savings-amount">€28,40</div>
+                  <div class="dash-savings-sub">en 7 compras optimizadas</div>
+                  <div class="dash-stats-row">
+                    <div class="dash-stat">
+                      <div class="dash-stat-value">3</div>
+                      <div class="dash-stat-label">Listas activas</div>
+                    </div>
+                    <div class="dash-stat-divider"></div>
+                    <div class="dash-stat">
+                      <div class="dash-stat-value">47</div>
+                      <div class="dash-stat-label">Productos en lista</div>
+                    </div>
+                    <div class="dash-stat-divider"></div>
+                    <div class="dash-stat">
+                      <div class="dash-stat-value">4</div>
+                      <div class="dash-stat-label">Rutas guardadas</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Alertas -->
+              <div class="dash-section">
+                <div class="section-header">
+                  <span class="section-title">🔔 Alertas de precios</span>
+                  <span class="section-link">Ver todas</span>
+                </div>
+                <div class="alert-card">
+                  <div class="alert-icon">📉</div>
+                  <div class="alert-text">
+                    <div class="alert-title">Aceite Oliva Virgen Extra 1L</div>
+                    <div class="alert-sub">Bajó -0,45€ en Mercadona (Av. Constitución)</div>
+                  </div>
+                  <div class="savings-pill">-0,45€</div>
+                </div>
+              </div>
+
+              <!-- Quick actions -->
+              <div class="dash-section">
+                <div class="section-header" style="margin-bottom:10px">
+                  <span class="section-title">Acciones rápidas</span>
+                </div>
+                <div class="quick-actions">
+                  <div class="quick-action">
+                    <div class="qa-icon qa-icon-green">📝</div>
+                    <div class="qa-text">
+                      <div class="qa-title">Mi lista</div>
+                      <div class="qa-sub">47 productos</div>
+                    </div>
+                  </div>
+                  <div class="quick-action">
+                    <div class="qa-icon qa-icon-orange">🗺</div>
+                    <div class="qa-text">
+                      <div class="qa-title">Optimizar ruta</div>
+                      <div class="qa-sub">Ahorrar hasta €4,20</div>
+                    </div>
+                  </div>
+                  <div class="quick-action">
+                    <div class="qa-icon qa-icon-blue">📷</div>
+                    <div class="qa-text">
+                      <div class="qa-title">Escanear ticket</div>
+                      <div class="qa-sub">OCR automático</div>
+                    </div>
+                  </div>
+                  <div class="quick-action">
+                    <div class="qa-icon qa-icon-purple">🤖</div>
+                    <div class="qa-text">
+                      <div class="qa-title">Asistente IA</div>
+                      <div class="qa-sub">Pregúntame algo</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tiendas cercanas -->
+              <div class="dash-section" style="padding-bottom:12px">
+                <div class="section-header">
+                  <span class="section-title">📍 Tiendas cercanas</span>
+                  <span class="section-link">Ver mapa</span>
+                </div>
+                <div class="store-card">
+                  <div class="store-logo">🟢</div>
+                  <div class="store-info">
+                    <div class="store-name">Mercadona</div>
+                    <div class="store-meta"><span>📍 0.4 km</span><span>🕐 8:00-22:00</span></div>
+                  </div>
+                  <div class="store-price">
+                    <div class="store-price-amount">€32,10</div>
+                    <div class="store-price-label">tu lista</div>
+                  </div>
+                </div>
+                <div class="store-card">
+                  <div class="store-logo">🔴</div>
+                  <div class="store-info">
+                    <div class="store-name">Carrefour Express</div>
+                    <div class="store-meta"><span>📍 0.7 km</span><span>🕐 7:30-23:00</span></div>
+                  </div>
+                  <div class="store-price">
+                    <div class="store-price-amount">€34,85</div>
+                    <div class="store-price-label">tu lista</div>
+                  </div>
+                </div>
+                <div class="store-card">
+                  <div class="store-logo">🟡</div>
+                  <div class="store-info">
+                    <div class="store-name">Lidl</div>
+                    <div class="store-meta"><span>📍 1.2 km</span><span>🕐 8:00-21:30</span></div>
+                  </div>
+                  <div class="store-price">
+                    <div class="store-price-amount">€29,60</div>
+                    <div class="store-price-label">tu lista</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tab-bar">
+              <div class="tab-item active">
+                <span class="tab-icon">🏠</span>
+                <span class="tab-label">Inicio</span>
+              </div>
+              <div class="tab-item">
+                <span class="tab-icon">📝</span>
+                <span class="tab-label">Mi Lista</span>
+              </div>
+              <div class="tab-item">
+                <span class="tab-icon">🗺</span>
+                <span class="tab-label">Explorar</span>
+              </div>
+              <div class="tab-item">
+                <span class="tab-icon">⚡</span>
+                <span class="tab-label">Optimizar</span>
+              </div>
+              <div class="tab-item">
+                <span class="tab-icon">👤</span>
+                <span class="tab-label">Perfil</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════ SCREEN: MI LISTA ════ -->
+        <div class="screen-panel" id="screen-lista">
+          <div class="s-lista">
+            <div class="app-bar">
+              <div class="app-bar-title">Lista de la compra</div>
+              <div style="display:flex;gap:6px">
+                <div class="icon-btn">➕</div>
+                <div class="icon-btn">⋯</div>
+              </div>
+            </div>
+            <div class="lista-top">
+              <div class="lista-search">
+                <span class="lista-search-icon">🔍</span>
+                <span class="lista-search-placeholder">Buscar o añadir producto...</span>
+                <span class="lista-search-scan">📷</span>
+              </div>
+            </div>
+            <div class="lista-stats">
+              <div class="lista-stat-item">
+                <span class="lista-stat-number">12</span>
+                <span class="lista-stat-text">pendientes</span>
+              </div>
+              <div class="lista-stat-sep"></div>
+              <div class="lista-stat-item">
+                <span class="lista-stat-number">8</span>
+                <span class="lista-stat-text">comprados</span>
+              </div>
+              <div class="lista-stat-sep"></div>
+              <div class="lista-stat-item" style="margin-left:auto">
+                <span class="chip chip-orange">~€38,20 est.</span>
+              </div>
+            </div>
+            <div class="lista-scroll">
+              <!-- Categoría Frescos -->
+              <div class="categoria-header">
+                <span class="categoria-icon">🥬</span>
+                <span class="categoria-name">Frescos &amp; Verduras</span>
+                <span class="categoria-count" style="margin-left:auto">(4)</span>
+              </div>
+              <div class="product-item">
+                <div class="product-check done">✓</div>
+                <div class="product-info">
+                  <div class="product-name done">Tomates cherry 500g</div>
+                  <div class="product-brand">Hacendado · Mercadona</div>
+                </div>
+                <div class="product-right">
+                  <div class="product-price">€1,49</div>
+                  <div class="product-qty">
+                    <div class="qty-btn">−</div>
+                    <div class="qty-val">1</div>
+                    <div class="qty-btn">+</div>
+                  </div>
+                </div>
+              </div>
+              <div class="product-item">
+                <div class="product-check"></div>
+                <div class="product-info">
+                  <div class="product-name">Lechuga romana</div>
+                  <div class="product-brand">Varios · mejor precio: Lidl</div>
+                </div>
+                <div class="product-right">
+                  <div class="product-price">€0,79</div>
+                  <div class="product-qty">
+                    <div class="qty-btn">−</div>
+                    <div class="qty-val">2</div>
+                    <div class="qty-btn">+</div>
+                  </div>
+                </div>
+              </div>
+              <div class="product-item">
+                <div class="product-check"></div>
+                <div class="product-info">
+                  <div class="product-name">Zanahorias 1kg</div>
+                  <div class="product-brand">Varios · mejor precio: Alcampo</div>
+                </div>
+                <div class="product-right">
+                  <div class="product-price">€0,69</div>
+                  <div class="product-qty">
+                    <div class="qty-btn">−</div>
+                    <div class="qty-val">1</div>
+                    <div class="qty-btn">+</div>
+                  </div>
+                </div>
+              </div>
+              <!-- Categoría Lácteos -->
+              <div class="categoria-header">
+                <span class="categoria-icon">🥛</span>
+                <span class="categoria-name">Lácteos</span>
+                <span class="categoria-count" style="margin-left:auto">(3)</span>
+              </div>
+              <div class="product-item">
+                <div class="product-check"></div>
+                <div class="product-info">
+                  <div class="product-name">Leche semidesnatada 1L × 6</div>
+                  <div class="product-brand">Hacendado · mejor precio: Mercadona</div>
+                </div>
+                <div class="product-right">
+                  <div class="product-price">€5,40</div>
+                  <div class="product-qty">
+                    <div class="qty-btn">−</div>
+                    <div class="qty-val">1</div>
+                    <div class="qty-btn">+</div>
+                  </div>
+                </div>
+              </div>
+              <div class="product-item">
+                <div class="product-check"></div>
+                <div class="product-info">
+                  <div class="product-name">Yogur natural × 4</div>
+                  <div class="product-brand">Danone · Carrefour</div>
+                </div>
+                <div class="product-right">
+                  <div class="product-price">€1,89</div>
+                  <div class="product-qty">
+                    <div class="qty-btn">−</div>
+                    <div class="qty-val">2</div>
+                    <div class="qty-btn">+</div>
+                  </div>
+                </div>
+              </div>
+              <!-- Categoría Despensa -->
+              <div class="categoria-header">
+                <span class="categoria-icon">🫙</span>
+                <span class="categoria-name">Despensa</span>
+                <span class="categoria-count" style="margin-left:auto">(5)</span>
+              </div>
+              <div class="product-item">
+                <div class="product-check"></div>
+                <div class="product-info">
+                  <div class="product-name">Aceite Oliva Virgen Extra 1L</div>
+                  <div class="product-brand">La Española · ¡Oferta en Mercadona!</div>
+                </div>
+                <div class="product-right">
+                  <div class="chip chip-orange" style="margin-bottom:4px">-0,45€</div>
+                  <div class="product-price" style="color:var(--primary)">€5,30</div>
+                </div>
+              </div>
+            </div>
+            <div class="lista-optimize-btn">
+              <div class="optimize-pill">
+                <div class="optimize-left">
+                  <div class="optimize-icon">⚡</div>
+                  <div class="optimize-text">
+                    <div class="optimize-title">Optimizar ruta de compra</div>
+                    <div class="optimize-sub">Ahorra hasta €4,20 en 2 paradas</div>
+                  </div>
+                </div>
+                <div class="optimize-arrow">→</div>
+              </div>
+            </div>
+            <div class="tab-bar">
+              <div class="tab-item"><span class="tab-icon">🏠</span><span class="tab-label">Inicio</span></div>
+              <div class="tab-item active"><span class="tab-icon">📝</span><span class="tab-label">Mi Lista</span></div>
+              <div class="tab-item"><span class="tab-icon">🗺</span><span class="tab-label">Explorar</span></div>
+              <div class="tab-item"><span class="tab-icon">⚡</span><span class="tab-label">Optimizar</span></div>
+              <div class="tab-item"><span class="tab-icon">👤</span><span class="tab-label">Perfil</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════ SCREEN: EXPLORAR ════ -->
+        <div class="screen-panel" id="screen-explorar">
+          <div class="s-explorar">
+            <!-- MAP -->
+            <div class="map-container" style="height:420px;flex:none;">
+              <div class="map-bg"></div>
+              <!-- Roads -->
+              <div class="map-road map-road-h" style="width:100%;top:80px;left:0;background:#fff;opacity:.7;"></div>
+              <div class="map-road map-road-thick" style="width:100%;top:160px;left:0;background:#fff;opacity:.8;"></div>
+              <div class="map-road map-road-h" style="width:100%;top:250px;left:0;background:#fff;opacity:.6;"></div>
+              <div class="map-road map-road-h" style="width:100%;top:330px;left:0;background:#fff;opacity:.5;"></div>
+              <div class="map-road map-road-v" style="height:100%;top:0;left:70px;background:#fff;opacity:.6;"></div>
+              <div class="map-road map-road-v" style="height:100%;top:0;left:160px;background:#fff;opacity:.7;"></div>
+              <div class="map-road map-road-v" style="height:100%;top:0;left:260px;background:#fff;opacity:.5;"></div>
+              <!-- Markers -->
+              <div class="map-marker" style="left:60px;top:90px;">
+                <div class="map-marker-bubble">Mercadona</div>
+              </div>
+              <div class="map-marker" style="left:220px;top:140px;">
+                <div class="map-marker-bubble selected">Carrefour ★</div>
+              </div>
+              <div class="map-marker" style="left:140px;top:260px;">
+                <div class="map-marker-bubble">Lidl</div>
+              </div>
+              <div class="map-marker" style="left:290px;top:300px;">
+                <div class="map-marker-bubble">DIA</div>
+              </div>
+              <div class="map-marker" style="left:40px;top:300px;">
+                <div class="map-marker-bubble">Alcampo</div>
+              </div>
+              <!-- User location -->
+              <div class="map-user" style="left:185px;top:195px;"></div>
+              <!-- Overlay controls -->
+              <div class="map-search-bar">
+                <span class="map-search-icon">🔍</span>
+                <span class="map-search-text">Buscar tiendas cerca de mí...</span>
+                <span style="font-size:18px;cursor:pointer">🎯</span>
+              </div>
+              <div class="map-filter-row">
+                <div class="map-filter-chip active">Todas</div>
+                <div class="map-filter-chip">Abiertas</div>
+                <div class="map-filter-chip">Más baratas</div>
+              </div>
+            </div>
+            <!-- BOTTOM PANEL -->
+            <div class="store-bottom-panel" style="flex:1;display:flex;flex-direction:column;">
+              <div class="panel-handle"></div>
+              <div class="panel-store-header">
+                <div class="panel-store-icon">🔴</div>
+                <div>
+                  <div class="panel-store-name">Carrefour Express</div>
+                  <div class="panel-store-meta">
+                    <span>📍 0.7 km</span>
+                    <span class="panel-store-open">● Abierto · hasta 23:00</span>
+                  </div>
+                </div>
+                <div class="icon-btn" style="margin-left:auto">🧭</div>
+              </div>
+              <div class="panel-products" style="flex:1;overflow-y:auto">
+                <div class="panel-products-title">Precios de tu lista en esta tienda</div>
+                <div class="panel-product-row">
+                  <div class="panel-product-name">Leche semidesnatada 1L × 6</div>
+                  <div class="panel-product-price">€5,70</div>
+                </div>
+                <div class="panel-product-row">
+                  <div class="panel-product-name">Yogur natural × 4</div>
+                  <div class="panel-product-price">€1,79</div>
+                </div>
+                <div class="panel-product-row">
+                  <div class="panel-product-name">Aceite Oliva V.E. 1L</div>
+                  <div class="panel-product-price">€5,75</div>
+                </div>
+                <div class="panel-product-row" style="border:none">
+                  <div class="panel-product-name" style="font-weight:700;color:var(--text-primary)">Total estimado</div>
+                  <div class="panel-product-price" style="font-size:15px">€34,85</div>
+                </div>
+              </div>
+              <div class="panel-btn">
+                <button class="btn-primary">🗺 Ver en ruta optimizada</button>
+              </div>
+            </div>
+            <div class="tab-bar">
+              <div class="tab-item"><span class="tab-icon">🏠</span><span class="tab-label">Inicio</span></div>
+              <div class="tab-item"><span class="tab-icon">📝</span><span class="tab-label">Mi Lista</span></div>
+              <div class="tab-item active"><span class="tab-icon">🗺</span><span class="tab-label">Explorar</span></div>
+              <div class="tab-item"><span class="tab-icon">⚡</span><span class="tab-label">Optimizar</span></div>
+              <div class="tab-item"><span class="tab-icon">👤</span><span class="tab-label">Perfil</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════ SCREEN: OPTIMIZADOR ════ -->
+        <div class="screen-panel" id="screen-optimizer">
+          <div class="s-optimizer">
+            <div class="app-bar">
+              <div class="app-bar-title">⚡ Optimizador</div>
+              <div class="icon-btn">ℹ</div>
+            </div>
+            <div class="opt-scroll">
+              <!-- Config -->
+              <div class="opt-config">
+                <div class="opt-config-title">⚖ Parámetros de optimización</div>
+                <div class="slider-row">
+                  <div class="slider-header">
+                    <span class="slider-label">💰 Prioridad precio</span>
+                    <span class="slider-value">60%</span>
+                  </div>
+                  <div class="slider-track">
+                    <div class="slider-fill" style="width:60%"></div>
+                    <div class="slider-thumb" style="left:60%"></div>
+                  </div>
+                </div>
+                <div class="slider-row">
+                  <div class="slider-header">
+                    <span class="slider-label">📍 Prioridad distancia</span>
+                    <span class="slider-value">25%</span>
+                  </div>
+                  <div class="slider-track">
+                    <div class="slider-fill" style="width:25%"></div>
+                    <div class="slider-thumb" style="left:25%"></div>
+                  </div>
+                </div>
+                <div class="slider-row" style="margin-bottom:0">
+                  <div class="slider-header">
+                    <span class="slider-label">⏱ Prioridad tiempo</span>
+                    <span class="slider-value">15%</span>
+                  </div>
+                  <div class="slider-track">
+                    <div class="slider-fill" style="width:15%"></div>
+                    <div class="slider-thumb" style="left:15%"></div>
+                  </div>
+                </div>
+                <div class="opt-stops-row">
+                  <span class="opt-stops-label">Máx. paradas</span>
+                  <div class="stops-selector">
+                    <div class="stop-opt">1</div>
+                    <div class="stop-opt">2</div>
+                    <div class="stop-opt active">3</div>
+                    <div class="stop-opt">4</div>
+                  </div>
+                </div>
+              </div>
+              <!-- Results -->
+              <div class="opt-results">
+                <div class="opt-results-header">📊 Rutas sugeridas (Top 3)</div>
+                <!-- Ruta 1 - MEJOR -->
+                <div class="route-card best">
+                  <div class="route-header">
+                    <div class="route-stops">
+                      <div class="route-stop">
+                        <div class="stop-icon">🟡</div>
+                        <span class="stop-name">Lidl</span>
+                      </div>
+                      <span class="stop-arrow">→</span>
+                      <div class="route-stop">
+                        <div class="stop-icon">🟢</div>
+                        <span class="stop-name">Mercadona</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="route-metrics">
+                    <div class="route-metric">
+                      <div class="route-metric-val green">€29,80</div>
+                      <div class="route-metric-label">Coste total</div>
+                    </div>
+                    <div class="route-metric-sep"></div>
+                    <div class="route-metric">
+                      <div class="route-metric-val orange">-€8,40</div>
+                      <div class="route-metric-label">Ahorro vs tienda única</div>
+                    </div>
+                    <div class="route-metric-sep"></div>
+                    <div class="route-metric">
+                      <div class="route-metric-val">2.1 km</div>
+                      <div class="route-metric-label">Distancia total</div>
+                    </div>
+                    <div class="route-metric-sep"></div>
+                    <div class="route-metric">
+                      <div class="route-metric-val">28 min</div>
+                      <div class="route-metric-label">Tiempo est.</div>
+                    </div>
+                  </div>
+                  <div class="route-select-btn">✓ Seleccionar esta ruta</div>
+                </div>
+                <!-- Ruta 2 -->
+                <div class="route-card">
+                  <div class="route-header">
+                    <div class="route-stops">
+                      <div class="route-stop">
+                        <div class="stop-icon">🟢</div>
+                        <span class="stop-name">Mercadona</span>
+                      </div>
+                    </div>
+                    <span class="chip chip-gray">1 parada</span>
+                  </div>
+                  <div class="route-metrics">
+                    <div class="route-metric">
+                      <div class="route-metric-val">€32,10</div>
+                      <div class="route-metric-label">Coste total</div>
+                    </div>
+                    <div class="route-metric-sep"></div>
+                    <div class="route-metric">
+                      <div class="route-metric-val orange">-€6,10</div>
+                      <div class="route-metric-label">Ahorro</div>
+                    </div>
+                    <div class="route-metric-sep"></div>
+                    <div class="route-metric">
+                      <div class="route-metric-val">0.4 km</div>
+                      <div class="route-metric-label">Distancia</div>
+                    </div>
+                    <div class="route-metric-sep"></div>
+                    <div class="route-metric">
+                      <div class="route-metric-val">15 min</div>
+                      <div class="route-metric-label">Tiempo</div>
+                    </div>
+                  </div>
+                  <div class="route-select-btn">Seleccionar</div>
+                </div>
+                <!-- Ruta 3 -->
+                <div class="route-card">
+                  <div class="route-header">
+                    <div class="route-stops">
+                      <div class="route-stop">
+                        <div class="stop-icon">🟡</div>
+                        <span class="stop-name">Lidl</span>
+                      </div>
+                      <span class="stop-arrow">→</span>
+                      <div class="route-stop">
+                        <div class="stop-icon">🟢</div>
+                        <span class="stop-name">Mercadona</span>
+                      </div>
+                      <span class="stop-arrow">→</span>
+                      <div class="route-stop">
+                        <div class="stop-icon">🔵</div>
+                        <span class="stop-name">DIA</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="route-metrics">
+                    <div class="route-metric">
+                      <div class="route-metric-val green">€28,20</div>
+                      <div class="route-metric-label">Coste total</div>
+                    </div>
+                    <div class="route-metric-sep"></div>
+                    <div class="route-metric">
+                      <div class="route-metric-val orange">-€10,00</div>
+                      <div class="route-metric-label">Ahorro</div>
+                    </div>
+                    <div class="route-metric-sep"></div>
+                    <div class="route-metric">
+                      <div class="route-metric-val">4.8 km</div>
+                      <div class="route-metric-label">Distancia</div>
+                    </div>
+                    <div class="route-metric-sep"></div>
+                    <div class="route-metric">
+                      <div class="route-metric-val">52 min</div>
+                      <div class="route-metric-label">Tiempo</div>
+                    </div>
+                  </div>
+                  <div class="route-select-btn">Seleccionar</div>
+                </div>
+              </div>
+            </div>
+            <div class="tab-bar">
+              <div class="tab-item"><span class="tab-icon">🏠</span><span class="tab-label">Inicio</span></div>
+              <div class="tab-item"><span class="tab-icon">📝</span><span class="tab-label">Mi Lista</span></div>
+              <div class="tab-item"><span class="tab-icon">🗺</span><span class="tab-label">Explorar</span></div>
+              <div class="tab-item active"><span class="tab-icon">⚡</span><span class="tab-label">Optimizar</span></div>
+              <div class="tab-item"><span class="tab-icon">👤</span><span class="tab-label">Perfil</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════ SCREEN: PERFIL ════ -->
+        <div class="screen-panel" id="screen-perfil">
+          <div class="s-perfil">
+            <div class="perfil-scroll">
+              <div class="perfil-hero">
+                <div class="avatar">👤</div>
+                <div>
+                  <div class="perfil-name">Nicolás Parrilla G.</div>
+                  <div class="perfil-email">nicolas@gmail.com · Consumidor</div>
+                  <div style="margin-top:8px"><span class="chip chip-green" style="background:rgba(255,255,255,.15);color:rgba(255,255,255,.9);border:1px solid rgba(255,255,255,.2)">✓ Cuenta verificada</span></div>
+                </div>
+              </div>
+              <div class="perfil-stats">
+                <div class="perfil-stat">
+                  <div class="perfil-stat-val">€28,40</div>
+                  <div class="perfil-stat-label">Ahorro este mes</div>
+                </div>
+                <div class="perfil-stat">
+                  <div class="perfil-stat-val">7</div>
+                  <div class="perfil-stat-label">Compras optim.</div>
+                </div>
+                <div class="perfil-stat">
+                  <div class="perfil-stat-val">3</div>
+                  <div class="perfil-stat-label">Listas activas</div>
+                </div>
+              </div>
+              <!-- Preferencias -->
+              <div style="height:8px;background:var(--surface-2)"></div>
+              <div class="menu-group">
+                <div class="menu-group-title">Mis listas de la compra</div>
+                <div class="menu-item">
+                  <div class="menu-item-icon" style="background:var(--primary-bg)">📝</div>
+                  <div class="menu-item-text">
+                    <div class="menu-item-label">Compra semanal</div>
+                    <div class="menu-item-sub">20 productos · activa</div>
+                  </div>
+                  <div class="menu-item-arrow">›</div>
+                </div>
+                <div class="menu-item">
+                  <div class="menu-item-icon" style="background:var(--secondary-bg)">📋</div>
+                  <div class="menu-item-text">
+                    <div class="menu-item-label">Para la barbacoa</div>
+                    <div class="menu-item-sub">12 productos · activa</div>
+                  </div>
+                  <div class="menu-item-arrow">›</div>
+                </div>
+              </div>
+              <div style="height:8px;background:var(--surface-2)"></div>
+              <div class="menu-group">
+                <div class="menu-group-title">Preferencias de optimización</div>
+                <div class="menu-item">
+                  <div class="menu-item-icon" style="background:var(--primary-bg)">⚖️</div>
+                  <div class="menu-item-text">
+                    <div class="menu-item-label">Pesos del algoritmo</div>
+                    <div class="menu-item-sub">Precio 60% · Distancia 25% · Tiempo 15%</div>
+                  </div>
+                  <div class="menu-item-arrow">›</div>
+                </div>
+                <div class="menu-item">
+                  <div class="menu-item-icon" style="background:#E3F2FD">📍</div>
+                  <div class="menu-item-text">
+                    <div class="menu-item-label">Radio de búsqueda</div>
+                    <div class="menu-item-sub">10 km (máx. 25 km)</div>
+                  </div>
+                  <div class="menu-item-arrow">›</div>
+                </div>
+                <div class="menu-item">
+                  <div class="menu-item-icon" style="background:#F3E5F5">🛑</div>
+                  <div class="menu-item-text">
+                    <div class="menu-item-label">Máximo de paradas</div>
+                    <div class="menu-item-sub">3 paradas por ruta</div>
+                  </div>
+                  <div class="menu-item-arrow">›</div>
+                </div>
+              </div>
+              <div style="height:8px;background:var(--surface-2)"></div>
+              <div class="menu-group">
+                <div class="menu-group-title">Cuenta y notificaciones</div>
+                <div class="menu-item">
+                  <div class="menu-item-icon" style="background:var(--surface-2)">🔔</div>
+                  <div class="menu-item-text">
+                    <div class="menu-item-label">Notificaciones</div>
+                    <div class="menu-item-sub">Alertas de precios, bajadas</div>
+                  </div>
+                  <div class="menu-item-badge">2 nuevas</div>
+                  <div class="menu-item-arrow">›</div>
+                </div>
+                <div class="menu-item">
+                  <div class="menu-item-icon" style="background:var(--surface-2)">🔒</div>
+                  <div class="menu-item-text">
+                    <div class="menu-item-label">Privacidad y datos</div>
+                    <div class="menu-item-sub">Ubicación, permisos</div>
+                  </div>
+                  <div class="menu-item-arrow">›</div>
+                </div>
+                <div class="menu-item danger">
+                  <div class="menu-item-icon" style="background:var(--error-bg)">🚪</div>
+                  <div class="menu-item-text">
+                    <div class="menu-item-label">Cerrar sesión</div>
+                  </div>
+                  <div class="menu-item-arrow" style="color:var(--error)">›</div>
+                </div>
+              </div>
+            </div>
+            <div class="tab-bar">
+              <div class="tab-item"><span class="tab-icon">🏠</span><span class="tab-label">Inicio</span></div>
+              <div class="tab-item"><span class="tab-icon">📝</span><span class="tab-label">Mi Lista</span></div>
+              <div class="tab-item"><span class="tab-icon">🗺</span><span class="tab-label">Explorar</span></div>
+              <div class="tab-item"><span class="tab-icon">⚡</span><span class="tab-label">Optimizar</span></div>
+              <div class="tab-item active"><span class="tab-icon">👤</span><span class="tab-label">Perfil</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════ SCREEN: OCR CAPTURA ════ -->
+        <div class="screen-panel" id="screen-ocr-cap">
+          <div class="s-ocr-cap">
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#111;">
+              <div class="back-btn" style="background:rgba(255,255,255,.1);color:white">←</div>
+              <span style="font-family:var(--font-display);font-weight:700;font-size:16px;color:white">Escanear lista/ticket</span>
+            </div>
+            <div class="cam-wizard-steps">
+              <div class="wizard-step active">
+                <div class="wizard-step-dot active">1</div>
+                <span class="wizard-step-label">Captura</span>
+              </div>
+              <div class="wizard-connector"></div>
+              <div class="wizard-step">
+                <div class="wizard-step-dot pending">2</div>
+                <span class="wizard-step-label">Revisar</span>
+              </div>
+              <div class="wizard-connector"></div>
+              <div class="wizard-step">
+                <div class="wizard-step-dot pending">3</div>
+                <span class="wizard-step-label">Confirmar</span>
+              </div>
+            </div>
+            <div class="cam-viewfinder" style="flex:1;">
+              <div class="cam-bg"></div>
+              <div class="cam-grid"></div>
+              <div class="cam-frame">
+                <div class="cam-corner tl"></div>
+                <div class="cam-corner tr"></div>
+                <div class="cam-corner bl"></div>
+                <div class="cam-corner br"></div>
+                <div class="cam-scan-line"></div>
+              </div>
+              <div class="cam-hint">Encuadra el ticket o tu lista de compra</div>
+            </div>
+            <div class="cam-toolbar">
+              <div class="cam-btn">
+                <div class="cam-btn-icon">💡</div>
+                <div class="cam-btn-label">Flash</div>
+              </div>
+              <div class="cam-shutter">📷</div>
+              <div class="cam-btn">
+                <div class="cam-btn-icon">🖼</div>
+                <div class="cam-btn-label">Galería</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════ SCREEN: OCR REVISIÓN ════ -->
+        <div class="screen-panel" id="screen-ocr-rev">
+          <div class="s-ocr-rev">
+            <div class="register-header">
+              <div class="back-btn">←</div>
+              <div class="register-header-title">Revisar productos detectados</div>
+            </div>
+            <div class="ocr-rev-steps">
+              <div class="ocr-step-pill done">✓ 1. Captura</div>
+              <span style="color:var(--text-hint);font-size:12px">›</span>
+              <div class="ocr-step-pill active">2. Revisar</div>
+              <span style="color:var(--text-hint);font-size:12px">›</span>
+              <div class="ocr-step-pill pending">3. Confirmar</div>
+            </div>
+            <div class="ocr-summary">
+              <div>
+                <div class="ocr-summary-text">8 productos detectados</div>
+                <div class="ocr-summary-sub">7 con alta confianza · 1 requiere revisión</div>
+              </div>
+              <span class="chip chip-green">OCR 94%</span>
+            </div>
+            <div class="ocr-rev-scroll">
+              <!-- Alta confianza -->
+              <div class="categoria-header">
+                <span class="categoria-icon">✅</span>
+                <span class="categoria-name">Alta confianza (7)</span>
+              </div>
+              <div class="ocr-product-item">
+                <div class="conf-badge conf-high">97%</div>
+                <div class="ocr-product-text">
+                  <div class="ocr-product-name">Leche semidesnatada 1L × 6</div>
+                  <div class="ocr-product-match">Coincide: Hacendado · Mercadona</div>
+                </div>
+                <div class="ocr-del-btn">✕</div>
+              </div>
+              <div class="ocr-product-item">
+                <div class="conf-badge conf-high">95%</div>
+                <div class="ocr-product-text">
+                  <div class="ocr-product-name">Aceite Oliva Virgen Extra 1L</div>
+                  <div class="ocr-product-match">Coincide: La Española · varios</div>
+                </div>
+                <div class="ocr-del-btn">✕</div>
+              </div>
+              <div class="ocr-product-item">
+                <div class="conf-badge conf-high">91%</div>
+                <div class="ocr-product-text">
+                  <div class="ocr-product-name">Pan de molde integral</div>
+                  <div class="ocr-product-match">Coincide: Bimbo · Carrefour</div>
+                </div>
+                <div class="ocr-del-btn">✕</div>
+              </div>
+              <div class="ocr-product-item">
+                <div class="conf-badge conf-high">88%</div>
+                <div class="ocr-product-text">
+                  <div class="ocr-product-name">Yogur natural × 4</div>
+                  <div class="ocr-product-match">Coincide: Danone</div>
+                </div>
+                <div class="ocr-del-btn">✕</div>
+              </div>
+              <!-- Baja confianza -->
+              <div class="categoria-header">
+                <span class="categoria-icon">⚠️</span>
+                <span class="categoria-name" style="color:var(--secondary)">Requiere revisión (1)</span>
+              </div>
+              <div class="ocr-product-item" style="background:var(--secondary-bg)">
+                <div class="conf-badge conf-low">62%</div>
+                <div class="ocr-product-text">
+                  <div class="ocr-product-name" style="color:var(--secondary)">Jamn York 150g (¿Jamón York?)</div>
+                  <div class="ocr-product-match">Sin coincidencia exacta — toca para editar</div>
+                </div>
+                <div class="ocr-del-btn">✕</div>
+              </div>
+            </div>
+            <div class="ocr-footer">
+              <div class="ocr-footer-btn-sec">+ Añadir</div>
+              <div class="ocr-footer-btn-pri">Continuar → (8)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════ SCREEN: ASISTENTE ════ -->
+        <div class="screen-panel" id="screen-asistente">
+          <div class="s-asistente">
+            <div class="app-bar">
+              <div class="app-bar-logo">
+                <div class="logo-icon">🤖</div>
+                <div>
+                  <div class="app-bar-title" style="font-size:15px">Asistente BargAIn</div>
+                  <div style="font-size:10px;color:var(--primary);font-weight:600">● En línea · Gemini AI</div>
+                </div>
+              </div>
+              <div class="icon-btn">🗑</div>
+            </div>
+            <div class="chat-scroll" style="display:flex;flex-direction:column;">
+              <div class="chat-timestamp">Hoy · 9:38</div>
+              <!-- Assistant welcome -->
+              <div class="chat-bubble assistant">
+                <div class="chat-assistant-header">
+                  <div class="assistant-avatar">B</div>
+                  <span class="assistant-name">BargAIn IA</span>
+                </div>
+                ¡Hola Nicolás! 👋 Soy tu asistente de compra. Puedo ayudarte a encontrar los mejores precios, comparar tiendas y optimizar tu cesta. ¿En qué te ayudo hoy?
+              </div>
+              <!-- User message -->
+              <div class="chat-bubble user">
+                ¿Dónde está más barato el aceite de oliva virgen extra ahora mismo en Sevilla?
+              </div>
+              <!-- Assistant response with card -->
+              <div class="chat-bubble assistant">
+                <div class="chat-assistant-header">
+                  <div class="assistant-avatar">B</div>
+                  <span class="assistant-name">BargAIn IA</span>
+                </div>
+                <p>He comparado el <strong>Aceite Oliva V.E. 1L</strong> en las tiendas cercanas a ti:</p>
+                <div class="chat-savings-card">
+                  <div class="chat-savings-header">📊 Comparativa de precios</div>
+                  <div class="chat-savings-row">
+                    <div class="chat-savings-product">🟡 Lidl · 1.2 km</div>
+                    <div class="chat-savings-amount" style="color:var(--primary)">€4,85 ✓</div>
+                  </div>
+                  <div class="chat-savings-row">
+                    <div class="chat-savings-product">🟢 Mercadona · 0.4 km</div>
+                    <div class="chat-savings-amount" style="color:var(--text-secondary)">€5,30</div>
+                  </div>
+                  <div class="chat-savings-row" style="border:none">
+                    <div class="chat-savings-product">🔴 Carrefour · 0.7 km</div>
+                    <div class="chat-savings-amount" style="color:var(--text-secondary)">€5,75</div>
+                  </div>
+                </div>
+                <p style="margin-top:8px">El más barato es <strong>Lidl</strong> a €4,85. ¿Quieres que lo añada a tu lista con la tienda recomendada?</p>
+              </div>
+              <!-- User follow-up -->
+              <div class="chat-bubble user">
+                Sí, añádelo. Y dime también qué productos de mi lista puedo comprar más baratos en Lidl.
+              </div>
+              <!-- Typing indicator -->
+              <div class="chat-bubble assistant" style="padding:12px 16px;">
+                <div style="display:flex;gap:4px;align-items:center;">
+                  <div style="width:6px;height:6px;background:var(--text-hint);border-radius:50%;animation:pulse 1s infinite;"></div>
+                  <div style="width:6px;height:6px;background:var(--text-hint);border-radius:50%;animation:pulse 1s .2s infinite;"></div>
+                  <div style="width:6px;height:6px;background:var(--text-hint);border-radius:50%;animation:pulse 1s .4s infinite;"></div>
+                </div>
+              </div>
+            </div>
+            <!-- Suggestions -->
+            <div class="chat-suggestions">
+              <div class="suggestion-chip">💰 ¿Cuánto puedo ahorrar esta semana?</div>
+              <div class="suggestion-chip">🗺 Optimizar mi lista ahora</div>
+              <div class="suggestion-chip">📉 Alertas de bajadas de precio</div>
+              <div class="suggestion-chip">🍽 Recetas con lo que tengo</div>
+            </div>
+            <!-- Input bar -->
+            <div class="chat-input-bar">
+              <input class="chat-input" placeholder="Pregunta sobre precios, tiendas..." readonly />
+              <div class="chat-send-btn" style="color:white">→</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /phone-screen -->
+    </div><!-- /phone-frame -->
+  </div><!-- /phone-wrap -->
+
+  <!-- INFO PANEL -->
+  <div class="info-panel">
+    <div class="info-card" id="info-panel-content">
+      <!-- Populated by JS -->
+    </div>
+    <div class="info-card">
+      <div class="info-card-title">📐 Sistema de diseño</div>
+      <div class="info-item">
+        <div class="info-item-label">Fuentes</div>
+        <div class="info-item-value">Display: <span class="info-item-code">Plus Jakarta Sans</span><br/>Cuerpo: <span class="info-item-code">DM Sans</span></div>
+      </div>
+      <div class="info-item">
+        <div class="info-item-label">Colores principales</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
+          <div style="width:24px;height:24px;border-radius:6px;background:#2E7D32;border:1px solid rgba(255,255,255,.1)" title="#2E7D32 primary"></div>
+          <div style="width:24px;height:24px;border-radius:6px;background:#60AD5E;border:1px solid rgba(255,255,255,.1)" title="#60AD5E primary-light"></div>
+          <div style="width:24px;height:24px;border-radius:6px;background:#FF6F00;border:1px solid rgba(255,255,255,.1)" title="#FF6F00 secondary"></div>
+          <div style="width:24px;height:24px;border-radius:6px;background:#FAFAFA;border:1px solid rgba(255,255,255,.1)" title="#FAFAFA surface"></div>
+          <div style="width:24px;height:24px;border-radius:6px;background:#C62828;border:1px solid rgba(255,255,255,.1)" title="#C62828 error"></div>
+          <div style="width:24px;height:24px;border-radius:6px;background:#212121;border:1px solid rgba(255,255,255,.1)" title="#212121 text"></div>
+        </div>
+      </div>
+      <div class="info-item">
+        <div class="info-item-label">Marco de referencia</div>
+        <div class="info-item-value">iPhone 14 · 375×812 pt</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<style>
+@keyframes pulse {
+  0%, 100% { opacity: .3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1); }
+}
+</style>
+
+<script>
+const SCREENS = {
+  login: {
+    label: '01 — Inicio de Sesión',
+    title: 'Login',
+    desc: 'Pantalla de acceso existente o social (Google).',
+    module: 'apps.users',
+    requirements: ['RF-001', 'RF-002', 'HU-001'],
+    components: ['LoginForm', 'SocialButton', 'HeroGradient'],
+    notes: 'La autenticación usa SimpleJWT. El login social delega en django-allauth.'
+  },
+  registro: {
+    label: '02 — Registro de Usuario',
+    title: 'Registro',
+    desc: 'Wizard de 3 pasos: datos personales, ubicación, preferencias.',
+    module: 'apps.users',
+    requirements: ['RF-001', 'RF-003', 'HU-002'],
+    components: ['ProgressSteps', 'AccountTypeSelector', 'TermsCheckbox'],
+    notes: 'El paso 2 captura la ubicación (PointField). El paso 3 define los pesos iniciales del optimizador.'
+  },
+  dashboard: {
+    label: '03 — Dashboard / Inicio',
+    title: 'Dashboard',
+    desc: 'Resumen del ahorro mensual, alertas de precios activas, accesos rápidos y tiendas cercanas.',
+    module: 'apps.users + apps.prices',
+    requirements: ['RF-006', 'RF-015', 'HU-008', 'HU-028'],
+    components: ['SavingsSummaryCard', 'QuickActions', 'StoreCard', 'AlertCard', 'TabBar'],
+    notes: 'El ahorro se calcula comparando el precio pagado con el precio medio del mercado. Tab bar con 5 secciones principales.'
+  },
+  lista: {
+    label: '04 — Mi Lista de Compra',
+    title: 'Mi Lista',
+    desc: 'Gestión de productos por categoría, contador de pendientes/comprados, botón de optimizar ruta.',
+    module: 'apps.shopping_lists',
+    requirements: ['RF-020', 'RF-021', 'RF-022', 'RF-023', 'HU-010'],
+    components: ['SearchBar', 'CategoryGroup', 'ProductItem', 'QuantitySelector', 'OptimizeButton'],
+    notes: 'Swipe-to-delete gestiona con GestureHandler. El botón sticky de optimizar lanza el algoritmo PDT.'
+  },
+  explorar: {
+    label: '05 — Explorar Mapa',
+    title: 'Explorar',
+    desc: 'Mapa interactivo con marcadores de tiendas, filtros y panel inferior con precios de la lista activa.',
+    module: 'apps.stores + apps.prices',
+    requirements: ['RF-011', 'RF-015', 'HU-009'],
+    components: ['MapView', 'StoreMarker', 'FilterChips', 'BottomSheet', 'PriceTable'],
+    notes: 'Usa React Native Maps + PostGIS para calcular tiendas dentro del radio configurado (dwithin).'
+  },
+  optimizer: {
+    label: '06 — Optimizador PDT',
+    title: 'Optimizador',
+    desc: 'Configuración de pesos Precio/Distancia/Tiempo, número de paradas y comparativa de top-3 rutas.',
+    module: 'apps.optimizer',
+    requirements: ['RF-024', 'RF-025', 'RF-026', 'HU-013'],
+    components: ['SliderRow', 'StopsSelector', 'RouteCard', 'MetricsRow'],
+    notes: 'Score = w_p·ahorro − w_d·distancia_extra − w_t·tiempo_extra. OR-Tools resuelve el problema VRP.'
+  },
+  perfil: {
+    label: '07 — Perfil de Usuario',
+    title: 'Perfil',
+    desc: 'Datos personales, estadísticas de ahorro, listas guardadas, preferencias de optimización y notificaciones.',
+    module: 'apps.users + apps.shopping_lists',
+    requirements: ['RF-003', 'RF-004', 'RF-005', 'HU-005'],
+    components: ['AvatarHero', 'StatsRow', 'MenuGroup', 'MenuItem'],
+    notes: 'Las preferencias de pesos del optimizador se persisten en UserPreferences (JSON field).'
+  },
+  'ocr-cap': {
+    label: '08 — OCR: Paso 1 / Captura',
+    title: 'OCR — Captura',
+    desc: 'Visor de cámara con guías de encuadre para fotografiar ticket o lista escrita.',
+    module: 'apps.ocr',
+    requirements: ['RF-028', 'HU-016'],
+    components: ['CameraViewfinder', 'ScanFrame', 'WizardSteps', 'ShutterButton'],
+    notes: 'Expo Camera para captura. La imagen se envía a /api/v1/ocr/scan/ como multipart/form-data. Google Cloud Vision API en backend.'
+  },
+  'ocr-rev': {
+    label: '09 — OCR: Paso 2 / Revisión',
+    title: 'OCR — Revisión',
+    desc: 'Lista de productos reconocidos con nivel de confianza (%), edición inline y eliminación.',
+    module: 'apps.ocr',
+    requirements: ['RF-028', 'RF-029', 'HU-016'],
+    components: ['ConfidenceBadge', 'OcrProductItem', 'InlineEdit', 'DeleteButton'],
+    notes: 'El matching fuzzy usa thefuzz (Levenshtein). Los productos con confianza < 70% se marcan en naranja.'
+  },
+  asistente: {
+    label: '10 — Asistente IA (LLM)',
+    title: 'Asistente',
+    desc: 'Chat conversacional impulsado por Gemini API. Respuestas estructuradas con cards de precios.',
+    module: 'apps.assistant',
+    requirements: ['RF-030', 'RF-031', 'HU-017'],
+    components: ['ChatBubble', 'PriceComparisonCard', 'SuggestionChips', 'ChatInput'],
+    notes: 'Solo responde consultas sobre compra/ahorro (RN-007). El historial se persiste en Conversation + Message.'
+  }
+};
+
+function showScreen(id, tabEl) {
+  // Update panels
+  document.querySelectorAll('.screen-panel').forEach(p => p.classList.remove('visible'));
+  const panel = document.getElementById('screen-' + id);
+  if (panel) panel.classList.add('visible');
+
+  // Update tabs
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  if (tabEl) tabEl.classList.add('active');
+
+  // Update label
+  const data = SCREENS[id];
+  if (data) {
+    document.getElementById('screen-label').textContent = data.label;
+    renderInfoPanel(data);
+  }
+}
+
+function renderInfoPanel(data) {
+  const reqBadges = data.requirements.map(r =>
+    `<span class="req-badge">${r}</span>`
+  ).join('');
+  const compList = data.components.map(c =>
+    `<span class="info-item-code">${c}</span>`
+  ).join(' ');
+
+  document.getElementById('info-panel-content').innerHTML = `
+    <div class="info-card-title">📱 ${data.title}</div>
+    <div class="info-item">
+      <div class="info-item-label">Descripción</div>
+      <div class="info-item-value">${data.desc}</div>
+    </div>
+    <div class="info-item">
+      <div class="info-item-label">Módulo Django</div>
+      <div class="info-item-value"><span class="info-item-code">${data.module}</span></div>
+    </div>
+    <div class="info-item">
+      <div class="info-item-label">Requisitos cubiertos</div>
+      <div class="info-item-value" style="margin-top:4px">${reqBadges}</div>
+    </div>
+    <div class="info-item">
+      <div class="info-item-label">Componentes clave</div>
+      <div class="info-item-value" style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px">${compList}</div>
+    </div>
+    <div class="info-item">
+      <div class="info-item-label">Nota técnica</div>
+      <div class="info-item-value">${data.notes}</div>
+    </div>
+  `;
+}
+
+// Init
+renderInfoPanel(SCREENS.login);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,79 @@
+@startuml arquitectura-capas
+!define RECTANGLE class
+skinparam backgroundColor #FEFEFE
+skinparam componentStyle rectangle
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam roundCorner 8
+
+title **BargAIn — Arquitectura Lógica del Sistema**\n
+
+package "Capa de Presentación" as presentacion #E3F2FD {
+    [React Native + Expo\n(App Móvil iOS/Android)] as mobile
+    [React Web\n(Portal Business)] as web
+}
+
+package "Capa de API" as api #E8F5E9 {
+    [Django REST Framework\nEndpoints versionados (v1)] as drf
+    [JWT Authentication\n(SimpleJWT)] as jwt
+    [OpenAPI / Swagger\n(drf-spectacular)] as swagger
+}
+
+package "Capa de Lógica de Negocio" as negocio #FFF3E0 {
+    [Servicio de\nOptimización\n(OR-Tools + PostGIS)] as optimizer
+    [Servicio de\nComparación\nde Precios] as prices_svc
+    [Servicio OCR\n(Google Cloud Vision API)] as ocr
+    [Servicio Asistente\n(Gemini API)] as llm
+    [Servicio de\nNotificaciones\n(Push + Email)] as notif
+}
+
+package "Capa de Tareas Asíncronas" as async #F3E5F5 {
+    [Celery Workers] as workers
+    [Celery Beat\n(Scheduler)] as beat
+    [Scrapy Spiders\n(Mercadona, Carrefour,\nLidl, DIA, Alcampo)] as spiders
+}
+
+package "Capa de Datos" as datos #FFEBEE {
+    database "PostgreSQL 16\n+ PostGIS 3.4\n(SRID 4326)" as db
+    database "Redis 7\n(Cache + Broker)" as redis
+}
+
+package "Capa de Integraciones Externas" as externas #F5F5F5 {
+    cloud "Google Maps API\n(Geocoding + Directions)" as gmaps
+    cloud "Google Cloud Vision API\n(OCR)" as gvision
+    cloud "OSRM\n(Alternativa OSS\nrutas)" as osrm
+    cloud "Google Gemini API" as gemini
+}
+
+' Relaciones
+mobile --> drf : HTTPS
+web --> drf : HTTPS
+
+drf --> jwt : Auth
+drf --> swagger : Docs
+
+drf --> optimizer
+drf --> prices_svc
+drf --> ocr
+drf --> llm
+drf --> notif
+
+optimizer --> db : PostGIS queries
+optimizer --> gmaps : Distancias reales
+optimizer --> osrm : Alternativa
+prices_svc --> db : select_related
+ocr --> gvision : OCR backend
+ocr --> db : Matching fuzzy
+llm --> gemini : API proxy
+notif --> redis : Queue
+
+workers --> db : Read/Write
+workers --> redis : Broker
+beat --> workers : Schedule
+spiders --> db : Pipeline precios
+
+negocio --> db
+negocio --> redis : Cache
+
+@enduml

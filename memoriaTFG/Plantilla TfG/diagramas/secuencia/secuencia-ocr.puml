@@ -1,0 +1,56 @@
+@startuml secuencia-ocr
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 11
+skinparam shadowing false
+skinparam sequenceArrowThickness 1.5
+
+title **BargAIn — Diagrama de Secuencia: Procesamiento OCR de Lista / Ticket**\n
+
+actor "Consumidor" as user
+participant "App Móvil\n(React Native)" as app
+participant "API REST\n(DRF)" as api
+participant "OCRService\n(Google Cloud Vision API)" as ocr
+participant "ProductMatcher\n(TheFuzz)" as matcher
+database "PostgreSQL" as db
+
+user -> app : Captura foto\nde lista/ticket
+activate app
+
+app -> app : Previsualizar imagen\ny confirmar envío
+
+app -> api : POST /api/v1/ocr/scan/\n{image: multipart/form-data}
+activate api
+
+api -> ocr : extract_text(image)
+activate ocr
+ocr -> ocr : Invocar Google Vision API
+ocr --> api : texto_extraido:\n"Leche entera 1L\nPan molde\nTomates kg\n..."
+deactivate ocr
+
+api -> api : Limpiar y tokenizar\nlíneas de texto
+
+loop Para cada línea reconocida
+    api -> matcher : find_best_match(\nlinea, catalog)
+    activate matcher
+    matcher -> db : SELECT name, normalized_name\nFROM products\nWHERE is_active = true
+    activate db
+    db --> matcher : Catálogo de productos
+    deactivate db
+    matcher -> matcher : fuzz.token_sort_ratio(\nlinea, normalized_name)\nUmbral ≥ 60%
+    matcher --> api : {product_id, name,\nconfidence: 0.87}
+    deactivate matcher
+end
+
+api --> app : 200 OK\n{items: [{name, confidence}...]}
+deactivate api
+
+app --> user : Lista de productos\nreconocidos con confianza
+deactivate app
+
+user -> app : Revisa, corrige\ny confirma productos
+activate app
+app --> user : "Revisión manual previa a\npersistencia final"
+deactivate app
+
+@enduml

@@ -1,0 +1,104 @@
+@startuml casos-uso-consumidor
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 11
+skinparam shadowing false
+skinparam actorBackgroundColor #E3F2FD
+skinparam usecaseBackgroundColor #FFFFFF
+skinparam packageBackgroundColor #F5F5F5
+
+title **BargAIn — Casos de Uso: Consumidor**\n
+
+left to right direction
+
+actor "Consumidor" as consumer
+
+rectangle "Sistema BargAIn" {
+
+    package "Autenticación" {
+        usecase "Registrarse" as UC01
+        usecase "Iniciar sesión" as UC02
+        usecase "Recuperar contraseña" as UC03
+        usecase "Gestionar perfil" as UC04
+        usecase "Configurar preferencias\nde optimización" as UC05
+    }
+
+    package "Listas de Compra" {
+        usecase "Crear lista\nde compra" as UC06
+        usecase "Añadir productos\na la lista" as UC07
+        usecase "Marcar productos\ncomo comprados" as UC08
+        usecase "Compartir lista\ncon otro usuario" as UC09
+        usecase "Guardar lista\ncomo plantilla" as UC10
+    }
+
+    package "Comparación de Precios" {
+        usecase "Comparar precios\nde un producto" as UC11
+        usecase "Comparar cesta\ncompleta por tienda" as UC12
+        usecase "Consultar histórico\nde precios" as UC13
+        usecase "Crear alerta\nde precio" as UC14
+        usecase "Reportar precio\n(crowdsourcing)" as UC15
+    }
+
+    package "Optimización de Ruta" {
+        usecase "Solicitar ruta\noptimizada" as UC16
+        usecase "Ver ruta\nen mapa" as UC17
+        usecase "Ver desglose\nde ahorro" as UC18
+        usecase "Recalcular ruta\ncon nuevos pesos" as UC19
+    }
+
+    package "Visión Artificial" {
+        usecase "Capturar foto\nde lista/ticket" as UC20
+        usecase "Revisar productos\nreconocidos por OCR" as UC21
+    }
+
+    package "Asistente" {
+        usecase "Consultar al\nasistente LLM" as UC22
+        usecase "Ver historial\nde conversaciones" as UC23
+    }
+
+    package "Tiendas" {
+        usecase "Ver tiendas\ncercanas en mapa" as UC24
+        usecase "Marcar tienda\ncomo favorita" as UC25
+    }
+
+    package "Notificaciones" {
+        usecase "Configurar\nnotificaciones" as UC26
+    }
+}
+
+' Relaciones
+consumer -- UC01
+consumer -- UC02
+consumer -- UC03
+consumer -- UC04
+consumer -- UC05
+consumer -- UC06
+consumer -- UC07
+consumer -- UC08
+consumer -- UC09
+consumer -- UC10
+consumer -- UC11
+consumer -- UC12
+consumer -- UC13
+consumer -- UC14
+consumer -- UC15
+consumer -- UC16
+consumer -- UC17
+consumer -- UC18
+consumer -- UC19
+consumer -- UC20
+consumer -- UC21
+consumer -- UC22
+consumer -- UC23
+consumer -- UC24
+consumer -- UC25
+consumer -- UC26
+
+' Extensiones e inclusiones
+UC07 ..> UC06 : <<include>>
+UC17 ..> UC16 : <<include>>
+UC18 ..> UC16 : <<include>>
+UC21 ..> UC20 : <<include>>
+UC19 ..> UC16 : <<extend>>
+
+@enduml

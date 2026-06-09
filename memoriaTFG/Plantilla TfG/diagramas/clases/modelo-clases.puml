@@ -1,0 +1,382 @@
+@startuml modelo-clases
+skinparam backgroundColor #FEFEFE
+skinparam classBackgroundColor #FFFFFF
+skinparam classBorderColor #333333
+skinparam classArrowColor #555555
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 11
+skinparam shadowing false
+skinparam roundCorner 4
+skinparam linetype ortho
+
+title **BargAIn — Diagrama de Clases del Sistema**\n
+
+' ===== USUARIOS =====
+package "apps.users" as pkg_users #E3F2FD {
+    class User <<AbstractUser>> {
+        +id: BigAutoField
+        +username: CharField
+        +email: EmailField
+        +password: CharField
+        +first_name: CharField
+        +last_name: CharField
+        --
+        +role: CharField {consumer|business|admin}
+        +phone: CharField [optional]
+        +avatar: ImageField [optional]
+        +default_location: PointField (SRID 4326)
+        +max_search_radius_km: FloatField = 10.0
+        +max_stops: SmallIntegerField = 3
+        +optimization_preference: CharField
+        +push_notifications_enabled: BooleanField
+        +email_notifications_enabled: BooleanField
+        +notify_price_alerts: BooleanField [optional]
+        +notify_new_promos: BooleanField [optional]
+        +notify_shared_list_changes: BooleanField [optional]
+        +created_at: DateTimeField
+        +updated_at: DateTimeField
+        --
+        +is_consumer(): bool
+        +is_business(): bool
+    }
+}
+
+' ===== PRODUCTOS =====
+package "apps.products" as pkg_products #E8F5E9 {
+    class Category {
+        +id: BigAutoField
+        +name: CharField
+        +description: TextField [optional]
+        +parent: FK(Category) [optional]
+        +icon: ImageField [optional]
+        +order: IntegerField
+    }
+
+    class Brand {
+        +id: BigAutoField
+        +name: CharField
+        +logo: ImageField [optional]
+        +is_private_label: BooleanField
+        +chain: FK(Chain) [optional]
+    }
+
+    class Product {
+        +id: BigAutoField
+        +name: CharField
+        +normalized_name: CharField
+        +barcode: CharField (EAN-13) [optional]
+        +category: FK(Category)
+        +brand: FK(Brand) [optional]
+        +unit: CharField {kg|l|unit|...}
+        +unit_quantity: DecimalField
+        +image_url: URLField [optional]
+        +is_active: BooleanField
+        +created_at: DateTimeField
+        +updated_at: DateTimeField
+    }
+}
+
+' ===== TIENDAS =====
+package "apps.stores" as pkg_stores #FFF3E0 {
+    class Chain {
+        +id: BigAutoField
+        +name: CharField
+        +logo: ImageField [optional]
+        +website_url: URLField
+        +has_official_api: BooleanField
+        +brand_color: CharField
+        +is_active: BooleanField
+    }
+
+    class Store {
+        +id: BigAutoField
+        +name: CharField
+        +chain: FK(Chain) [optional]
+        +address: CharField
+        +location: PointField (SRID 4326, GiST)
+        +opening_hours: JSONField
+        +phone: CharField [optional]
+        +is_local_business: BooleanField
+        +subscription_tier: CharField
+        +business_profile: FK(BusinessProfile) [optional]
+        +is_active: BooleanField
+        --
+        +distance_to(point): float
+    }
+}
+
+' ===== PRECIOS =====
+package "apps.prices" as pkg_prices #FFEBEE {
+    class Price {
+        +id: BigAutoField
+        +product: FK(Product)
+        +store: FK(Store)
+        +price: DecimalField
+        +unit_price: DecimalField
+        +offer_price: DecimalField [optional]
+        +offer_end_date: DateField [optional]
+        +source: CharField {scraping|crowdsourcing|api|business}
+        +verified_at: DateTimeField
+        +created_at: DateTimeField
+        +is_verified: BooleanField
+    }
+
+    class PriceHistory {
+        +id: BigAutoField
+        +product: FK(Product)
+        +store: FK(Store)
+        +price: DecimalField
+        +source: CharField
+        +recorded_at: DateTimeField
+    }
+}
+
+' ===== LISTAS =====
+package "apps.shopping_lists" as pkg_lists #F3E5F5 {
+    class ShoppingList {
+        +id: BigAutoField
+        +owner: FK(User)
+        +name: CharField
+        +is_archived: BooleanField
+        +created_at: DateTimeField
+        +updated_at: DateTimeField
+    }
+
+    class ShoppingListItem {
+        +id: BigAutoField
+        +shopping_list: FK(ShoppingList)
+        +name: CharField
+        +normalized_name: CharField [indexed]
+        +quantity: PositiveSmallIntegerField
+        +is_checked: BooleanField
+        +added_by: FK(User) [optional]
+        +created_at: DateTimeField
+    }
+
+    class ListCollaborator {
+        +id: BigAutoField
+        +shopping_list: FK(ShoppingList)
+        +user: FK(User)
+        +invited_by: FK(User) [optional]
+        +created_at: DateTimeField
+        ..
+        <<UNIQUE(shopping_list, user)>>
+    }
+
+    class ListTemplate {
+        +id: BigAutoField
+        +owner: FK(User)
+        +name: CharField
+        +source_list: FK(ShoppingList) [optional]
+        +created_at: DateTimeField
+    }
+
+    class ListTemplateItem {
+        +id: BigAutoField
+        +template: FK(ListTemplate)
+        +name: CharField
+        +normalized_name: CharField [indexed]
+        +ordering: PositiveSmallIntegerField
+    }
+}
+
+' ===== OPTIMIZADOR =====
+package "apps.optimizer" as pkg_optimizer #FCE4EC {
+    class OptimizationResult {
+        +id: BigAutoField
+        +shopping_list: FK(ShoppingList)
+        +user_location: PointField
+        +max_distance_km: FloatField
+        +max_stops: SmallIntegerField
+        +optimization_mode: CharField
+        +w_precio: FloatField
+        +w_distancia: FloatField
+        +w_tiempo: FloatField
+        +total_price: DecimalField
+        +total_distance_km: FloatField
+        +estimated_time_minutes: FloatField
+        +route_data: JSONField
+        +created_at: DateTimeField
+    }
+
+    class OptimizationRouteStop {
+        +id: BigAutoField
+        +optimization_result: FK(OptimizationResult)
+        +shopping_list: FK(ShoppingList)
+        +store: FK(Store)
+        +stop_order: PositiveSmallIntegerField
+        +distance_km: FloatField
+        +time_minutes: FloatField
+        +subtotal_price: DecimalField
+        +created_at: DateTimeField
+    }
+
+    class OptimizationRouteStopItem {
+        +id: BigAutoField
+        +stop: FK(OptimizationRouteStop)
+        +product: FK(Product) [optional]
+        +price: FK(Price) [optional]
+        +query_text: CharField
+        +matched_product_name: CharField
+        +quantity: PositiveSmallIntegerField
+        +unit_price: DecimalField
+        +line_total_price: DecimalField
+        +similarity_score: FloatField
+        +candidate_rank: PositiveSmallIntegerField
+        +created_at: DateTimeField
+    }
+}
+
+' ===== OCR =====
+package "apps.ocr" as pkg_ocr #E0F2F1 {
+    class OCRSession {
+        +id: BigAutoField
+        +user: FK(User)
+        +original_image: ImageField
+        +extracted_text: TextField
+        +recognized_products: JSONField
+        +shopping_list: FK(ShoppingList) [optional]
+        +status: CharField {processing|completed|failed}
+        +created_at: DateTimeField
+        +completed_at: DateTimeField [optional]
+    }
+}
+
+' ===== ASISTENTE =====
+package "apps.assistant" as pkg_assistant #FFF9C4 {
+    class Conversation {
+        +id: BigAutoField
+        +user: FK(User)
+        +title: CharField
+        +status: CharField {active|archived}
+        +created_at: DateTimeField
+        +last_message_at: DateTimeField
+    }
+
+    class Message {
+        +id: BigAutoField
+        +conversation: FK(Conversation)
+        +role: CharField {user|assistant}
+        +content: TextField
+        +tokens_used: IntegerField
+        +created_at: DateTimeField
+    }
+}
+
+' ===== BUSINESS =====
+package "apps.business" as pkg_business #EFEBE9 {
+    class BusinessProfile {
+        +id: BigAutoField
+        +user: OneToOneField(User)
+        +business_name: CharField
+        +tax_id: CharField [UNIQUE]
+        +address: TextField
+        +website: URLField [optional]
+        +is_verified: BooleanField = False
+        +rejection_reason: TextField [optional]
+        +price_alert_threshold_pct: SmallIntegerField = 10
+        +last_competitor_alert_at: DateTimeField [optional]
+        +created_at: DateTimeField
+        +updated_at: DateTimeField
+    }
+
+    class Promotion {
+        +id: BigAutoField
+        +product: FK(Product)
+        +store: FK(Store)
+        +discount_type: CharField {flat|percentage}
+        +discount_value: DecimalField
+        +start_date: DateField
+        +end_date: DateField [optional]
+        +is_active: BooleanField
+        +min_quantity: SmallIntegerField [optional]
+        +title: CharField [optional]
+        +description: TextField [optional]
+        +views: PositiveIntegerField = 0
+        +created_at: DateTimeField
+        ..
+        <<UNIQUE PARTIAL (product, store) WHERE is_active>>
+    }
+}
+
+' ===== NOTIFICACIONES =====
+package "apps.notifications" as pkg_notif #F5F5F5 {
+    class UserPushToken {
+        +id: BigAutoField
+        +user: FK(User)
+        +token: CharField
+        +device_id: CharField [optional]
+        +created_at: DateTimeField
+        +updated_at: DateTimeField
+        ..
+        <<UNIQUE(user, device_id)>>
+    }
+
+    class Notification {
+        +id: BigAutoField
+        +user: FK(User)
+        +notification_type: CharField {price_alert|new_promo|shared_list_changed|business_approved|business_rejected}
+        +title: CharField
+        +body: TextField
+        +is_read: BooleanField = False
+        +data: JSONField = {}
+        +action_url: CharField [optional]
+        +created_at: DateTimeField
+        +deleted_at: DateTimeField [optional]
+    }
+}
+
+' ===== RELACIONES =====
+' Productos
+Category "0..1" --o "0..*" Category : parent
+Product "*" --o "1" Category
+Product "*" --o "0..1" Brand
+Brand "*" --o "0..1" Chain
+
+' Tiendas
+Store "*" --o "0..1" Chain
+
+' Precios
+Price "*" --o "1" Product
+Price "*" --o "1" Store
+PriceHistory "*" --o "1" Product
+PriceHistory "*" --o "1" Store
+
+' Listas
+ShoppingList "*" --o "1" User : owner
+ShoppingListItem "*" --o "1" ShoppingList
+ShoppingListItem "*" --o "0..1" User : added_by
+ListCollaborator "*" --o "1" ShoppingList
+ListCollaborator "*" --o "1" User : collaborator
+ListCollaborator "*" --o "0..1" User : invited_by
+ListTemplate "*" --o "1" User : owner
+ListTemplate "*" --o "0..1" ShoppingList : source_list
+ListTemplateItem "*" --o "1" ListTemplate
+
+' Optimizador
+OptimizationResult "*" --o "1" ShoppingList
+OptimizationResult "*" --o "1" User
+RouteStop "*" --o "1" OptimizationResult
+RouteStop "*" --o "1" Store
+RouteStopItem "*" --o "1" RouteStop
+RouteStopItem "*" --o "1" Product
+
+' OCR
+OCRSession "*" --o "1" User
+OCRSession "*" --o "0..1" ShoppingList
+
+' Asistente
+Conversation "*" --o "1" User
+Message "*" --o "1" Conversation
+
+' Business
+BusinessProfile "0..1" --o "1" User
+Store "*" --o "0..1" BusinessProfile
+Promotion "*" --o "1" Product
+Promotion "*" --o "1" Store
+
+' Notificaciones
+UserPushToken "*" --o "1" User
+Notification "*" --o "1" User
+
+@enduml

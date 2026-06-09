@@ -1,0 +1,116 @@
+@startuml secuencia-optimizacion
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 11
+skinparam shadowing false
+skinparam sequenceArrowThickness 1.5
+skinparam sequenceParticipantBorderColor #333
+skinparam sequenceLifeLineBorderColor #999
+
+title **BargAIn — Diagrama de Secuencia: Optimización de Ruta de Compra**\n
+
+actor "Consumidor" as user
+participant "App Móvil\n(React Native)" as app
+participant "API REST\n(DRF)" as api
+participant "OptimizerService" as optimizer
+database "PostgreSQL\n+ PostGIS" as db
+participant "OSRM /\nGoogle Maps" as maps
+
+user -> app : Entra en pantalla\n"Ruta optimizada"
+activate app
+
+app -> api : GET /api/v1/optimize/?shopping_list_id={id}
+activate api
+api -> db : SELECT latest optimization_result\nWHERE shopping_list_id = ?\nORDER BY created_at DESC LIMIT 1
+activate db
+db --> api : Resultado previo o null
+deactivate db
+api --> app : 200 OK\n{success: true, data: result|null}
+deactivate api
+
+alt Existe resultado previo
+    app -> app : Renderizar ruta persistida\n(sin recalcular)
+else No existe resultado
+    app -> app : Mostrar estado vacío
+end
+
+user -> app : Pulsa "Optimizar" / "Recalcular"
+activate app
+
+app -> api : POST /api/v1/optimize/\n{shopping_list_id, lat, lng,\nmax_distance_km, max_stops,\nw_precio, w_distancia, w_tiempo}
+activate api
+
+api -> api : Validar JWT, serializer\ny propiedad de la lista
+
+api -> optimizer : optimize_shopping_list(\nshopping_list_id, lat, lng,\nmax_distance_km, max_stops, weights)
+activate optimizer
+
+optimizer -> db : SELECT items de texto\n(name, normalized_name, quantity)\nFROM shopping_list_items\nWHERE shopping_list_id = ?\nAND is_checked = false
+activate db
+db --> optimizer : Lista de items textuales (N)
+deactivate db
+
+optimizer -> db : SELECT stores\nFROM stores\nWHERE ST_DWithin(\nlocation, user_point,\nradius_km * 1000)
+activate db
+db --> optimizer : Tiendas candidatas (M)
+deactivate db
+
+loop Para cada item textual
+    optimizer -> db : SELECT top productos\npor TrigramSimilarity(normalized_name, item)\nLIMIT 20
+    activate db
+    db --> optimizer : Candidatos de producto
+    deactivate db
+
+    optimizer -> db : SELECT últimos precios\npara (producto candidato, tienda candidata)\nWHERE is_stale = false
+    activate db
+    db --> optimizer : Candidatos precio/tienda
+    deactivate db
+
+    optimizer -> optimizer : Score fuzzy (producto + contexto tienda)\ny top-3 candidatos
+end
+
+optimizer -> optimizer : Elegir opción más barata por item\ny consolidar tiendas (max_stops)
+
+optimizer -> maps : get_distance_matrix(\nuser + tiendas seleccionadas)
+activate maps
+maps --> optimizer : distance_matrix + time_matrix
+deactivate maps
+
+optimizer -> optimizer : solve_route() con OR-Tools\ny pesos precio/distancia/tiempo
+
+optimizer -> optimizer : Construir route_data\ny totales agregados
+
+optimizer --> api : Resultado optimizado\n(total_price, total_distance_km,\nestimated_time_minutes, route_data)
+deactivate optimizer
+
+api -> db : INSERT optimization_result
+activate db
+db --> api : optimization_result_id
+deactivate db
+
+api -> db : INSERT optimizer_optimizationroutestop\n(1..N paradas)
+activate db
+db --> api : stops persisted
+deactivate db
+
+api -> db : INSERT optimizer_optimizationroutestopitem\n(precios por item y parada)
+activate db
+db --> api : items persisted
+deactivate db
+
+api --> app : 200 OK\n{success: true, data: {...}}
+deactivate api
+
+app -> app : Renderizar mapa\ncon polylines\ny marcadores
+
+app --> user : Muestra ruta optimizada\ncon desglose de ahorro
+deactivate app
+
+note right of app
+En iOS se activa una checklist en bloqueo
+mediante notificación interactiva (fallback).
+La evolución a Live Activities queda definida
+en ADR-010.
+end note
+
+@enduml

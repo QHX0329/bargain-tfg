@@ -1,0 +1,66 @@
+@startuml casos-uso-comercio-admin
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 11
+skinparam shadowing false
+skinparam actorBackgroundColor #E3F2FD
+skinparam usecaseBackgroundColor #FFFFFF
+skinparam packageBackgroundColor #F5F5F5
+
+title **BargAIn — Casos de Uso: Comercio / PYME y Administrador**\n
+
+left to right direction
+
+actor "Comercio / PYME" as business
+actor "Administrador" as admin
+actor "Sistema\n(Scraper)" as system
+
+rectangle "Portal Business" {
+    usecase "Registrar perfil\nde negocio" as UB01
+    usecase "Actualizar precios\nde productos" as UB02
+    usecase "Crear/editar\npromociones" as UB03
+    usecase "Ver estadísticas\nde visibilidad" as UB04
+    usecase "Gestionar datos\nfiscales" as UB05
+}
+
+rectangle "Administración" {
+    usecase "Gestionar cadenas\ny tiendas" as UA01
+    usecase "Verificar perfiles\nde comercio" as UA02
+    usecase "Moderar precios\ncrowdsourcing" as UA03
+    usecase "Gestionar usuarios" as UA04
+    usecase "Supervisar estado\nde spiders" as UA05
+    usecase "Ver métricas\nde la plataforma" as UA06
+}
+
+rectangle "Tareas Automáticas" {
+    usecase "Ejecutar spider\nde scraping" as US01
+    usecase "Verificar caducidad\nde precios" as US02
+    usecase "Enviar notificaciones\nprogramadas" as US03
+    usecase "Desactivar\npromociones expiradas" as US04
+}
+
+' Relaciones Business
+business -- UB01
+business -- UB02
+business -- UB03
+business -- UB04
+business -- UB05
+
+' Relaciones Admin
+admin -- UA01
+admin -- UA02
+admin -- UA03
+admin -- UA04
+admin -- UA05
+admin -- UA06
+
+' Relaciones Sistema
+system -- US01
+system -- US02
+system -- US03
+system -- US04
+
+' Dependencias
+UA02 ..> UB01 : <<verifica>>
+
+@enduml

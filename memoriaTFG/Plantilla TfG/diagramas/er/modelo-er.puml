@@ -1,0 +1,322 @@
+@startuml modelo-er
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 10
+skinparam shadowing false
+skinparam linetype ortho
+skinparam entityBackgroundColor #FFFFFF
+
+title **BargAIn — Modelo Entidad-Relación (PostgreSQL + PostGIS)**\n
+
+entity "**users_user**" as user {
+    * id : BIGSERIAL <<PK>>
+    --
+    * username : VARCHAR(150) <<UNIQUE>>
+    * email : VARCHAR(254) <<UNIQUE>>
+    * password : VARCHAR(128)
+    first_name : VARCHAR(150)
+    last_name : VARCHAR(150)
+    * role : VARCHAR(20) <<CHECK>>
+    phone : VARCHAR(20)
+    avatar : VARCHAR(255)
+    default_location : GEOMETRY(Point, 4326) <<GiST>>
+    * max_search_radius_km : FLOAT = 10.0
+    * max_stops : SMALLINT = 3
+    * optimization_preference : VARCHAR(20)
+    * push_notifications_enabled : BOOLEAN
+    * email_notifications_enabled : BOOLEAN
+    notify_price_alerts : BOOLEAN NULL
+    notify_new_promos : BOOLEAN NULL
+    notify_shared_list_changes : BOOLEAN NULL
+    * date_joined : TIMESTAMPTZ
+    * is_active : BOOLEAN
+}
+
+entity "**products_category**" as category {
+    * id : BIGSERIAL <<PK>>
+    --
+    * name : VARCHAR(200)
+    description : TEXT
+    parent_id : BIGINT <<FK>>
+    icon : VARCHAR(255)
+    * order : INTEGER
+}
+
+entity "**products_brand**" as brand {
+    * id : BIGSERIAL <<PK>>
+    --
+    * name : VARCHAR(200)
+    logo : VARCHAR(255)
+    * is_private_label : BOOLEAN
+    chain_id : BIGINT <<FK>>
+}
+
+entity "**products_product**" as product {
+    * id : BIGSERIAL <<PK>>
+    --
+    * name : VARCHAR(300)
+    * normalized_name : VARCHAR(300) <<INDEX>>
+    barcode : VARCHAR(13) <<INDEX>>
+    * category_id : BIGINT <<FK>>
+    brand_id : BIGINT <<FK>>
+    * unit : VARCHAR(20)
+    * unit_quantity : DECIMAL(10,3)
+    image_url : VARCHAR(500)
+    * is_active : BOOLEAN
+    * created_at : TIMESTAMPTZ
+    * updated_at : TIMESTAMPTZ
+}
+
+entity "**stores_chain**" as chain {
+    * id : BIGSERIAL <<PK>>
+    --
+    * name : VARCHAR(200)
+    logo : VARCHAR(255)
+    website_url : VARCHAR(500)
+    * has_official_api : BOOLEAN
+    brand_color : VARCHAR(7)
+    * is_active : BOOLEAN
+}
+
+entity "**stores_store**" as store {
+    * id : BIGSERIAL <<PK>>
+    --
+    * name : VARCHAR(300)
+    chain_id : BIGINT <<FK>>
+    * address : VARCHAR(500)
+    * location : GEOMETRY(Point, 4326) <<GiST>>
+    * opening_hours : JSONB
+    phone : VARCHAR(20)
+    * is_local_business : BOOLEAN
+    * subscription_tier : VARCHAR(20)
+    business_profile_id : BIGINT <<FK, NULL>>
+    * is_active : BOOLEAN
+}
+
+entity "**prices_price**" as price {
+    * id : BIGSERIAL <<PK>>
+    --
+    * product_id : BIGINT <<FK>>
+    * store_id : BIGINT <<FK>>
+    * price : DECIMAL(10,2)
+    * unit_price : DECIMAL(10,2)
+    offer_price : DECIMAL(10,2)
+    offer_end_date : DATE
+    * source : VARCHAR(20) <<CHECK>>
+    * verified_at : TIMESTAMPTZ
+    * created_at : TIMESTAMPTZ
+    * is_verified : BOOLEAN
+    ..
+    <<UNIQUE(product_id, store_id, source)>>
+}
+
+entity "**prices_pricehistory**" as price_history {
+    * id : BIGSERIAL <<PK>>
+    --
+    * product_id : BIGINT <<FK>>
+    * store_id : BIGINT <<FK>>
+    * price : DECIMAL(10,2)
+    * source : VARCHAR(20)
+    * recorded_at : TIMESTAMPTZ <<INDEX>>
+}
+
+entity "**shopping_lists_shoppinglist**" as list {
+    * id : BIGSERIAL <<PK>>
+    --
+    * owner_id : BIGINT <<FK>>
+    * name : VARCHAR(200)
+    * is_archived : BOOLEAN
+    * created_at : TIMESTAMPTZ
+    * updated_at : TIMESTAMPTZ
+}
+
+entity "**shopping_lists_shoppinglistitem**" as list_item {
+    * id : BIGSERIAL <<PK>>
+    --
+    * shopping_list_id : BIGINT <<FK>>
+    * name : VARCHAR(255)
+    * normalized_name : VARCHAR(255) <<INDEX>>
+    * quantity : SMALLINT
+    * is_checked : BOOLEAN
+    added_by_id : BIGINT <<FK, NULL>>
+    * created_at : TIMESTAMPTZ
+}
+
+entity "**shopping_lists_listcollaborator**" as list_collaborator {
+    * id : BIGSERIAL <<PK>>
+    --
+    * shopping_list_id : BIGINT <<FK>>
+    * user_id : BIGINT <<FK>>
+    invited_by_id : BIGINT <<FK, NULL>>
+    * created_at : TIMESTAMPTZ
+    ..
+    <<UNIQUE(shopping_list_id, user_id)>>
+}
+
+entity "**shopping_lists_listtemplate**" as list_template {
+    * id : BIGSERIAL <<PK>>
+    --
+    * owner_id : BIGINT <<FK>>
+    * name : VARCHAR(200)
+    source_list_id : BIGINT <<FK, NULL>>
+    * created_at : TIMESTAMPTZ
+}
+
+entity "**shopping_lists_listtemplateitem**" as list_template_item {
+    * id : BIGSERIAL <<PK>>
+    --
+    * template_id : BIGINT <<FK>>
+    * name : VARCHAR(255)
+    * normalized_name : VARCHAR(255) <<INDEX>>
+    * ordering : SMALLINT
+}
+
+entity "**optimizer_optimizationresult**" as opt_result {
+    * id : BIGSERIAL <<PK>>
+    --
+    * shopping_list_id : BIGINT <<FK>>
+    * user_location : GEOMETRY(Point, 4326)
+    * max_distance_km : FLOAT
+    * max_stops : SMALLINT
+    * optimization_mode : VARCHAR(20)
+    * w_precio : FLOAT
+    * w_distancia : FLOAT
+    * w_tiempo : FLOAT
+    * total_price : DECIMAL(10,2)
+    * total_distance_km : FLOAT
+    * estimated_time_minutes : FLOAT
+    * route_data : JSONB
+    * created_at : TIMESTAMPTZ
+}
+
+entity "**optimizer_optimizationroutestop**" as route_stop {
+    * id : BIGSERIAL <<PK>>
+    --
+    * optimization_result_id : BIGINT <<FK>>
+    * shopping_list_id : BIGINT <<FK>>
+    * store_id : BIGINT <<FK>>
+    * stop_order : SMALLINT
+    * distance_km : FLOAT
+    * time_minutes : FLOAT
+    * subtotal_price : DECIMAL(10,2)
+    * created_at : TIMESTAMPTZ
+    ..
+    <<UNIQUE(optimization_result_id, stop_order)>>
+}
+
+entity "**optimizer_optimizationroutestopitem**" as route_stop_item {
+    * id : BIGSERIAL <<PK>>
+    --
+    * stop_id : BIGINT <<FK>>
+    product_id : BIGINT <<FK, NULL>>
+    price_id : BIGINT <<FK, NULL>>
+    * query_text : VARCHAR(255)
+    * matched_product_name : VARCHAR(255)
+    * quantity : SMALLINT
+    * unit_price : DECIMAL(10,2)
+    * line_total_price : DECIMAL(10,2)
+    * similarity_score : FLOAT
+    * candidate_rank : SMALLINT
+    * created_at : TIMESTAMPTZ
+}
+
+entity "**business_businessprofile**" as biz_profile {
+    * id : BIGSERIAL <<PK>>
+    --
+    * user_id : BIGINT <<FK, UNIQUE>>
+    * business_name : VARCHAR(200)
+    * tax_id : VARCHAR(20) <<UNIQUE>>
+    * address : TEXT
+    website : VARCHAR(500)
+    * is_verified : BOOLEAN = False
+    rejection_reason : TEXT
+    * price_alert_threshold_pct : SMALLINT = 10
+    last_competitor_alert_at : TIMESTAMPTZ NULL
+    * created_at : TIMESTAMPTZ
+    * updated_at : TIMESTAMPTZ
+}
+
+entity "**business_promotion**" as promotion {
+    * id : BIGSERIAL <<PK>>
+    --
+    * product_id : BIGINT <<FK>>
+    * store_id : BIGINT <<FK>>
+    * discount_type : VARCHAR(20) <<CHECK flat|percentage>>
+    * discount_value : DECIMAL(10,2)
+    * start_date : DATE
+    end_date : DATE NULL
+    * is_active : BOOLEAN
+    min_quantity : SMALLINT NULL
+    title : VARCHAR(100)
+    description : TEXT
+    * views : INTEGER = 0
+    * created_at : TIMESTAMPTZ
+    ..
+    <<PARTIAL UNIQUE (product_id, store_id) WHERE is_active>>
+}
+
+entity "**notifications_userpushtoken**" as push_token {
+    * id : BIGSERIAL <<PK>>
+    --
+    * user_id : BIGINT <<FK>>
+    * token : VARCHAR(200)
+    device_id : VARCHAR(200)
+    * created_at : TIMESTAMPTZ
+    * updated_at : TIMESTAMPTZ
+    ..
+    <<UNIQUE(user_id, device_id)>>
+}
+
+entity "**notifications_notification**" as notification {
+    * id : BIGSERIAL <<PK>>
+    --
+    * user_id : BIGINT <<FK>>
+    * notification_type : VARCHAR(30) <<CHECK>>
+    * title : VARCHAR(200)
+    * body : TEXT
+    * is_read : BOOLEAN = False
+    * data : JSONB = {}
+    action_url : VARCHAR(500)
+    * created_at : TIMESTAMPTZ
+    deleted_at : TIMESTAMPTZ NULL
+}
+
+' === RELACIONES ===
+category |o--o{ category : parent
+product }o--|| category
+product }o--o| brand
+brand }o--o| chain
+store }o--o| chain
+
+price }o--|| product
+price }o--|| store
+price_history }o--|| product
+price_history }o--|| store
+
+list }o--|| user
+list_item }o--|| list
+list_item }o--o| user : added_by
+list_collaborator }o--|| list
+list_collaborator }o--|| user : collaborator
+list_collaborator }o--o| user : invited_by
+list_template }o--|| user : owner
+list_template }o--o| list : source_list
+list_template_item }o--|| list_template
+
+opt_result }o--|| list
+route_stop }o--|| opt_result
+route_stop }o--|| list
+route_stop }o--|| store
+route_stop_item }o--|| route_stop
+route_stop_item }o--o| product
+route_stop_item }o--o| price
+
+biz_profile ||--|| user
+store }o--o| biz_profile
+promotion }o--|| product
+promotion }o--|| store
+
+push_token }o--|| user
+notification }o--|| user
+
+@enduml

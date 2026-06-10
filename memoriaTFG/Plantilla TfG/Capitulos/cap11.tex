@@ -51,7 +51,7 @@ verificados de forma automatizada con Playwright.
     tem\'atica a consultas de compra, historial de conversaci\'on y rate limiting.
 
   \item \textbf{Arquitectura full-stack coherente:} separaci\'on clara entre apps Django, workers
-    Celery independientes, PostGIS para geoespacial y React Native + Expo para iOS/Android desde
+    Celery independientes, PostGIS para geoespacial y React Native + Expo para iOS y web desde
     una \'unica base de c\'odigo.
 
   \item \textbf{Verificaci\'on automatizada:} suite de tests backend (unitarios + integraci\'on,
@@ -69,9 +69,16 @@ verificados de forma automatizada con Playwright.
   \item \textbf{Caducidad de precios:} los precios de scraping tienen TTL de 48 horas y los de
     crowdsourcing 24 horas; pueden no reflejar cambios de precio intradiarios.
 
-  \item \textbf{Cold starts en Render free tier:} el plan gratuito de Render puede tener tiempos
-    de arranque de hasta 30 segundos tras inactividad prolongada, lo que afecta a la primera
-    petici\'on tras un per\'iodo de reposo.
+  \item \textbf{Despliegue en plan gratuito (Render):} la infraestructura p\'ublica del
+    proyecto se sostiene sobre el \emph{free tier} de Render, lo que impone tres restricciones
+    operativas. Primera, la \emph{hibernaci\'on}: tras unos minutos sin tr\'afico la instancia
+    se suspende y la siguiente petici\'on sufre un \emph{cold start} de entre 30 y 60 segundos
+    mientras el contenedor se reactiva; el manual de usuario advierte de ello expl\'icitamente.
+    Segunda, los recursos computacionales (CPU y memoria compartidas) limitan el rendimiento del
+    optimizador en escenarios de carga. Tercera, la base de datos del plan gratuito presenta
+    restricciones de capacidad y vigencia que la hacen apta para demostraci\'on, pero no para
+    producci\'on. La migraci\'on a un plan de pago o a la infraestructura AWS prevista en el
+    Cap\'itulo~\ref{cap08} eliminar\'ia estas tres limitaciones sin cambios de c\'odigo.
 
   \item \textbf{Certificado iOS gratuito:} la distribuci\'on con Sideloadly y Apple ID gratuito
     genera certificados con caducidad de 7 d\'ias, que requieren re-sideload peri\'odico para el

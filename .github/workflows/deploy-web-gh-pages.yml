@@ -26,7 +26,7 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
       VITE_BASE_PATH: '/bargain-tfg/'
       VITE_DEMO_VIDEO_URL: 'https://youtu.be/EdZuggir4dY'
-      VITE_API_URL: 'https://bargain-api-8yr0.onrender.com/api/v1'
+      VITE_API_URL: 'https://bargain-free-api.onrender.com/api/v1'
     steps:
       - name: Checkout
         uses: actions/checkout@v4

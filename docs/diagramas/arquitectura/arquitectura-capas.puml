@@ -10,7 +10,7 @@ skinparam roundCorner 8
 title **BargAIn — Arquitectura Lógica del Sistema**\n
 
 package "Capa de Presentación" as presentacion #E3F2FD {
-    [React Native + Expo\n(App Móvil iOS/Android)] as mobile
+    [React Native + Expo\n(App iOS + Web)] as mobile
     [React Web\n(Portal Business)] as web
 }
 
@@ -42,7 +42,7 @@ package "Capa de Datos" as datos #FFEBEE {
 package "Capa de Integraciones Externas" as externas #F5F5F5 {
     cloud "Google Maps API\n(Geocoding + Directions)" as gmaps
     cloud "Google Cloud Vision API\n(OCR)" as gvision
-    cloud "OSRM\n(Alternativa OSS\nrutas)" as osrm
+    cloud "OpenRouteService\n(ORS, matriz de\ndistancias)" as ors
     cloud "Google Gemini API" as gemini
 }
 
@@ -60,8 +60,8 @@ drf --> llm
 drf --> notif
 
 optimizer --> db : PostGIS queries
-optimizer --> gmaps : Distancias reales
-optimizer --> osrm : Alternativa
+optimizer --> ors : Distancias reales
+optimizer --> gmaps : Geocoding + Places
 prices_svc --> db : select_related
 ocr --> gvision : OCR backend
 ocr --> db : Matching fuzzy

@@ -77,4 +77,6 @@ docker-compose.override.yml
 .opencode/
 .agent/
 .agents/
-scripts/
+
+# Temporales de scripts de captura/diagnostico
+tmp/

@@ -56,33 +56,11 @@ cd frontend/web && npx playwright test --reporter=html
 Los tests de integraci\'on verifican flujos API completos usando una base de datos de test real
 (sin mocks de BD), validando el comportamiento end-to-end del backend.
 
-\begin{table}[h]
+\begin{table}[htbp]
+\centering
 \caption{Suite de tests de integraci\'on backend}
 \label{tab:tests-integracion}
-\centering
-\begin{tabular}{|l|l|l|}
-\hline
-\textbf{Archivo de test} & \textbf{M\'odulo} & \textbf{Descripci\'on} \\
-\hline
-\texttt{test\_auth\_endpoints.py} & users & Registro, login, refresh, perfil \\
-\texttt{test\_optimizer\_api.py} & optimizer & POST /optimize/ con matriz mock \\
-\texttt{test\_ocr\_api.py} & ocr & POST /ocr/scan/ con Vision API mock \\
-\texttt{test\_business\_verification.py} & business & Aprobar/rechazar BusinessProfile \\
-\texttt{test\_business\_registration.py} & business & Onboarding PYME \\
-\texttt{test\_business\_prices.py} & business & Gesti\'on de precios PYME \\
-\texttt{test\_bulk\_prices.py} & business & Actualizaci\'on masiva CSV \\
-\texttt{test\_proposal\_admin.py} & business & Aprobar/rechazar propuestas (6 tests) \\
-\texttt{test\_list\_endpoints.py} & shopping\_lists & CRUD listas e \'items \\
-\texttt{test\_cross\_domain.py} & core & Flujos cross-domain \\
-\texttt{test\_notification\_dispatch.py} & notifications & Despacho push/email \\
-\texttt{test\_notification\_events.py} & notifications & Eventos de notificaci\'on \\
-\texttt{test\_price\_endpoints.py} & prices & API de precios \\
-\texttt{test\_product\_endpoints.py} & products & API de productos \\
-\texttt{test\_store\_endpoints.py} & stores & API de tiendas \\
-\texttt{test\_assistant\_api.py} & assistant & Endpoint LLM con mock Gemini \\
-\texttt{test\_promotions.py} & business & Gesti\'on de promociones \\
-\hline
-\end{tabular}
+\includegraphics[width=0.92\textwidth]{diagramas/cuadros/cuadro-tests-integracion.png}
 \end{table}
 
 \subsection{Cobertura}\label{subsec:cobertura}
@@ -97,25 +75,11 @@ principal.
 Se desarrollaron 4 tests E2E automatizados con Playwright para verificar los flujos cr\'iticos del
 sistema integrado (backend + web companion Vite+React):
 
-\begin{table}[h]
+\begin{table}[htbp]
+\centering
 \caption{Suite de tests E2E con Playwright}
 \label{tab:tests-e2e}
-\centering
-\begin{tabular}{|l|l|l|p{5cm}|}
-\hline
-\textbf{Flujo} & \textbf{Archivo} & \textbf{Tipo} & \textbf{Descripci\'on} \\
-\hline
-Autenticaci\'on completa & \texttt{auth.spec.ts} & UI + API &
-  Registro \textrightarrow{} login \textrightarrow{} token refresh \textrightarrow{} logout \\
-Lista \textrightarrow{} Optimizar \textrightarrow{} Ruta & \texttt{optimizer.spec.ts} & API-level &
-  Crear lista \textrightarrow{} a\~nadir \'items \textrightarrow{} optimizar \textrightarrow{}
-  verificar resultado \\
-OCR ticket \textrightarrow{} lista & \texttt{ocr.spec.ts} & API-level &
-  Subir imagen \textrightarrow{} endpoint OCR \textrightarrow{} respuesta estructurada \\
-Business portal & \texttt{business.spec.ts} & UI &
-  Registro PYME \textrightarrow{} admin aprueba \textrightarrow{} PYME accede a dashboard \\
-\hline
-\end{tabular}
+\includegraphics[width=0.98\textwidth]{diagramas/cuadros/cuadro-tests-e2e.png}
 \end{table}
 
 Los flujos de optimizador y OCR se implementan como tests API-level (usando el fixture
@@ -140,21 +104,11 @@ del TFG sin requerir una interfaz web que no existe.
 Los flujos que requieren APIs nativas del dispositivo (GPS, c\'amara) se verifican manualmente en
 un iPhone con la app compilada mediante el workflow \texttt{ios-build.yml}:
 
-\begin{table}[h]
+\begin{table}[htbp]
+\centering
 \caption{Resultados UAT en dispositivo m\'ovil}
 \label{tab:uat}
-\centering
-\begin{tabular}{|p{8cm}|c|}
-\hline
-\textbf{Flujo UAT} & \textbf{Resultado} \\
-\hline
-Solicitar ubicaci\'on y ver tiendas en mapa & Verificado \\
-Crear lista y a\~nadir \'items manualmente & Verificado \\
-Capturar ticket con c\'amara y reconocer productos & Verificado \\
-Lanzar optimizaci\'on y navegar la ruta sugerida & Verificado \\
-Chat con asistente LLM y verificar guardrail & Verificado \\
-\hline
-\end{tabular}
+\includegraphics[width=0.85\textwidth]{diagramas/cuadros/cuadro-uat.png}
 \end{table}
 
 \section{Validaci\'on de Requisitos No Funcionales}\label{sec:nfr}
@@ -211,24 +165,11 @@ decisiones de dise\~no complementarias:
 
 \section{Resumen de resultados}\label{sec:resumen-pruebas}
 
-\begin{table}[h]
+\begin{table}[htbp]
+\centering
 \caption{Resumen de resultados de la estrategia de testing}
 \label{tab:resumen-pruebas}
-\centering
-\begin{tabular}{|l|c|c|}
-\hline
-\textbf{Tipo de test} & \textbf{Cantidad} & \textbf{Estado} \\
-\hline
-Tests unitarios backend & 162 (18 archivos) & Todos pasan \\
-Tests de integraci\'on backend & 171 (17 archivos) & Todos pasan \\
-Tests frontend (Jest) & 111 (16 suites) & Todos pasan \\
-Tests E2E Playwright & 4 flujos & Todos pasan \\
-UAT manual m\'ovil & 5 flujos & Verificados \\
-RNF-002 (Disponibilidad) & 1 & Per\'iodo de monitorizaci\'on en curso \\
-RNF-004 (Usabilidad) & 3 flujos & Verificados (3 taps m\'ax.) \\
-RNF-005 (Escalabilidad) & Justificaci\'on arquitectural & Documentado \\
-\hline
-\end{tabular}
+\includegraphics[width=0.9\textwidth]{diagramas/cuadros/cuadro-resumen-pruebas.png}
 \end{table}
 
 \section{Conclusi\'on}\label{sec:conclusion-pruebas}

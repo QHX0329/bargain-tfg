@@ -31,7 +31,7 @@ import { useAuthStore } from "@/store/authStore";
  * Si no existe, usa la API publica de Render para evitar que mobile caiga en
  * localhost y falle fuera de la maquina de desarrollo.
  */
-const DEFAULT_API_BASE_URL = "https://bargain-api-8yr0.onrender.com/api/v1";
+const DEFAULT_API_BASE_URL = "https://bargain-free-api.onrender.com/api/v1";
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL?.trim() || DEFAULT_API_BASE_URL;
 

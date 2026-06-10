@@ -19,6 +19,10 @@ jobs:
     env:
       ARCHIVE_PATH: ${{ github.workspace }}/build/BargAIn.xcarchive
       EXPORT_PATH: ${{ github.workspace }}/build/output
+      # La IPA se construye apuntando al backend desplegado en Render.
+      # EXPO_PUBLIC_* se inlinea en el bundle JS durante el archivado.
+      EXPO_PUBLIC_API_URL: https://bargain-free-api.onrender.com/api/v1
+      EXPO_PUBLIC_GOOGLE_MAPS_KEY: ${{ secrets.EXPO_PUBLIC_GOOGLE_MAPS_KEY }}
 
     steps:
       - name: Checkout
@@ -154,14 +158,4 @@ jobs:
         run: |
           echo "=== Contenido de build/output ==="
           ls -la "$EXPORT_PATH" || echo "No output directory"
-          find "$GITHUB_WORKSPACE/build" -name "*.ipa" 2>/dev/null
-
-      - name: Upload IPA artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: BargAIn-unsigned-${{ github.sha }}
-          path: |
-            build/output/*.ipa
-            build/output/**/*.ipa
-          retention-days: 7
-          if-no-files-found: warn
+          find "$GITHUB_WORKSPACE/build" -name "*.ipa" 2>/dev

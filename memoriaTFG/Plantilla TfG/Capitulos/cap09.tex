@@ -4,515 +4,722 @@
 
 \section{Introducci\'on}\label{sec:manual-intro}
 
-BargAIn permite al usuario gestionar su compra diaria desde una app m\'ovil (iOS y Android) y un
-portal web para PYMEs, comparar precios entre supermercados cercanos, y calcular la ruta de compra
-m\'as eficiente seg\'un sus preferencias de precio, distancia y tiempo.
+Este cap\'itulo describe, desde la perspectiva del usuario final, el funcionamiento completo de
+BargAIn en sus tres contextos de uso: la aplicaci\'on m\'ovil para consumidores (iOS),
+su versi\'on de escritorio ejecutada en navegador, y el portal web orientado a peque\~nos y
+medianos comercios (PYMEs). La exposici\'on sigue el recorrido natural de un usuario: desde el
+registro y el acceso, pasando por la gesti\'on de listas de la compra y la comparaci\'on de
+precios, hasta las funcionalidades diferenciales del sistema ---la optimizaci\'on multicriterio de
+rutas de compra, el reconocimiento \'optico de tickets y el asistente conversacional---, para
+concluir con las herramientas de gesti\'on que ofrece el portal \emph{business}.
 
-\section{Requisitos de uso}\label{sec:manual-requisitos}
+Todas las im\'agenes que ilustran este cap\'itulo son capturas reales de la aplicaci\'on
+desplegada en el entorno de desarrollo descrito en el Cap\'itulo~\ref{cap08}, obtenidas sobre un
+conjunto de datos de demostraci\'on representativo (cat\'alogo normalizado, precios de varias
+cadenas de supermercados en Sevilla y un comercio local verificado). Las capturas de la
+aplicaci\'on m\'ovil corresponden a un \emph{viewport} de 390$\times$844 puntos, equivalente al
+de un tel\'efono actual de gama media; las de escritorio, a una ventana de 1440$\times$900.
 
-\begin{itemize}
-  \item Dispositivo m\'ovil iOS (14+) o Android (10+) con la app instalada, o navegador web
-    moderno para el portal business.
-  \item Conexi\'on a Internet.
-  \item Cuenta de usuario registrada en el sistema.
-  \item Permisos de ubicaci\'on concedidos a la app (para funciones de mapa y optimizaci\'on).
-\end{itemize}
+\section{Despliegue y acceso al sistema}\label{sec:manual-requisitos}
 
-Para el entorno de desarrollo local:
-\begin{itemize}
-  \item Backend levantado en Docker (\texttt{make dev}).
-  \item Base de datos migrada (\texttt{make migrate-docker}).
-  \item Frontend Expo en host (\texttt{make frontend}).
-\end{itemize}
+BargAIn se encuentra desplegado en infraestructura p\'ublica: el backend (API REST, base de
+datos PostgreSQL/PostGIS y cola Redis) se ejecuta en \emph{Render} bajo la URL
+\texttt{https://bargain-free-api.onrender.com}, y el portal para comercios se sirve como
+aplicaci\'on est\'atica desde \emph{GitHub Pages} en
+\texttt{https://qhx0329.github.io/bargain-tfg/}. La aplicaci\'on de usuario final, construida
+con Expo, puede ejecutarse en un navegador de escritorio desde el propio repositorio o
+instalarse en un iPhone a partir del artefacto generado por la integraci\'on continua. Todas
+las variantes del cliente consumen el mismo backend de Render, por lo que los datos son
+consistentes entre plataformas.
 
-\section{Flujo de acceso}\label{sec:manual-acceso}
+Conviene tener presente una particularidad del plan gratuito de Render: tras un periodo de
+inactividad el servicio se hiberna, de modo que la primera petici\'on puede demorarse en torno a
+un minuto (\emph{cold start}) mientras la instancia se reactiva. Las peticiones posteriores
+responden con normalidad.
+
+\subsection{Acceso al portal para empresas (GitHub Pages)}\label{subsec:manual-acceso-portal}
+
+El portal \emph{business} no requiere instalaci\'on alguna: basta un navegador moderno.
+El procedimiento de acceso es el siguiente:
 
 \begin{enumerate}
-  \item Abrir la app en Expo/Web.
-  \item Seleccionar ``Iniciar sesi\'on'' o ``Registrarse''.
-  \item Introducir credenciales v\'alidas.
-  \item Tras autenticaci\'on, se carga la navegaci\'on principal por pesta\~nas.
+  \item Navegar a \texttt{https://qhx0329.github.io/bargain-tfg/}. Se carga la p\'agina de
+    presentaci\'on del portal.
+  \item Pulsar \emph{Empezar onboarding} (o navegar a \texttt{/login} si ya se dispone de
+    cuenta).
+  \item Registrar la cuenta del comercio con sus datos de acceso (usuario, correo y
+    contrase\~na) y los datos del negocio (raz\'on social, CIF/NIF y direcci\'on).
+  \item Esperar la verificaci\'on del perfil por parte de un administrador; hasta entonces la
+    cuenta permanece en estado \emph{pendiente}.
+  \item Una vez aprobado, iniciar sesi\'on para acceder al centro de operaciones descrito en la
+    Secci\'on~\ref{sec:manual-business}.
 \end{enumerate}
 
-El sistema usa JWT con refresco autom\'atico. Si el access token expira, la sesi\'on se recupera
-sin intervenci\'on del usuario cuando el refresh token sigue siendo v\'alido (7 d\'ias desde el
-\'ultimo uso).
+\subsection{Ejecuci\'on de la aplicaci\'on de usuario en local (Expo web)}\label{subsec:manual-expo-local}
 
-\subsection{Pantallas de acceso}\label{subsec:manual-acceso-screens}
+La aplicaci\'on de consumo puede ejecutarse en cualquier equipo de escritorio sin necesidad de
+dispositivo m\'ovil, reutilizando el soporte web de Expo. Los \'unicos prerrequisitos son
+\emph{Git} y \emph{Node.js} 24 o superior (que incluye \texttt{npm}). El procedimiento es:
+
+\begin{enumerate}
+  \item Clonar el repositorio y situarse en el directorio del frontend:
+\begin{verbatim}
+git clone https://github.com/QHX0329/bargain-tfg.git
+cd bargain-tfg/frontend
+\end{verbatim}
+  \item Instalar las dependencias del proyecto:
+\begin{verbatim}
+npm install
+\end{verbatim}
+  \item Revisar la configuraci\'on de entorno del fichero \texttt{frontend/.env.local}. La
+    variable \texttt{EXPO\_PUBLIC\_API\_URL} apunta por defecto al backend desplegado en
+    Render:
+\begin{verbatim}
+EXPO_PUBLIC_API_URL=https://bargain-free-api.onrender.com/api/v1
+\end{verbatim}
+    Para trabajar contra un backend local en Docker basta sustituirla por
+    \texttt{http://localhost:8000/api/v1}.
+  \item Arrancar el servidor de desarrollo en modo web:
+\begin{verbatim}
+npx expo start --web
+\end{verbatim}
+  \item Abrir \texttt{http://localhost:8081} en el navegador. Se mostrar\'a la pantalla de
+    inicio de sesi\'on; el registro de una cuenta nueva se realiza desde la propia interfaz.
+\end{enumerate}
+
+\subsection{Instalaci\'on de la aplicaci\'on en iPhone}\label{subsec:manual-ios}
+
+La distribuci\'on para iOS se apoya en el flujo de integraci\'on continua \emph{iOS Build}
+(GitHub Actions), que compila la aplicaci\'on en un runner macOS y publica como artefacto una
+IPA sin firmar (\texttt{BargAIn-unsigned}). Al no estar distribuida a trav\'es del App Store,
+la instalaci\'on requiere firmar la IPA con un identificador de Apple, operaci\'on que resuelven
+herramientas de \emph{sideloading} como \emph{Sideloadly} o \emph{AltStore}. El procedimiento
+con Sideloadly es el siguiente:
+
+\begin{enumerate}
+  \item Descargar el artefacto \texttt{BargAIn-unsigned} de la \'ultima ejecuci\'on del
+    workflow \emph{iOS Build} en la pesta\~na \emph{Actions} del repositorio, y descomprimirlo
+    para obtener el fichero \texttt{.ipa}.
+  \item Conectar el iPhone al ordenador mediante USB y autorizar el equipo desde el tel\'efono.
+  \item Abrir Sideloadly, arrastrar la IPA a la ventana de la aplicaci\'on, seleccionar el
+    dispositivo e introducir un Apple ID. Con una cuenta gratuita, la firma personal tiene una
+    validez de siete d\'ias, transcurridos los cuales basta repetir la operaci\'on; con una
+    cuenta del programa de desarrolladores la validez se extiende a un a\~no.
+  \item Pulsar \emph{Start} y esperar a que finalice la firma e instalaci\'on.
+  \item En el iPhone, confiar en el certificado del desarrollador desde \emph{Ajustes
+    \textrightarrow{} General \textrightarrow{} VPN y gesti\'on de dispositivos}.
+  \item Abrir BargAIn. La aplicaci\'on se conecta autom\'aticamente al backend de Render, por
+    lo que no requiere configuraci\'on adicional; conceder el permiso de ubicaci\'on cuando se
+    solicite para habilitar el mapa y la optimizaci\'on de rutas.
+\end{enumerate}
+
+La versi\'on actual de BargAIn se distribuye exclusivamente para iPhone (iOS 14 o superior) y
+navegadores de escritorio; las funciones de mapa y optimizaci\'on requieren adem\'as el permiso
+de ubicaci\'on concedido y conexi\'on a Internet.
+
+Para el entorno de desarrollo local completo (backend incluido), el sistema se levanta con el
+backend en Docker (\texttt{make dev}), la base de datos migrada (\texttt{make migrate-docker})
+y el frontend Expo ejecutado de forma nativa en el host (\texttt{make frontend}), conforme al
+modelo h\'ibrido adoptado en el ADR-002.
+
+\section{Registro y acceso al sistema}\label{sec:manual-acceso}
+
+El acceso a la aplicaci\'on se articula en torno a un esquema cl\'asico de autenticaci\'on con
+correo electr\'onico y contrase\~na sobre tokens JWT. La pantalla de inicio de sesi\'on
+(Figura~\ref{fig:manual-acceso}, izquierda) presenta un formulario deliberadamente austero
+---dos campos y una \'unica acci\'on principal--- con el fin de minimizar la fricci\'on de
+entrada. El formulario de registro (Figura~\ref{fig:manual-acceso}, derecha) solicita
+\'unicamente los datos imprescindibles para crear la cuenta: nombre, apellidos, correo y
+contrase\~na con confirmaci\'on, aplicando validaci\'on inmediata en el cliente antes de delegar
+en la validaci\'on definitiva del servidor.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-login.png}
 \hfill
 \includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-registro.png}
-\caption{Pantallas de inicio de sesi\'on y registro}
-\label{fig:ui-acceso}
+\caption{Acceso al sistema: inicio de sesi\'on (izquierda) y registro de un nuevo usuario
+(derecha)}
+\label{fig:manual-acceso}
 \end{figure}
 
-\section{Pantalla principal (Home)}\label{sec:manual-home}
+Tras una autenticaci\'on satisfactoria, el sistema emite un par de tokens (acceso y refresco) y
+carga la navegaci\'on principal por pesta\~nas. La sesi\'on se mantiene de forma transparente: si
+el token de acceso expira, el interceptor HTTP lo renueva autom\'aticamente con el token de
+refresco, de modo que el usuario solo vuelve a introducir credenciales si permanece inactivo m\'as
+all\'a de la vida \'util de este \'ultimo. En el cliente m\'ovil ambos tokens se custodian en el
+almacenamiento seguro del sistema operativo (\emph{Keychain} de iOS).
 
-La pantalla de inicio centraliza la informaci\'on m\'as relevante del usuario:
+\section{Pantalla principal}\label{sec:manual-home}
 
-\begin{itemize}
-  \item Resumen de listas activas con el precio estimado en la tienda m\'as barata cercana.
-  \item CTA para crear lista cuando el usuario no tiene listas activas.
-  \item Buscador global para navegar r\'apidamente a catálogo o funciones de compra.
-  \item Acceso directo al asistente y a las alertas de precio activas.
-\end{itemize}
+La pantalla de inicio (Figura~\ref{fig:manual-home}) act\'ua como cuadro de mando del usuario y
+condensa, en un \'unico recorrido vertical, la informaci\'on de mayor valor inmediato: un
+buscador global con acceso directo al cat\'alogo; una botonera de acciones r\'apidas (plantillas,
+productos, escaneo OCR y favoritos); las notificaciones m\'as recientes; las listas activas con
+su n\'umero de productos; las tiendas detectadas en el radio configurado; y las alertas de precio
+vigentes con su precio objetivo. Esta disposici\'on responde a un principio de dise\~no que ha
+guiado toda la interfaz: las tareas frecuentes deben resolverse en un m\'aximo de tres
+interacciones desde el arranque de la aplicaci\'on.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.40\textwidth]{diagramas/capturas/mobile-home.png}
-\caption{Pantalla principal --- Dashboard}
-\label{fig:ui-dashboard}
+\caption{Pantalla principal de la aplicaci\'on m\'ovil, con notificaciones, listas activas,
+tiendas cercanas y alertas de precio}
+\label{fig:manual-home}
 \end{figure}
 
-\section{Gesti\'on de listas de compra}\label{sec:manual-listas}
+\section{Gesti\'on de listas de la compra}\label{sec:manual-listas}
 
-\begin{enumerate}
-  \item Crear lista con nombre personalizado (pesta\~na ``Mi Lista'' \textrightarrow{}
-    bot\'on ``Nueva lista'').
-  \item Abrir detalle de lista para ver \'items agrupados por categor\'ia.
-  \item A\~nadir productos desde cat\'alogo o buscador con autocompletado.
-  \item Ajustar cantidades con controles r\'apidos ``$+$/$-$''.
-  \item Marcar productos como comprados (swipe-to-check) o eliminarlos (swipe-to-delete).
-  \item Renombrar listas o convertirlas en plantilla para reutilizaci\'on futura.
-  \item Compartir lista con colaboradores (hasta 10 usuarios por lista).
-  \item Abrir ``Ruta optimizada'' para calcular, guardar y reutilizar la \'ultima ruta por lista.
-\end{enumerate}
+La lista de la compra es la entidad vertebradora de BargAIn: sobre ella se calculan totales por
+tienda, se lanza la optimizaci\'on de rutas y se articula la colaboraci\'on entre usuarios. La
+pesta\~na \emph{Listas} (Figura~\ref{fig:manual-listas}, izquierda) muestra las listas del
+usuario con acciones directas de duplicado, conversi\'on en plantilla y archivado. El detalle de
+una lista (Figura~\ref{fig:manual-listas}, derecha) presenta los \'items con controles de
+cantidad ``$+$/$-$'', casillas de verificaci\'on para marcar productos como comprados y acciones
+de exportaci\'on y compartici\'on en la cabecera.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.40\textwidth]{diagramas/capturas/mobile-lista-detalle.png}
-\caption{Pantalla de gesti\'on de lista de compra}
-\label{fig:ui-lista}
+\includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-listas.png}
+\hfill
+\includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-lista-detalle.png}
+\caption{Gesti\'on de listas: colecci\'on de listas del usuario (izquierda) y detalle de una
+lista con controles de cantidad y verificaci\'on (derecha)}
+\label{fig:manual-listas}
 \end{figure}
 
-\section{Cat\'alogo y detalle de producto}\label{sec:manual-catalogo}
+El flujo de trabajo habitual es el siguiente: el usuario crea una lista con nombre
+personalizado; a\~nade productos desde el cat\'alogo, desde el buscador con autocompletado o
+mediante el esc\'aner OCR; ajusta cantidades; y, durante la compra, marca cada producto adquirido.
+Una lista puede compartirse con hasta diez colaboradores, cuyas modificaciones se notifican al
+resto de participantes, y puede convertirse en plantilla para institucionalizar compras
+recurrentes. Las plantillas (Figura~\ref{fig:manual-plantillas}) funcionan como generadores de
+listas: a partir de una plantilla ---por ejemplo, la compra b\'asica semanal--- se instancian
+nuevas listas con un solo gesto, evitando reconstruir manualmente colecciones de productos que
+apenas var\'ian de una semana a otra.
 
-\begin{itemize}
-  \item Cat\'alogo paginado con filtros plegables por categor\'ia, precio y distancia.
-  \item Tarjetas de producto con precio m\'inimo detectado y nombre de la tienda m\'as barata.
-  \item Acci\'on de a\~nadido r\'apido a lista desde la tarjeta (un tap).
-  \item Detalle de producto con comparaci\'on de precios por tienda (tabla ordenable).
-  \item Hist\'orico de precios con gr\'afico de evoluci\'on temporal.
-\end{itemize}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.40\textwidth]{diagramas/capturas/mobile-plantillas.png}
+\caption{Plantillas de lista: instanciaci\'on de compras recurrentes a partir de una plantilla
+guardada}
+\label{fig:manual-plantillas}
+\end{figure}
+
+\clearpage
+
+\section{Cat\'alogo y comparativa de precios}\label{sec:manual-catalogo}
+
+El cat\'alogo (Figura~\ref{fig:manual-catalogo}, izquierda) ofrece una vista paginada del
+repositorio de productos normalizados, con filtros plegables por categor\'ia, precio y distancia.
+Cada tarjeta sintetiza la informaci\'on decisiva para el usuario: el precio m\'inimo detectado y
+la tienda que lo ofrece, junto con una acci\'on de a\~nadido r\'apido a la lista activa que se
+resuelve con un \'unico toque.
+
+Desde cualquier tarjeta se accede a la comparativa de precios del producto
+(Figura~\ref{fig:manual-catalogo}, derecha), que constituye una de las aportaciones centrales del
+sistema: una tabla ordenable con el precio del art\'iculo en cada tienda del radio configurado,
+se\~nalando las ofertas vigentes y la antig\"uedad de cada dato seg\'un su fuente (API oficial,
+\emph{scraping} o aportaci\'on de usuarios, por este orden de prioridad). La misma pantalla
+incorpora el hist\'orico de precios con un gr\'afico de evoluci\'on temporal, que permite valorar
+si el precio actual es coyuntural o estable, y la creaci\'on de alertas de precio sobre el
+producto consultado.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-catalogo.png}
+\hfill
+\includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-detalle-precio.png}
+\caption{Cat\'alogo de productos con filtros y a\~nadido r\'apido (izquierda) y comparativa de
+precios por tienda de un producto (derecha)}
+\label{fig:manual-catalogo}
+\end{figure}
+
+El cat\'alogo es deliberadamente abierto a la participaci\'on: cuando un usuario no encuentra un
+producto, puede proponer su alta mediante el formulario de la
+Figura~\ref{fig:manual-proponer}, indicando nombre, marca, c\'odigo de barras y categor\'ia. La
+propuesta queda pendiente de revisi\'on por un administrador, lo que preserva la calidad del
+repositorio com\'un sin renunciar al crecimiento colaborativo del mismo.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.40\textwidth]{diagramas/capturas/mobile-proponer.png}
+\caption{Propuesta de alta de un nuevo producto en el cat\'alogo, sujeta a aprobaci\'on por el
+administrador}
+\label{fig:manual-proponer}
+\end{figure}
+
+\clearpage
 
 \section{Mapa de tiendas}\label{sec:manual-mapa}
 
-\begin{itemize}
-  \item Visualizaci\'on de tiendas cercanas sobre mapa interactivo (React Native Maps).
-  \item Marcadores diferenciados por cadena con badge de precio m\'inimo de la lista activa.
-  \item Panel de tiendas plegable con detalles de la tienda seleccionada.
-  \item Apertura de perfil de tienda desde el mapa y desde la lista de favoritas.
-  \item Gesti\'on de tiendas favoritas (guardar, eliminar, acceder r\'apido).
-\end{itemize}
+La pesta\~na \emph{Mapa} (Figura~\ref{fig:manual-mapa}, izquierda) sit\'ua al usuario en el
+centro de su entorno comercial: sobre cartograf\'ia interactiva se representan las tiendas del
+radio configurado con marcadores diferenciados por cadena, y un panel inferior plegable lista los
+establecimientos visibles con su distancia y tiempo estimado de desplazamiento. Al seleccionar un
+establecimiento se abre su perfil (Figura~\ref{fig:manual-mapa}, derecha), que re\'une la
+informaci\'on de contacto y horario junto con el cat\'alogo de productos detectados en esa tienda
+y sus precios, de modo que el usuario puede evaluar un comercio concreto sin abandonar el
+contexto del mapa.
 
-\section{Alertas y notificaciones}\label{sec:manual-notificaciones}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-mapa.png}
+\hfill
+\includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-tienda-perfil.png}
+\caption{Mapa de tiendas con marcadores por cadena y panel de establecimientos (izquierda) y
+perfil de tienda con sus productos y precios (derecha)}
+\label{fig:manual-mapa}
+\end{figure}
 
-\begin{itemize}
-  \item Creaci\'on de alertas de precio: al abrir el detalle de un producto, pulsar ``Crear
-    alerta'' e introducir el precio objetivo.
-  \item Edici\'on y eliminaci\'on de alertas existentes desde la pantalla ``Mis alertas''.
-  \item Bandeja de notificaciones con marcado como le\'ido individual o masivo y borrado
-    funcional (soft-delete).
-  \item Notificaciones push en el dispositivo para alertas de precio, nuevas promociones y
-    cambios en listas compartidas.
-\end{itemize}
+El sistema permite marcar tiendas como favoritas, que se agrupan en una vista propia
+(Figura~\ref{fig:manual-favoritas}) accesible tanto desde el mapa como desde las acciones
+r\'apidas de la pantalla principal. Las tiendas favoritas reciben un tratamiento preferente en la
+generaci\'on de candidatos del optimizador de rutas, reflejando la fidelidad del usuario a
+determinados establecimientos.
 
-\section{Perfil y preferencias}\label{sec:manual-perfil}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.40\textwidth]{diagramas/capturas/mobile-favoritas.png}
+\caption{Tiendas favoritas del usuario, con acceso directo a su perfil}
+\label{fig:manual-favoritas}
+\end{figure}
 
-El usuario puede desde la pesta\~na ``Perfil'':
+\clearpage
 
-\begin{itemize}
-  \item Editar datos b\'asicos (nombre, foto de avatar, tel\'efono).
-  \item Ajustar preferencias del optimizador: radio de b\'usqueda (1--20 km), pesos
-    $w_{precio}$/$w_{distancia}$/$w_{tiempo}$ (sliders que suman 1.0) y modo de
-    optimizaci\'on (precio / distancia / balanced).
-  \item Configurar preferencias de notificaciones (push, email, tipos de alerta).
-  \item Cerrar sesi\'on (invalida el refresh token).
-\end{itemize}
+\section{Alertas de precio y notificaciones}\label{sec:manual-notificaciones}
 
-\section{Ruta optimizada persistente y rec\'alculo}\label{sec:manual-ruta}
+BargAIn invierte la carga de la vigilancia de precios: en lugar de obligar al usuario a consultar
+peri\'odicamente la comparativa, es el sistema quien le avisa cuando se cumple una condici\'on de
+inter\'es. La bandeja de notificaciones (Figura~\ref{fig:manual-notificaciones}, izquierda)
+centraliza tres familias de avisos ---bajadas de precio que alcanzan el objetivo fijado, nuevas
+promociones de comercios cercanos y cambios en listas compartidas--- con marcado de le\'idas
+individual o masivo, borrado l\'ogico y enlaces profundos que conducen directamente a la pantalla
+afectada. Estos mismos avisos se entregan como notificaciones \emph{push} en el dispositivo.
 
-Flujo recomendado:
+La gesti\'on de alertas (Figura~\ref{fig:manual-notificaciones}, derecha) muestra las alertas
+activas con su precio objetivo y permite editarlas o eliminarlas. Una alerta se crea desde la
+comparativa de un producto indicando el umbral deseado; cuando alg\'un establecimiento publica un
+precio igual o inferior, el backend dispara la notificaci\'on correspondiente.
 
-\begin{enumerate}
-  \item Entrar en una lista y pulsar ``Ruta optimizada''.
-  \item Si existe una ruta previa para esa lista, se carga autom\'aticamente desde base de datos.
-  \item Revisar paradas, productos por parada y precio total estimado.
-  \item Pulsar ``Recalcular ruta'' para lanzar una nueva optimizaci\'on con ubicaci\'on y pesos
-    actuales.
-  \item Pulsar ``Ver en mapa'' para abrir la ruta circular en la app de mapas del dispositivo.
-\end{enumerate}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-notificaciones.png}
+\hfill
+\includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-alertas.png}
+\caption{Bandeja de notificaciones con avisos de precio, promociones y listas compartidas
+(izquierda) y gesti\'on de alertas de precio con su objetivo (derecha)}
+\label{fig:manual-notificaciones}
+\end{figure}
 
-Comportamiento persistente: la app no pierde la ruta al salir de la pantalla. Al volver, recupera
-la \'ultima optimizaci\'on guardada de esa lista.
+\section{Perfil y preferencias del usuario}\label{sec:manual-perfil}
+
+La pesta\~na \emph{Perfil} (Figura~\ref{fig:manual-perfil}, izquierda) agrupa la identidad del
+usuario y la configuraci\'on global de la aplicaci\'on: datos personales, preferencias de
+notificaci\'on y cierre de sesi\'on, que invalida el token de refresco en el servidor. Su
+apartado m\'as relevante para el comportamiento del sistema es la configuraci\'on del optimizador
+(Figura~\ref{fig:manual-perfil}, derecha), donde el usuario gobierna la funci\'on de
+\emph{scoring} multicriterio descrita en el Cap\'itulo~\ref{cap08}: el radio m\'aximo de
+b\'usqueda (1--20~km), el n\'umero m\'aximo de paradas por ruta y, sobre todo, los pesos
+relativos $w_{precio}$, $w_{distancia}$ y $w_{tiempo}$, ajustables mediante deslizadores cuya
+suma se normaliza autom\'aticamente a la unidad. De este modo, una misma lista produce rutas
+distintas para un usuario que prioriza el ahorro frente a otro que prioriza la inmediatez, sin
+que ninguno de los dos necesite comprender el algoritmo subyacente.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-perfil.png}
+\hfill
+\includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-config-optimizador.png}
+\caption{Perfil del usuario (izquierda) y configuraci\'on del optimizador con radio, paradas y
+pesos del \emph{scoring} multicriterio (derecha)}
+\label{fig:manual-perfil}
+\end{figure}
+
+Las operaciones sobre la cuenta se completan con la edici\'on de los datos b\'asicos y el cambio
+de contrase\~na (Figura~\ref{fig:manual-cuenta}), este \'ultimo con verificaci\'on de la
+contrase\~na vigente y validaci\'on de robustez de la nueva.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-editar-perfil.png}
+\hfill
+\includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-cambiar-password.png}
+\caption{Operaciones sobre la cuenta: edici\'on del perfil (izquierda) y cambio de contrase\~na
+(derecha)}
+\label{fig:manual-cuenta}
+\end{figure}
+
+\clearpage
+
+\section{Ruta de compra optimizada}\label{sec:manual-ruta}
+
+La optimizaci\'on de rutas es la funcionalidad nuclear del proyecto y el punto donde convergen
+precios, geolocalizaci\'on y preferencias del usuario. Desde el detalle de una lista, la
+acci\'on \emph{Ruta optimizada} conduce a la pantalla de la Figura~\ref{fig:manual-ruta}, que
+resume el resultado de la \'ultima optimizaci\'on persistida y permite recalcularla con la
+ubicaci\'on y los pesos actuales.
+
+La cabecera recoge los par\'ametros empleados (radio y pesos), seguida del selector de paradas
+m\'aximas (2--5) y del bot\'on de rec\'alculo. El bloque central presenta el resultado agregado
+---precio total estimado, distancia del recorrido, duraci\'on aproximada y n\'umero de paradas---
+y, a continuaci\'on, el desglose por parada: cada establecimiento de la ruta, con su distancia y
+tiempo parciales, enumera los productos que conviene adquirir en \'el junto con su precio. En el
+ejemplo de la figura, el optimizador ha asignado las manzanas a un comercio local porque su
+precio compensa el desv\'io conforme a los pesos configurados.
+
+Cuando un \'item de la lista admite varias interpretaciones en el cat\'alogo, la capa
+sem\'antica respaldada por el modelo Gemini se\~nala la ambig\"uedad y ofrece las alternativas
+(``Manzanas Fuji'', ``Manzanas Golden''...), cada una con la acci\'on \emph{usar y recalcular};
+la elecci\'on se persiste como preferencia de esa lista, de modo que las optimizaciones futuras
+ya no repiten la pregunta. El comportamiento de la pantalla es persistente: al salir y volver, se
+recupera la \'ultima ruta calculada desde la base de datos, y \emph{Ver en mapa} abre el
+recorrido completo en la aplicaci\'on de mapas del dispositivo.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.40\textwidth]{diagramas/capturas/mobile-ruta.png}
-\caption{Pantalla del optimizador con comparativa de rutas}
-\label{fig:ui-optimizador}
+\caption{Ruta de compra optimizada: par\'ametros, resultado agregado, desglose por parada y
+resoluci\'on de ambig\"uedades sem\'anticas con rec\'alculo}
+\label{fig:manual-ruta}
 \end{figure}
 
-\section{M\'odulo OCR: captura de ticket}\label{sec:manual-ocr}
+\clearpage
 
-El flujo de captura de lista por c\'amara sigue un wizard de tres pasos:
+\section{Reconocimiento de tickets y listas (OCR)}\label{sec:manual-ocr}
 
-\begin{enumerate}
-  \item \textbf{Captura:} Acceder desde ``Mi Lista'' \textrightarrow{} icono de c\'amara.
-    Apuntar la c\'amara al ticket o lista escrita. Se puede usar la galer\'ia como alternativa.
-  \item \textbf{Revisi\'on:} La app muestra los productos reconocidos con nivel de confianza
-    (chip de color: verde $\geq$ 80\%, amarillo 50--79\%, rojo $<$ 50\%).
-    El usuario puede corregir el texto de cualquier \'item inline o eliminar los no deseados.
-  \item \textbf{Confirmaci\'on:} Seleccionar la lista destino (existente o nueva) y confirmar
-    para a\~nadir todos los \'items reconocidos.
-\end{enumerate}
+El m\'odulo OCR reduce dr\'asticamente el coste de entrada de datos: en lugar de teclear una
+lista, el usuario fotograf\'ia un ticket de compra o una lista manuscrita y el sistema la
+convierte en \'items estructurados. El flujo sigue un asistente de tres pasos. En el primero
+(Figura~\ref{fig:manual-ocr}, izquierda), la pantalla de captura ofrece la c\'amara o la
+galer\'ia como origen de la imagen. El segundo paso (Figura~\ref{fig:manual-ocr}, derecha)
+presenta el resultado del reconocimiento ---delegado en Google Cloud Vision y refinado con un
+emparejamiento difuso contra el cat\'alogo---: cada l\'inea detectada aparece con el texto
+original, el producto del cat\'alogo con el que se ha emparejado y una etiqueta de confianza
+codificada por color (verde a partir del 80\,\%, amarillo entre el 50 y el 79\,\%, rojo por
+debajo). El usuario act\'ua como verificador final: corrige nombres en l\'inea, ajusta
+cantidades con los selectores y descarta las l\'ineas irrelevantes. En el tercer paso confirma la
+operaci\'on, eligiendo entre volcar los \'items a una lista existente o crear una nueva.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-ocr-captura.png}
 \hfill
 \includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-ocr-revision.png}
-\caption{Flujo OCR: captura de ticket (izquierda) y revisi\'on de \'items (derecha)}
-\label{fig:ui-ocr}
+\caption{Asistente OCR: captura del ticket o lista (izquierda) y revisi\'on de los \'items
+reconocidos con su nivel de confianza (derecha)}
+\label{fig:manual-ocr}
 \end{figure}
 
-\section{Asistente LLM}\label{sec:manual-asistente}
+\section{Asistente conversacional}\label{sec:manual-asistente}
 
-La pantalla del asistente sigue el patr\'on de chat est\'andar:
-
-\begin{itemize}
-  \item Mensajes del usuario alineados a la derecha (burbuja verde).
-  \item Respuestas del asistente alineadas a la izquierda (burbuja gris).
-  \item Las respuestas con productos, precios o tiendas incluyen chips interactivos para a\~nadir
-    el producto a la lista activa directamente desde el chat.
-  \item El asistente s\'olo responde preguntas relacionadas con la compra dom\'estica. Si se hace
-    una pregunta fuera de ese \'ambito, responde educadamente indicando su alcance.
-\end{itemize}
+El asistente (Figura~\ref{fig:manual-asistente}) incorpora un modelo de lenguaje (Gemini,
+mediado por el backend conforme al ADR-008) especializado en la compra dom\'estica. La pantalla
+sigue el patr\'on conversacional est\'andar ---mensajes del usuario a la derecha, respuestas del
+asistente a la izquierda--- e incluye sugerencias de arranque que comunican el alcance del
+sistema: comparar precios entre cadenas, localizar la tienda m\'as barata para un producto o
+pedir la optimizaci\'on de la lista activa. Cuando una respuesta menciona productos, precios o
+tiendas, incorpora fichas interactivas que permiten a\~nadir el producto a la lista sin
+abandonar la conversaci\'on. El asistente est\'a acotado deliberadamente a su dominio: ante
+preguntas ajenas a la compra responde declinando la consulta, como parte de las salvaguardas de
+uso descritas en el Cap\'itulo~\ref{cap08}.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.40\textwidth]{diagramas/capturas/mobile-asistente.png}
-\caption{Pantalla del asistente conversacional LLM}
-\label{fig:ui-asistente}
+\caption{Asistente conversacional con sugerencias de inicio y campo de consulta; las respuestas
+con productos incluyen fichas de a\~nadido directo a la lista}
+\label{fig:manual-asistente}
 \end{figure}
 
-\section{Checklist en bloqueo de iPhone}\label{sec:manual-lockscreen}
+\section{Lista de comprobaci\'on en pantalla de bloqueo (iOS)}\label{sec:manual-lockscreen}
 
-Desde la pantalla de ruta optimizada, el bot\'on ``Checklist en bloqueo'' publica una notificaci\'on
-interactiva con las acciones de marcar cada producto como comprado. Al pulsar una acci\'on en
-pantalla bloqueada, el \'item se marca como comprado y la notificaci\'on se actualiza.
+Como complemento del flujo de compra presencial, desde la pantalla de ruta optimizada el bot\'on
+\emph{Checklist en bloqueo} publica una notificaci\'on interactiva con los productos de la
+parada actual. El usuario puede marcar cada art\'iculo como comprado directamente desde la
+pantalla bloqueada del tel\'efono, sin desbloquear el dispositivo ni reabrir la aplicaci\'on; la
+notificaci\'on se actualiza tras cada acci\'on. La versi\'on basada en \emph{Live Activities}
+de ActivityKit queda fuera del flujo gestionado de Expo y se documenta como trabajo futuro en el
+ADR-010.
 
-\section{Portal Business (web)}\label{sec:manual-business}
+\clearpage
 
-Para cuentas PYME, el portal web (\texttt{/business}) ofrece:
+\section{La aplicaci\'on en el navegador de escritorio}\label{sec:manual-web}
 
-\begin{enumerate}
-  \item \textbf{Registro:} Formulario de onboarding con datos del negocio (nombre, CIF, direcci\'on,
-    web). La cuenta queda en estado ``pendiente'' hasta que un administrador la aprueba.
-  \item \textbf{Gesti\'on de precios:} Tabla editable con todos los productos del negocio y sus
-    precios actuales. Actualizaci\'on individual o mediante carga masiva en CSV.
-  \item \textbf{Gesti\'on de promociones:} Crear, activar y desactivar promociones con descuento
-    fijo o porcentual, fecha de fin y cantidad m\'inima.
-  \item \textbf{Perfil de negocio:} Editar descripci\'on, horario, tel\'efono, imagen.
-  \item \textbf{Estad\'isticas:} N\'umero de visualizaciones del perfil y comparativa de precios
-    con competidores del entorno (alerta autom\'atica cuando la diferencia supera el umbral
-    configurado).
-\end{enumerate}
+La misma base de c\'odigo Expo de la aplicaci\'on m\'ovil se ejecuta en navegadores de
+escritorio, donde la interfaz se reorganiza para aprovechar la superficie adicional y los
+dispositivos de entrada propios del ordenador. Esta secci\'on documenta dicha adaptaci\'on, que
+no es una mera ampliaci\'on del lienzo: cambia la disposici\'on, la densidad de informaci\'on y
+las \emph{affordances} de interacci\'on.
 
-\section{Uso desde el navegador web}\label{sec:manual-web}
-
-Adem\'as del portal PYME, la aplicaci\'on de usuario final puede ejecutarse en un navegador de
-escritorio reutilizando la misma app Expo. La interfaz se adapta autom\'aticamente al ancho de la
-ventana y habilita conveniencias propias del escritorio (Fase 13):
-
-\begin{itemize}
-  \item \textbf{Dise\~no adaptable:} el contenido se centra a un ancho legible y los cat\'alogos y
-    listados muestran varias columnas (2--4) en pantallas anchas. En el mapa, el panel de tiendas
-    se ancla a la derecha en lugar de mostrarse debajo.
-  \item \textbf{Rat\'on y teclado:} atajo \texttt{Cmd/Ctrl+K} para enfocar el buscador,
-    \texttt{Enter} para a\~nadir un producto a la lista y \texttt{Esc} para cerrar di\'alogos, con
-    realces \emph{hover} sobre tarjetas y botones. El campo del asistente recibe el foco
-    autom\'aticamente al abrir la pantalla.
-  \item \textbf{Reordenar listas:} en el detalle de una lista se pueden arrastrar los \'items para
-    reordenarlos (\emph{drag-and-drop}); el nuevo orden es v\'alido durante la sesi\'on.
-  \item \textbf{Exportar y compartir:} botones para exportar la lista (\texttt{.txt}), la
-    comparativa de precios (\texttt{.csv}) y la ruta, copiar la direcci\'on de una tienda al
-    portapapeles y compartir el enlace directo a una lista o tienda.
-  \item \textbf{Enlaces directos:} cada pantalla relevante tiene una URL propia, por lo que se
-    puede compartir o guardar como marcador el estado actual (por ejemplo, una b\'usqueda concreta
-    del cat\'alogo mediante \texttt{?q=}).
-\end{itemize}
-
-\section{Galer\'ia de capturas de la aplicaci\'on}\label{sec:manual-galeria}
-
-Esta secci\'on recoge capturas reales de cada pantalla y funcionalidad de la aplicaci\'on
-desplegada, agrupadas por contexto de uso: aplicaci\'on m\'ovil de usuario (viewport
-390$\times$844), aplicaci\'on web de usuario (escritorio, 1440$\times$900) y portal web para
-PYMEs. Todas las im\'agenes residen en \texttt{diagramas/capturas/}.
-
-\subsection{Aplicaci\'on m\'ovil (usuario)}\label{subsec:galeria-movil}
+La pantalla principal (Figura~\ref{fig:manual-web-home}, izquierda) centra el contenido a un
+ancho legible y convierte las acciones r\'apidas en una botonera horizontal. El cat\'alogo
+(Figura~\ref{fig:manual-web-home}, derecha) pasa de la lista vertical m\'ovil a una rejilla de
+dos a cuatro columnas seg\'un el ancho de la ventana, con realces \emph{hover} sobre las
+tarjetas; el atajo \texttt{Cmd/Ctrl+K} enfoca el buscador desde cualquier punto, \texttt{Enter}
+a\~nade el producto resaltado a la lista y \texttt{Esc} cierra los di\'alogos abiertos.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-login.png}
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-home.png}
 \hfill
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-registro.png}
-\caption{M\'ovil --- Inicio de sesi\'on (izquierda) y registro (derecha)}
-\label{fig:cap-mobile-acceso}
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-catalogo.png}
+\caption{Versi\'on de escritorio: pantalla principal con accesos horizontales (izquierda) y
+cat\'alogo en rejilla multicolumna con soporte de teclado (derecha)}
+\label{fig:manual-web-home}
 \end{figure}
+
+La comparativa de precios (Figura~\ref{fig:manual-web-comparativa}, izquierda) gana una cabecera
+fija durante el desplazamiento y un bot\'on de exportaci\'on de la tabla a \texttt{CSV},
+pensado para el usuario que desea elaborar sus propios an\'alisis. En el detalle de lista
+(Figura~\ref{fig:manual-web-comparativa}, derecha) aparece una interacci\'on exclusiva del
+escritorio: el reordenado de \'items mediante arrastre (\emph{drag-and-drop}), v\'alido durante
+la sesi\'on, junto con la exportaci\'on de la lista en texto plano y la copia de un enlace
+directo de compartici\'on.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-home.png}
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-comparativa.png}
 \hfill
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-catalogo.png}
-\caption{M\'ovil --- Pantalla principal (izquierda) y cat\'alogo de productos (derecha)}
-\label{fig:cap-mobile-home-catalogo}
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-lista-detalle.png}
+\caption{Comparativa de precios con cabecera fija y exportaci\'on CSV (izquierda) y detalle de
+lista con reordenado por arrastre y exportaci\'on (derecha)}
+\label{fig:manual-web-comparativa}
 \end{figure}
+
+Las vistas de colecci\'on se benefician igualmente de la rejilla responsiva: tanto las listas
+como las plantillas (Figura~\ref{fig:manual-web-listas}) se presentan como tarjetas en
+m\'ultiples columnas, lo que facilita la comparaci\'on visual entre compras recurrentes.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-detalle-precio.png}
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-listas.png}
 \hfill
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-proponer.png}
-\caption{M\'ovil --- Comparativa de precios por tienda (izquierda) y propuesta de producto (derecha)}
-\label{fig:cap-mobile-precio-proponer}
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-plantillas.png}
+\caption{Colecciones en rejilla responsiva: listas de la compra (izquierda) y plantillas
+(derecha)}
+\label{fig:manual-web-listas}
 \end{figure}
+
+En el mapa (Figura~\ref{fig:manual-web-mapa}, izquierda), el panel de tiendas abandona la
+posici\'on inferior del m\'ovil y se ancla como columna lateral derecha, de forma que mapa y
+listado permanecen visibles simult\'aneamente. El perfil de tienda
+(Figura~\ref{fig:manual-web-mapa}, derecha) adopta una composici\'on a dos columnas
+---informaci\'on del establecimiento y cat\'alogo de productos--- e incorpora la copia de la
+direcci\'on al portapapeles.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-listas.png}
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-mapa.png}
 \hfill
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-lista-detalle.png}
-\caption{M\'ovil --- Listas de la compra (izquierda) y detalle de una lista (derecha)}
-\label{fig:cap-mobile-listas}
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-tienda-perfil.png}
+\caption{Mapa con panel lateral de tiendas (izquierda) y perfil de tienda a dos columnas
+(derecha)}
+\label{fig:manual-web-mapa}
 \end{figure}
 
 \clearpage
 
+Las tiendas favoritas se muestran en rejilla (Figura~\ref{fig:manual-web-favoritas}, izquierda),
+y el asistente conversacional (Figura~\ref{fig:manual-web-favoritas}, derecha) centra la
+conversaci\'on a un ancho de lectura c\'omodo, recibe el foco autom\'aticamente al abrirse y
+a\~nade la copia individual de cada respuesta.
+
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-plantillas.png}
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-favoritas.png}
 \hfill
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-ruta.png}
-\caption{M\'ovil --- Plantillas de lista (izquierda) y ruta optimizada (derecha)}
-\label{fig:cap-mobile-plantillas-ruta}
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-asistente.png}
+\caption{Tiendas favoritas en rejilla (izquierda) y asistente conversacional centrado con copia
+por mensaje (derecha)}
+\label{fig:manual-web-favoritas}
 \end{figure}
 
+La ruta optimizada (Figura~\ref{fig:manual-web-ruta}, izquierda) reproduce el desglose por
+paradas del m\'ovil ampliado con la exportaci\'on del itinerario, mientras que el m\'odulo OCR
+(Figura~\ref{fig:manual-web-ruta}, derecha) centra el asistente de captura y delega en el
+selector de ficheros del sistema cuando no hay c\'amara disponible.
+
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-ocr-captura.png}
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-ruta.png}
 \hfill
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-ocr-revision.png}
-\caption{M\'ovil --- M\'odulo OCR: captura de ticket (izquierda) y revisi\'on de \'items (derecha)}
-\label{fig:cap-mobile-ocr}
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-ocr.png}
+\caption{Ruta optimizada con exportaci\'on del itinerario (izquierda) y m\'odulo OCR adaptado al
+escritorio (derecha)}
+\label{fig:manual-web-ruta}
 \end{figure}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-mapa.png}
-\hfill
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-tienda-perfil.png}
-\caption{M\'ovil --- Mapa de tiendas (izquierda) y perfil de tienda (derecha)}
-\label{fig:cap-mobile-mapa}
-\end{figure}
+Por \'ultimo, la bandeja de notificaciones y la gesti\'on de alertas
+(Figura~\ref{fig:manual-web-notifs}) se centran a un ancho fijo que preserva la legibilidad de
+cada aviso. Cada pantalla relevante de la versi\'on web dispone adem\'as de URL propia, de modo
+que cualquier estado ---una b\'usqueda concreta del cat\'alogo mediante \texttt{?q=}, una lista,
+una tienda--- puede guardarse como marcador o compartirse como enlace.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-favoritas.png}
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-notificaciones.png}
 \hfill
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-asistente.png}
-\caption{M\'ovil --- Tiendas favoritas (izquierda) y asistente conversacional (derecha)}
-\label{fig:cap-mobile-favoritas-asistente}
-\end{figure}
-
-\clearpage
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-notificaciones.png}
-\hfill
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-alertas.png}
-\caption{M\'ovil --- Bandeja de notificaciones (izquierda) y alertas de precio (derecha)}
-\label{fig:cap-mobile-notif-alertas}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-perfil.png}
-\hfill
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-config-optimizador.png}
-\caption{M\'ovil --- Perfil de usuario (izquierda) y configuraci\'on del optimizador (derecha)}
-\label{fig:cap-mobile-perfil-config}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-editar-perfil.png}
-\hfill
-\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-cambiar-password.png}
-\caption{M\'ovil --- Edici\'on de perfil (izquierda) y cambio de contrase\~na (derecha)}
-\label{fig:cap-mobile-editar-password}
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-alertas.png}
+\caption{Bandeja de notificaciones (izquierda) y alertas de precio (derecha) en la versi\'on de
+escritorio}
+\label{fig:manual-web-notifs}
 \end{figure}
 
 \clearpage
 
-\subsection{Aplicaci\'on web (usuario)}\label{subsec:galeria-web}
+\section{Portal Business para PYMEs}\label{sec:manual-business}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-home.png}
-\hfill
-\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-catalogo.png}
-\caption{Web --- Pantalla principal con accesos horizontales (izquierda) y cat\'alogo en rejilla
-multicolumna con \texttt{Cmd/Ctrl+K} (derecha)}
-\label{fig:cap-web-home-catalogo}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-comparativa.png}
-\hfill
-\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-lista-detalle.png}
-\caption{Web --- Comparativa de precios con cabecera fija y exportaci\'on CSV (izquierda) y detalle
-de lista con reordenado \emph{drag-and-drop} y exportaci\'on (derecha)}
-\label{fig:cap-web-comparativa-lista}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-listas.png}
-\hfill
-\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-plantillas.png}
-\caption{Web --- Listas (izquierda) y plantillas (derecha) con rejilla responsive}
-\label{fig:cap-web-listas-plantillas}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-mapa.png}
-\hfill
-\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-tienda-perfil.png}
-\caption{Web --- Mapa con panel de tiendas anclado a la derecha (izquierda) y perfil de tienda a
-dos columnas (derecha)}
-\label{fig:cap-web-mapa-tienda}
-\end{figure}
-
-\clearpage
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-favoritas.png}
-\hfill
-\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-asistente.png}
-\caption{Web --- Tiendas favoritas en rejilla (izquierda) y asistente centrado con copia por
-mensaje (derecha)}
-\label{fig:cap-web-favoritas-asistente}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-ruta.png}
-\hfill
-\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-ocr.png}
-\caption{Web --- Ruta optimizada con exportaci\'on (izquierda) y m\'odulo OCR centrado (derecha)}
-\label{fig:cap-web-ruta-ocr}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-notificaciones.png}
-\hfill
-\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-alertas.png}
-\caption{Web --- Bandeja de notificaciones (izquierda) y alertas de precio (derecha) centradas}
-\label{fig:cap-web-notif-alertas}
-\end{figure}
-
-\clearpage
-
-\subsection{Portal web para PYMEs}\label{subsec:galeria-pyme}
+El portal \emph{business} es la contrapartida del sistema para el peque\~no comercio: una
+aplicaci\'on web independiente desde la que un establecimiento local publica sus precios y
+promociones para competir en igualdad de condiciones con las grandes cadenas dentro de BargAIn.
+Su p\'agina de presentaci\'on (Figura~\ref{fig:manual-pyme-landing}) expone la propuesta de
+valor para el comercio ---visibilidad ante consumidores cercanos, gesti\'on aut\'onoma de precios
+y promociones, y estimaciones orientativas de retorno--- y resume el proceso de alta en tres
+pasos.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\textwidth]{diagramas/capturas/pyme-landing.png}
-\caption{Portal PYME --- P\'agina de aterrizaje (\emph{landing})}
-\label{fig:cap-pyme-landing}
+\caption{P\'agina de presentaci\'on del portal Business, con la propuesta de valor para el
+comercio local y el proceso de alta en tres pasos}
+\label{fig:manual-pyme-landing}
 \end{figure}
+
+El acceso al portal (Figura~\ref{fig:manual-pyme-acceso}) reutiliza el mismo sistema de
+autenticaci\'on JWT de la aplicaci\'on de consumo, con cuentas de rol \emph{business}. Tras el
+registro, el comerciante completa el \emph{onboarding} (Figura~\ref{fig:manual-pyme-onboarding}):
+un formulario con los datos legales y comerciales del negocio ---raz\'on social, CIF/NIF,
+direcci\'on y sitio web--- que crea el perfil de empresa en estado \emph{pendiente}. Ning\'un
+comercio publica precios sin que un administrador haya verificado previamente esos datos, una
+salvaguarda imprescindible para sostener la confianza del consumidor en la informaci\'on que
+muestra la aplicaci\'on.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.46\textwidth]{diagramas/capturas/pyme-login.png}
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/pyme-login.png}
 \hfill
-\includegraphics[width=0.46\textwidth]{diagramas/capturas/pyme-registro.png}
-\caption{Portal PYME --- Inicio de sesi\'on (izquierda) y registro (derecha)}
-\label{fig:cap-pyme-acceso}
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/pyme-registro.png}
+\caption{Acceso al portal Business: inicio de sesi\'on (izquierda) y registro de una cuenta de
+comercio (derecha)}
+\label{fig:manual-pyme-acceso}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\textwidth]{diagramas/capturas/pyme-onboarding.png}
-\caption{Portal PYME --- Onboarding del negocio (alta de datos y CIF)}
-\label{fig:cap-pyme-onboarding}
+\caption{\emph{Onboarding} del comercio: alta de los datos legales y comerciales que un
+administrador verificar\'a antes de activar la cuenta}
+\label{fig:manual-pyme-onboarding}
 \end{figure}
+
+\clearpage
+
+Una vez aprobado, el comerciante accede a su centro de operaciones
+(Figura~\ref{fig:manual-pyme-dashboard}): un panel ejecutivo con los indicadores esenciales del
+negocio en la plataforma ---tiendas activas, precios publicados, promociones vigentes y
+visualizaciones de perfil acumuladas---, la salud de sus campa\~nas y los \'ultimos ajustes de
+precio aplicados. El prop\'osito del panel es que un comerciante sin formaci\'on anal\'itica
+pueda responder de un vistazo a las dos preguntas que le importan: qu\'e estoy ofreciendo ahora
+mismo y cu\'anta atenci\'on est\'a recibiendo.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\textwidth]{diagramas/capturas/pyme-dashboard.png}
-\caption{Portal PYME --- Panel de control (\emph{dashboard}) con estad\'isticas}
-\label{fig:cap-pyme-dashboard}
+\caption{Centro de operaciones del comercio: indicadores de actividad, salud de promociones y
+ajustes recientes de precio}
+\label{fig:manual-pyme-dashboard}
+\end{figure}
+
+La gesti\'on del surtido se apoya en dos vistas complementarias. La pantalla de productos
+(Figura~\ref{fig:manual-pyme-productos}, izquierda) resume el cat\'alogo del comercio con el
+n\'umero de tiendas que ofrecen cada art\'iculo, su precio base m\'inimo y la mejor oferta
+vigente. Para incorporaciones masivas, la carga por \texttt{CSV}
+(Figura~\ref{fig:manual-pyme-productos}, derecha) permite importar el cat\'alogo completo en una
+sola operaci\'on, con validaci\'on fila a fila e informe de incidencias, lo que rebaja
+considerablemente la barrera de entrada para comercios con decenas de referencias.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/pyme-productos.png}
+\hfill
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/pyme-carga-masiva.png}
+\caption{Gesti\'on del surtido: resumen de productos del comercio (izquierda) y carga masiva de
+cat\'alogo mediante CSV con validaci\'on (derecha)}
+\label{fig:manual-pyme-productos}
 \end{figure}
 
 \clearpage
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.46\textwidth]{diagramas/capturas/pyme-productos.png}
-\hfill
-\includegraphics[width=0.46\textwidth]{diagramas/capturas/pyme-carga-masiva.png}
-\caption{Portal PYME --- Gesti\'on de productos (izquierda) y carga masiva por CSV (derecha)}
-\label{fig:cap-pyme-productos}
-\end{figure}
+El mantenimiento diario de precios se realiza en la tabla editable de la
+Figura~\ref{fig:manual-pyme-precios}: cada fila representa un precio publicado
+(producto--tienda) y el panel lateral permite modificar el precio base, el precio unitario y,
+opcionalmente, un precio de oferta con fecha de caducidad. Los cambios se publican de forma
+inmediata en la aplicaci\'on de consumo con la fuente \emph{business}, que el sistema de
+prioridades de BargAIn sit\'ua por delante de los datos de \emph{scraping} por tratarse de
+informaci\'on de primera mano.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\textwidth]{diagramas/capturas/pyme-precios.png}
-\caption{Portal PYME --- Gesti\'on de precios (tabla editable)}
-\label{fig:cap-pyme-precios}
+\caption{Gesti\'on de precios: tabla editable con panel lateral de edici\'on de precio base,
+unitario y oferta con caducidad}
+\label{fig:manual-pyme-precios}
 \end{figure}
+
+Sobre los precios se construyen las promociones (Figura~\ref{fig:manual-pyme-promos},
+izquierda): descuentos fijos o porcentuales con fecha de inicio y fin, cantidad m\'inima
+opcional y t\'itulo comercial, cuyo rendimiento (visualizaciones, estado) se supervisa desde el
+propio listado. Las promociones activas se difunden a los consumidores del entorno mediante
+notificaciones, cerrando el c\'irculo entre la oferta del comercio y la demanda cercana. El
+perfil del negocio (Figura~\ref{fig:manual-pyme-promos}, derecha) completa la gesti\'on con los
+datos p\'ublicos del establecimiento y el umbral de alerta competitiva: si un competidor del
+entorno publica un precio inferior en m\'as del porcentaje configurado, el comerciante recibe un
+aviso autom\'atico.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.46\textwidth]{diagramas/capturas/pyme-promociones.png}
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/pyme-promociones.png}
 \hfill
-\includegraphics[width=0.46\textwidth]{diagramas/capturas/pyme-perfil-negocio.png}
-\caption{Portal PYME --- Gesti\'on de promociones (izquierda) y perfil del negocio (derecha)}
-\label{fig:cap-pyme-promo-perfil}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.85\textwidth]{diagramas/capturas/pyme-admin-aprobacion.png}
-\caption{Portal PYME --- Aprobaci\'on de negocios por el administrador}
-\label{fig:cap-pyme-admin}
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/pyme-perfil-negocio.png}
+\caption{Promociones del comercio con anal\'itica b\'asica (izquierda) y perfil del negocio con
+umbral de alerta competitiva (derecha)}
+\label{fig:manual-pyme-promos}
 \end{figure}
 
 \clearpage
 
+El ciclo administrativo se cierra en el panel de administraci\'on
+(Figura~\ref{fig:manual-pyme-admin}), reservado a usuarios con privilegios de gesti\'on. En \'el
+se revisan los perfiles PYME pendientes ---con sus datos legales a la vista--- y las propuestas
+de producto remitidas por los consumidores, con acciones de aprobaci\'on y rechazo motivado.
+Este punto \'unico de moderaci\'on garantiza que tanto los comercios como el cat\'alogo crecen
+de forma controlada.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{diagramas/capturas/pyme-admin-aprobacion.png}
+\caption{Panel de administraci\'on: verificaci\'on y aprobaci\'on de perfiles PYME y de
+propuestas de producto}
+\label{fig:manual-pyme-admin}
+\end{figure}
+
 \section{Resoluci\'on de incidencias comunes}\label{sec:manual-incidencias}
 
+Se recogen, por \'ultimo, las incidencias m\'as habituales en el uso del sistema y su
+resoluci\'on:
+
 \begin{itemize}
-  \item \textbf{Frontend no conecta con backend:} verificar que el backend est\'a levantado
-    (\texttt{make dev}) y expuesto en \texttt{http://localhost:8000}.
-  \item \textbf{Errores JWT al navegar:} cerrar sesi\'on e iniciar de nuevo para regenerar
-    credenciales.
-  \item \textbf{No aparecen tiendas en mapa:} comprobar permisos de ubicaci\'on del dispositivo
-    o usar coordenadas v\'alidas desde preferencias de perfil.
-  \item \textbf{OCR no reconoce texto:} asegurarse de que hay buena iluminaci\'on y el texto es
-    legible; usar la opci\'on de galer\'ia con una foto de mayor calidad.
-  \item \textbf{Optimizaci\'on muy lenta:} la primera optimizaci\'on tras arrancar el backend puede
-    tardar hasta 30 s (cold start en Render free tier). Las siguientes son instant\'aneas porque
-    el worker Celery est\'a caliente.
+  \item \textbf{El frontend no conecta con el backend:} verificar que el backend est\'a
+    levantado (\texttt{make dev}) y expuesto en \texttt{http://localhost:8000}.
+  \item \textbf{Errores de autenticaci\'on al navegar:} cerrar sesi\'on e iniciarla de nuevo
+    para regenerar el par de tokens.
+  \item \textbf{No aparecen tiendas en el mapa:} comprobar los permisos de ubicaci\'on del
+    dispositivo o fijar unas coordenadas v\'alidas desde las preferencias del perfil.
+  \item \textbf{El OCR no reconoce texto:} procurar buena iluminaci\'on y texto legible; la
+    opci\'on de galer\'ia con una fotograf\'ia de mayor calidad suele resolver el problema.
+  \item \textbf{La primera optimizaci\'on tarda:} tras arrancar el backend, la primera
+    optimizaci\'on puede demorarse hasta 30 segundos (arranque en fr\'io del servicio de rutas);
+    las siguientes son pr\'acticamente inmediatas.
 \end{itemize}

@@ -241,7 +241,9 @@ Nota F5-17: bloqueada en Expo managed. Requiere extensión nativa iOS (ActivityK
 | F7-04 | Memoria caps. 8-11 + conversión LaTeX | 🔴 Crítica | ✅ | 6 | 7 | `docs/memoria/`, `memoriaTFG/Plantilla TfG/Capitulos/cap08-11.tex` |
 | F7-05 | Slides de defensa (Marp) + script demo | 🟠 Alta | ✅ | 3 | 3 | `docs/defensa/slides.md`, `demo-script.md`, `slides-outline.md` |
 | F7-06 | Cierre formal: VERIFICATION.md, TASKS.md, STATE.md | 🔴 Crítica | ✅ | 2 | 3 | `07-VERIFICATION.md`, `TASKS.md`, `STATE.md`, `BUILD-INSTRUCTIONS.md` |
-| F7-07 | Capturas reales de las 47 pantallas (móvil/web/PYME) para cap. 9 + sustitución de mockups + recompilación memoria | 🟠 Alta | ✅ | 4 | 4 | `scripts/capture-memoria.mjs`, `scripts/capture_setup.py`, `scripts/win/*.bat`, `memoriaTFG/Plantilla TfG/diagramas/capturas/*.png`, `cap09.tex`, `proyect.pdf` |
+| F7-07 | Capturas reales de las 47 pantallas (móvil/web/PYME), manual de usuario integrado con figuras, y 13 cuadros del índice rediseñados como imágenes profesionales | 🟠 Alta | ✅ | 4 | 6 | `scripts/capture-memoria.mjs`, `scripts/capture_setup.py`, `scripts/win/*.bat`, `memoriaTFG/Plantilla TfG/diagramas/capturas/*.png`, `cap09.tex`, `proyect.pdf` |
+
+| F7-08 | Conexión de frontends al backend de Render (Expo local/iOS/portal), corrección de URL de servicio y CORS, guía de despliegue en el manual y retirada de soporte Android de la memoria | 🔴 Crítica | ✅ | 3 | 3 | `frontend/.env.local`, `frontend/web/.env.local`, `client.ts`, workflows CI, `render.free.yaml`, `cap09.tex`, `proyect.pdf` |
 
 ### Artefactos entregables Phase 7
 

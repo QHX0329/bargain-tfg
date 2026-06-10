@@ -15,7 +15,7 @@ externas, brokers de mensajer\'ia --- facilitando el testing independiente de ca
 La arquitectura global se divide en cinco bloques principales:
 
 \begin{enumerate}
-  \item \textbf{Aplicaci\'on cliente:} React Native (Expo) para iOS y Android, con una aplicaci\'on
+  \item \textbf{Aplicaci\'on cliente:} React Native (Expo) para iOS, con una aplicaci\'on
     web React para el Portal Business de PYMEs.
   \item \textbf{API Backend:} Django REST Framework como n\'ucleo de la l\'ogica de negocio,
     expuesto bajo HTTPS mediante Gunicorn + Nginx.
@@ -163,26 +163,11 @@ optimizaci\'on de forma trazable:
 
 \subsection{\'Indices clave}\label{subsec:indices}
 
-\begin{table}[h]
+\begin{table}[htbp]
+\centering
 \caption{\'Indices principales de la base de datos}
 \label{tab:indices}
-\centering
-\begin{tabular}{|l|l|l|p{5cm}|}
-\hline
-\textbf{Tabla} & \textbf{Columna(s)} & \textbf{Tipo} & \textbf{Justificaci\'on} \\
-\hline
-\texttt{store} & \texttt{location} & GiST &
-  B\'usquedas geoespaciales por radio \\
-\texttt{price} & \texttt{(product, store, created\_at)} & B-Tree &
-  Hist\'orico y precio actual \\
-\texttt{price} & \texttt{expires\_at} & B-Tree parcial &
-  Filtrar precios vigentes \\
-\texttt{product} & \texttt{normalized\_name} & GIN (trigram) &
-  B\'usqueda fuzzy por nombre \\
-\texttt{shopping\_list\_item} & \texttt{(shopping\_list, is\_checked)} & B-Tree &
-  \'Items pendientes \\
-\hline
-\end{tabular}
+\includegraphics[width=0.95\textwidth]{diagramas/cuadros/cuadro-indices.png}
 \end{table}
 
 \subsection{Modelo entidad-relaci\'on}\label{subsec:modelo-er}
@@ -236,43 +221,18 @@ el formato unificado:
 
 \subsection{Endpoints principales}\label{subsec:api-endpoints}
 
-\begin{table}[h]
+\begin{table}[htbp]
+\centering
 \caption{Endpoints de autenticaci\'on y usuarios}
 \label{tab:api-auth}
-\centering
-\begin{tabular}{|l|p{6cm}|p{5cm}|}
-\hline
-\textbf{M\'etodo} & \textbf{Endpoint} & \textbf{Descripci\'on} \\
-\hline
-\texttt{POST} & \texttt{/api/v1/auth/register/} & Registro de nuevo usuario \\
-\texttt{POST} & \texttt{/api/v1/auth/login/} & Login: access + refresh token \\
-\texttt{POST} & \texttt{/api/v1/auth/token/refresh/} & Renovar access token \\
-\texttt{POST} & \texttt{/api/v1/auth/logout/} & Invalidar refresh token \\
-\texttt{GET/PATCH} & \texttt{/api/v1/users/me/} & Perfil del usuario autenticado \\
-\texttt{GET/PATCH} & \texttt{/api/v1/users/me/preferences/} & Preferencias de optimizaci\'on \\
-\hline
-\end{tabular}
+\includegraphics[width=0.95\textwidth]{diagramas/cuadros/cuadro-api-auth.png}
 \end{table}
 
-\begin{table}[h]
+\begin{table}[htbp]
+\centering
 \caption{Endpoints del optimizador, OCR y asistente}
 \label{tab:api-core}
-\centering
-\begin{tabular}{|l|p{6cm}|p{5cm}|}
-\hline
-\textbf{M\'etodo} & \textbf{Endpoint} & \textbf{Descripci\'on} \\
-\hline
-\texttt{POST} & \texttt{/api/v1/optimize/} & Calcular o recalcular ruta \'optima \\
-\texttt{GET} & \texttt{/api/v1/optimize/?shopping\_list\_id=\{id\}} &
-  Cargar \'ultima ruta persistida \\
-\texttt{POST} & \texttt{/api/v1/ocr/scan/} &
-  Procesar imagen y devolver \'items reconocidos \\
-\texttt{GET/POST} & \texttt{/api/v1/assistant/conversations/} &
-  Listar y crear conversaciones \\
-\texttt{POST} & \texttt{/api/v1/assistant/conversations/\{id\}/messages/} &
-  Enviar mensaje al asistente \\
-\hline
-\end{tabular}
+\includegraphics[width=0.98\textwidth]{diagramas/cuadros/cuadro-api-core.png}
 \end{table}
 
 \subsection{Autenticaci\'on y autorizaci\'on}\label{subsec:api-auth}
@@ -413,19 +373,11 @@ subconjunto fijo de tiendas.
 
 \subsection{Complejidad y rendimiento}\label{subsec:rendimiento}
 
-\begin{table}[h]
+\begin{table}[htbp]
+\centering
 \caption{Tiempos estimados de ejecuci\'on del optimizador}
 \label{tab:rendimiento}
-\centering
-\begin{tabular}{|l|c|c|c|}
-\hline
-\textbf{Escenario} & \textbf{Tiendas} & \textbf{Combinaciones (k=3)} & \textbf{Tiempo} \\
-\hline
-Lista peque\~na (5 prod.) & $\leq 15$ & 455 & $<$ 1 s \\
-Lista media (20 prod.) & $\leq 30$ & 4.060 & $<$ 3 s \\
-Lista grande (50 prod.) & $\leq 30$ & 4.060 & $<$ 5 s \\
-\hline
-\end{tabular}
+\includegraphics[width=0.85\textwidth]{diagramas/cuadros/cuadro-rendimiento.png}
 \end{table}
 
 El umbral de 5 s (RNF-001) se cumple gracias a: pre-filtrado de tiendas, cach\'e de matriz de
@@ -545,23 +497,11 @@ exclusivamente mediante variables de entorno, nunca hardcodeadas. Se proporciona
 El frontend define un sistema de dise\~no propio en \texttt{src/theme/} con los siguientes
 tokens:
 
-\begin{table}[h]
+\begin{table}[htbp]
+\centering
 \caption{Paleta de colores del sistema de dise\~no}
 \label{tab:colores}
-\centering
-\begin{tabular}{|l|l|l|}
-\hline
-\textbf{Token} & \textbf{Valor} & \textbf{Uso} \\
-\hline
-\texttt{primary} & \texttt{\#2E7D32} & Acciones principales, CTAs \\
-\texttt{primaryLight} & \texttt{\#60AD5E} & Estados hover, fondos sutiles \\
-\texttt{secondary} & \texttt{\#FF6F00} & Ahorros, destacados, ofertas \\
-\texttt{surface} & \texttt{\#FAFAFA} & Fondo de tarjetas \\
-\texttt{error} & \texttt{\#C62828} & Errores y alertas \\
-\texttt{textPrimary} & \texttt{\#212121} & Texto principal \\
-\texttt{textSecondary} & \texttt{\#757575} & Texto de apoyo \\
-\hline
-\end{tabular}
+\includegraphics[width=0.8\textwidth]{diagramas/cuadros/cuadro-colores.png}
 \end{table}
 
 \textbf{Tipograf\'ia:} Inter (sans-serif) con escala modular. \textbf{Espaciado:} Escala de 4px.

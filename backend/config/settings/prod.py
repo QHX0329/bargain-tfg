@@ -81,3 +81,12 @@ if SENTRY_DSN:
         traces_sample_rate=float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "0.1")),
         profiles_sample_rate=float(os.environ.get("SENTRY_PROFILES_SAMPLE_RATE", "0.0")),
     )
+
+# Rate limiting en producción: estricto para usuarios, pero con margen
+# suficiente para demos públicas con cold starts y reintentos del cliente.
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {  # noqa: F405
+    "anon": "300/hour",
+    "user": "1000/hour",
+    "assistant": "30/hour",
+    "ocr": "60/hour",
+}

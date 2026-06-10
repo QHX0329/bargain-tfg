@@ -148,13 +148,7 @@ El proyecto se desarrolló en **7 fases** siguiendo una adaptación de metodolog
 
 Se completó en **325 horas** frente a las 300 planificadas, absorbiendo el cierre documental y la preparación de la defensa.
 
-**Punto diferenciador a remarcar ante el tribunal:** el proyecto se construyó con un flujo de desarrollo asistido por agentes de IA gobernado por el método **GSD**, con todo el proceso versionado en el propio repositorio. Tres ideas clave que conviene verbalizar:
-
-1. **Planificación viva y auditable**: el árbol `.planning/` (PROJECT, ROADMAP, STATE y fases con criterios de cierre) y `TASKS.md` actúan como fuente de verdad sincronizada con GitHub Issues y Notion; cada commit referencia su tarea (`feat(optimizer): ... (F5-06)`), de modo que cualquier línea de código es trazable hasta el requisito que la motivó.
-2. **Agentes con contrato de contexto**: `CLAUDE.md` define convenciones, reglas de negocio y protocolo obligatorio para cualquier agente (Claude, Copilot, Codex), y `docs/ai-prompts/` versiona los prompts de inicio/cierre/revisión de tarea — el equivalente a *runbooks* de ingeniería.
-3. **Mejora continua verificable**: `docs/ai-mistakes-log.md` registra cada error cometido por un agente junto con su causa raíz y una **regla derivada** que los agentes releen antes de cada tarea; los errores no se repiten porque el proceso aprende.
-
-Si el tribunal pregunta por el papel de la IA: la IA ejecuta, pero el proceso —fases, criterios de aceptación, verificación y evidencias— está diseñado y supervisado por el autor, y es completamente reproducible por un tercero clonando el repositorio.
+**Punto diferenciador (desarrollado en la Sección de metodología y trazabilidad de la memoria):** el proyecto se construyó con un flujo de desarrollo asistido por agentes de IA gobernado por el método GSD, con planificación viva en `.planning/`, trazabilidad commit↔tarea↔Notion vía `TASKS.md` y un registro de errores con reglas derivadas (`docs/ai-mistakes-log.md`). Si el tribunal pregunta por el papel de la IA: la IA ejecuta, pero el proceso —fases, criterios de aceptación y verificación— lo diseña y supervisa el autor, y es reproducible clonando el repositorio.
 
 ---
 

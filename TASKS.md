@@ -245,6 +245,8 @@ Nota F5-17: bloqueada en Expo managed. Requiere extensión nativa iOS (ActivityK
 
 | F7-08 | Conexión de frontends al backend de Render (Expo local/iOS/portal), corrección de URL de servicio y CORS, guía de despliegue en el manual y retirada de soporte Android de la memoria | 🔴 Crítica | ✅ | 3 | 3 | `frontend/.env.local`, `frontend/web/.env.local`, `client.ts`, workflows CI, `render.free.yaml`, `cap09.tex`, `proyect.pdf` |
 
+| F7-09 | Mejoras de cierre: diagrama de arquitectura regenerado (Gemini/ORS), seed_demo en arranque de staging (4.364 productos), mapas sin marca de agua, limitaciones del free tier en conclusiones, metodología GSD en defensa, push a main con Pages verificado E2E | 🟠 Alta | ✅ | 3 | 3 | `arquitectura-capas.puml/png`, `seed_demo.py`, `start_render_free.sh`, capturas de mapa, `cap11.tex`, `slides.md`, `script-defensa.md` |
+
 ### Artefactos entregables Phase 7
 
 - `render.yaml` — infraestructura staging en Render.com (5 servicios)

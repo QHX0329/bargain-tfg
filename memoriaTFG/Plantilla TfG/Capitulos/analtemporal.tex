@@ -15,19 +15,85 @@ forma iterativa, manteniendo trazabilidad en \texttt{TASKS.md} y en el \'arbol
 \includegraphics[width=0.85\textwidth]{diagramas/cuadros/cuadro-fases-temporales.png}
 \end{table}
 
-\section{Metodolog\'ia de trabajo}
+\section{Metodolog\'ia de trabajo y trazabilidad del proceso}\label{sec:metodologia-trazabilidad}
 
-Se aplic\'o una metodolog\'ia incremental con ciclos cortos por fase:
+Se aplic\'o una metodolog\'ia incremental con ciclos cortos por fase ---definici\'on de alcance
+y criterios de aceptaci\'on, implementaci\'on por m\'odulos, validaci\'on automatizada (lint y
+tests), verificaci\'on funcional y documental, y cierre de fase con artefactos de evidencia---
+que permiti\'o absorber cambios sin comprometer la estabilidad del sistema. Sobre esa base
+incremental, el proyecto incorpora una caracter\'istica metodol\'ogica singular que merece
+descripci\'on propia: todo el ciclo de vida se ejecut\'o mediante un flujo de desarrollo
+asistido por agentes de inteligencia artificial, gobernado por el m\'etodo \emph{GSD}
+(\emph{Get Stuff Done}) y versionado \'integramente en el propio repositorio. El resultado es
+que no solo el producto, sino tambi\'en el \emph{proceso} de ingenier\'ia que lo produjo, es
+inspeccionable, auditable y reproducible por terceros.
 
-\begin{itemize}
-	\item definici\'on de alcance y criterios de aceptaci\'on,
-	\item implementaci\'on por m\'odulos,
-	\item validaci\'on automatizada (lint + tests),
-	\item verificaci\'on funcional y documental,
-	\item cierre de fase con artefactos de evidencia.
-\end{itemize}
+\subsection{Planificaci\'on viva: el \'arbol \texttt{.planning/}}
 
-Este enfoque permiti\'o absorber cambios sin comprometer la estabilidad del sistema.
+El m\'etodo GSD sustituye los documentos de planificaci\'on est\'aticos por un \'arbol de
+ficheros Markdown versionados que evolucionan con el proyecto. En \texttt{.planning/} conviven
+la definici\'on del producto (\texttt{PROJECT.md}), los requisitos operativos
+(\texttt{REQUIREMENTS.md}), la hoja de ruta por fases (\texttt{ROADMAP.md}) y una instant\'anea
+del estado actual (\texttt{STATE.md}, \texttt{STATUS.md}) que cualquier agente ---o persona---
+lee antes de actuar. Cada fase se descompone en \texttt{.planning/phases/} en pares
+\texttt{PLAN}/\texttt{SUMMARY}: el plan fija el alcance y los criterios de aceptaci\'on
+\emph{antes} de implementar, y el resumen registra lo realmente ejecutado, las desviaciones y
+las evidencias de verificaci\'on al cerrar. El subdirectorio \texttt{.planning/debug/} funciona
+como base de conocimiento de incidencias: cada problema no trivial (un 404 de CORS en GitHub
+Pages, un archivo iOS que no se generaba, la conectividad m\'ovil contra Render) queda
+documentado con su diagn\'ostico y resoluci\'on, y se mueve a \texttt{resolved/} al cerrarse.
+
+\subsection{Trazabilidad de tareas y evidencias}
+
+La fuente de verdad del seguimiento es \texttt{TASKS.md}, un tablero versionado que asigna a
+cada tarea un identificador estable (\texttt{F3-01}, \texttt{F7-08}...), su estado, horas
+estimadas y reales, y el entregable que produce. La convenci\'on de \emph{commits} exige
+referenciar ese identificador (\texttt{feat(optimizer): ... (F5-06)}), de modo que cualquier
+l\'inea de c\'odigo es trazable hacia atr\'as ---hasta la tarea, la fase y el requisito que la
+motivaron--- y hacia delante ---hasta el test y la evidencia que la verifican---. El tablero se
+sincroniza adem\'as con GitHub Issues y con un \emph{backlog} en Notion, manteniendo una
+\'unica numeraci\'on. Esta disciplina, habitual en equipos industriales pero infrecuente en un
+TFG individual, fue la que permiti\'o absorber 325 horas de trabajo en 20 semanas sin p\'erdida
+de control del alcance.
+
+\subsection{Agentes de IA con contrato de contexto expl\'icito}
+
+Los agentes (Claude, GitHub Copilot y Codex) no operan sobre instrucciones improvisadas: el
+repositorio define un \emph{contrato de contexto} com\'un. El fichero \texttt{CLAUDE.md}
+re\'une la arquitectura, las convenciones de c\'odigo, las reglas de negocio y el protocolo
+obligatorio que todo agente debe seguir antes, durante y despu\'es de cada tarea; los
+directorios \texttt{.github/agents/}, \texttt{.github/instructions/} y
+\texttt{.agent/workflows/} versionan agentes especializados (orquestador, ejecutor y revisor de
+fase), instrucciones por tecnolog\'ia y flujos de trabajo reutilizables; y
+\texttt{docs/ai-prompts/} contiene las plantillas de inicio, cierre, revisi\'on y
+sincronizaci\'on de tareas ---el equivalente a los \emph{runbooks} de operaciones---,
+duplicadas como \emph{prompts} de Copilot para mantener paridad entre herramientas. Las
+\emph{skills} empleadas durante el desarrollo se versionan igualmente junto al c\'odigo, de
+manera que el entorno de trabajo de los agentes forma parte del entregable.
+
+\subsection{Registro de errores y reglas derivadas}
+
+El componente m\'as distintivo del flujo es \texttt{docs/ai-mistakes-log.md}: cada error
+cometido por un agente se registra con un formato fijo ---contexto, error, causa ra\'iz,
+soluci\'on aplicada y prevenci\'on--- y, cuando procede, se destila en una \emph{regla
+derivada} numerada que todos los agentes releen obligatoriamente al iniciar una tarea. As\'i,
+por ejemplo, la regla que proh\'ibe entregar diagramas de interfaz en ASCII o la que obliga a
+validar la existencia de rutas de sistema antes de aplicarlas en \emph{settings} compartidos
+nacieron de errores reales y han evitado su repetici\'on. El registro convierte los fallos de
+los agentes en conocimiento acumulativo del proyecto: el proceso \emph{aprende} de manera
+verificable, y el historial de ese aprendizaje queda en el control de versiones.
+
+\subsection{Valoraci\'on del enfoque}
+
+Conviene delimitar el reparto de responsabilidades: los agentes ejecutan, pero la definici\'on
+de fases, los criterios de aceptaci\'on, la revisi\'on de cada entrega y la decisi\'on final
+son del autor. La combinaci\'on result\'o eficaz por dos razones. Primera, la productividad:
+tareas mec\'anicas (generaci\'on de tests, capturas, scripts de despliegue) se delegaron sin
+p\'erdida de calidad gracias al contrato de contexto. Segunda, la fiabilidad del proceso: la
+planificaci\'on viva y el registro de errores con reglas derivadas impusieron al trabajo con IA
+la misma disciplina de evidencias que se exigir\'ia a un equipo humano. El enfoque es, adem\'as,
+reproducible: cualquier evaluador puede clonar el repositorio y reconstruir no solo el sistema,
+sino la historia completa de decisiones que lo produjo.
 
 \section{Estimaci\'on de costes}
 

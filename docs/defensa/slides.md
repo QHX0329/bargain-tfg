@@ -156,20 +156,6 @@ Flujo demostrado:
 
 ---
 
-## Metodología y trazabilidad
-
-**Desarrollo asistido por agentes IA con flujo GSD** (Get Stuff Done)
-
-- 🗂️ **Planificación viva** en `.planning/` — PROJECT, ROADMAP, STATE y fases con criterios de cierre y evidencias de verificación
-- ✅ **Trazabilidad total**: cada tarea `Fx-yy` enlaza commit ↔ `TASKS.md` ↔ GitHub Issues ↔ Notion
-- 🤖 **Contrato de contexto** (`CLAUDE.md`) + prompts reutilizables (`docs/ai-prompts/`) compartidos entre agentes (Claude, Copilot, Codex)
-- 📋 **Registro de errores de agentes** (`docs/ai-mistakes-log.md`) con **reglas derivadas** que previenen su repetición — el agente revisa las reglas antes de cada tarea
-- 🔁 Workflows y *skills* versionados en el propio repositorio: el proceso es **reproducible y auditable**
-
-> El proceso de ingeniería es tan inspeccionable como el código que produce
-
----
-
 ## Conclusiones
 
 ✅ **Completado:**

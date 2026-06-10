@@ -23,20 +23,9 @@ for ($i = 1; $i -le 90; $i++) {
 }
 
 if ($live) {
-    Write-Host '== Lanzando job seed_demo =='
-    try {
-        $job = Invoke-RestMethod -Method Post -Uri "https://api.render.com/v1/services/$svc/jobs" -Headers $h -Body '{"startCommand":"python manage.py seed_demo"}' -TimeoutSec 30
-        Write-Host ("Job creado: " + $job.id)
-        for ($i = 1; $i -le 60; $i++) {
-            Start-Sleep 10
-            $j = Invoke-RestMethod -Uri "https://api.render.com/v1/services/$svc/jobs/$($job.id)" -Headers $h -TimeoutSec 30
-            Write-Host ("  [{0}] job estado: {1}" -f $i, $j.status)
-            if ($j.status -eq 'succeeded') { Write-Host 'SEED OK'; break }
-            if ($j.status -eq 'failed') { Write-Host 'SEED FALLIDO'; break }
-        }
-    } catch { Write-Host "ERROR creando job: $($_.Exception.Message)" }
-
+    Write-Host '(seed_demo se ejecuta automaticamente en el arranque del servicio)'
     Write-Host '== Verificacion: login demo y conteo de productos en staging =='
+    Start-Sleep 20
     try {
         $tok = Invoke-RestMethod -Method Post -Uri 'https://bargain-free-api.onrender.com/api/v1/auth/token/' -ContentType 'application/json' -Body '{"username":"demo","password":"Demo1234!"}' -TimeoutSec 30
         $acc = if ($tok.data) { $tok.data.access } else { $tok.access }

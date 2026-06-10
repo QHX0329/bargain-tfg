@@ -4,7 +4,7 @@
 
 \section{Introducci\'on}\label{sec:manual-intro}
 
-BargAIN permite al usuario gestionar su compra diaria desde una app m\'ovil (iOS y Android) y un
+BargAIn permite al usuario gestionar su compra diaria desde una app m\'ovil (iOS y Android) y un
 portal web para PYMEs, comparar precios entre supermercados cercanos, y calcular la ruta de compra
 m\'as eficiente seg\'un sus preferencias de precio, distancia y tiempo.
 
@@ -42,9 +42,9 @@ sin intervenci\'on del usuario cuando el refresh token sigue siendo v\'alido (7 
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.32\textwidth]{../diagramas/ui-mockups/assets/01-login.png}
+\includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-login.png}
 \hfill
-\includegraphics[width=0.32\textwidth]{../diagramas/ui-mockups/assets/02-registro.png}
+\includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-registro.png}
 \caption{Pantallas de inicio de sesi\'on y registro}
 \label{fig:ui-acceso}
 \end{figure}
@@ -62,7 +62,7 @@ La pantalla de inicio centraliza la informaci\'on m\'as relevante del usuario:
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.40\textwidth]{../diagramas/ui-mockups/assets/03-dashboard.png}
+\includegraphics[width=0.40\textwidth]{diagramas/capturas/mobile-home.png}
 \caption{Pantalla principal --- Dashboard}
 \label{fig:ui-dashboard}
 \end{figure}
@@ -83,7 +83,7 @@ La pantalla de inicio centraliza la informaci\'on m\'as relevante del usuario:
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.40\textwidth]{../diagramas/ui-mockups/assets/04-mi-lista.png}
+\includegraphics[width=0.40\textwidth]{diagramas/capturas/mobile-lista-detalle.png}
 \caption{Pantalla de gesti\'on de lista de compra}
 \label{fig:ui-lista}
 \end{figure}
@@ -151,7 +151,7 @@ la \'ultima optimizaci\'on guardada de esa lista.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.40\textwidth]{../diagramas/ui-mockups/assets/06-optimizador.png}
+\includegraphics[width=0.40\textwidth]{diagramas/capturas/mobile-ruta.png}
 \caption{Pantalla del optimizador con comparativa de rutas}
 \label{fig:ui-optimizador}
 \end{figure}
@@ -172,9 +172,9 @@ El flujo de captura de lista por c\'amara sigue un wizard de tres pasos:
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.32\textwidth]{../diagramas/ui-mockups/assets/08-ocr-captura.png}
+\includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-ocr-captura.png}
 \hfill
-\includegraphics[width=0.32\textwidth]{../diagramas/ui-mockups/assets/09-ocr-revision.png}
+\includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-ocr-revision.png}
 \caption{Flujo OCR: captura de ticket (izquierda) y revisi\'on de \'items (derecha)}
 \label{fig:ui-ocr}
 \end{figure}
@@ -194,7 +194,7 @@ La pantalla del asistente sigue el patr\'on de chat est\'andar:
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.40\textwidth]{../diagramas/ui-mockups/assets/10-asistente.png}
+\includegraphics[width=0.40\textwidth]{diagramas/capturas/mobile-asistente.png}
 \caption{Pantalla del asistente conversacional LLM}
 \label{fig:ui-asistente}
 \end{figure}
@@ -221,6 +221,285 @@ Para cuentas PYME, el portal web (\texttt{/business}) ofrece:
     con competidores del entorno (alerta autom\'atica cuando la diferencia supera el umbral
     configurado).
 \end{enumerate}
+
+\section{Uso desde el navegador web}\label{sec:manual-web}
+
+Adem\'as del portal PYME, la aplicaci\'on de usuario final puede ejecutarse en un navegador de
+escritorio reutilizando la misma app Expo. La interfaz se adapta autom\'aticamente al ancho de la
+ventana y habilita conveniencias propias del escritorio (Fase 13):
+
+\begin{itemize}
+  \item \textbf{Dise\~no adaptable:} el contenido se centra a un ancho legible y los cat\'alogos y
+    listados muestran varias columnas (2--4) en pantallas anchas. En el mapa, el panel de tiendas
+    se ancla a la derecha en lugar de mostrarse debajo.
+  \item \textbf{Rat\'on y teclado:} atajo \texttt{Cmd/Ctrl+K} para enfocar el buscador,
+    \texttt{Enter} para a\~nadir un producto a la lista y \texttt{Esc} para cerrar di\'alogos, con
+    realces \emph{hover} sobre tarjetas y botones. El campo del asistente recibe el foco
+    autom\'aticamente al abrir la pantalla.
+  \item \textbf{Reordenar listas:} en el detalle de una lista se pueden arrastrar los \'items para
+    reordenarlos (\emph{drag-and-drop}); el nuevo orden es v\'alido durante la sesi\'on.
+  \item \textbf{Exportar y compartir:} botones para exportar la lista (\texttt{.txt}), la
+    comparativa de precios (\texttt{.csv}) y la ruta, copiar la direcci\'on de una tienda al
+    portapapeles y compartir el enlace directo a una lista o tienda.
+  \item \textbf{Enlaces directos:} cada pantalla relevante tiene una URL propia, por lo que se
+    puede compartir o guardar como marcador el estado actual (por ejemplo, una b\'usqueda concreta
+    del cat\'alogo mediante \texttt{?q=}).
+\end{itemize}
+
+\section{Galer\'ia de capturas de la aplicaci\'on}\label{sec:manual-galeria}
+
+Esta secci\'on recoge capturas reales de cada pantalla y funcionalidad de la aplicaci\'on
+desplegada, agrupadas por contexto de uso: aplicaci\'on m\'ovil de usuario (viewport
+390$\times$844), aplicaci\'on web de usuario (escritorio, 1440$\times$900) y portal web para
+PYMEs. Todas las im\'agenes residen en \texttt{diagramas/capturas/}.
+
+\subsection{Aplicaci\'on m\'ovil (usuario)}\label{subsec:galeria-movil}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-login.png}
+\hfill
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-registro.png}
+\caption{M\'ovil --- Inicio de sesi\'on (izquierda) y registro (derecha)}
+\label{fig:cap-mobile-acceso}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-home.png}
+\hfill
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-catalogo.png}
+\caption{M\'ovil --- Pantalla principal (izquierda) y cat\'alogo de productos (derecha)}
+\label{fig:cap-mobile-home-catalogo}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-detalle-precio.png}
+\hfill
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-proponer.png}
+\caption{M\'ovil --- Comparativa de precios por tienda (izquierda) y propuesta de producto (derecha)}
+\label{fig:cap-mobile-precio-proponer}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-listas.png}
+\hfill
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-lista-detalle.png}
+\caption{M\'ovil --- Listas de la compra (izquierda) y detalle de una lista (derecha)}
+\label{fig:cap-mobile-listas}
+\end{figure}
+
+\clearpage
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-plantillas.png}
+\hfill
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-ruta.png}
+\caption{M\'ovil --- Plantillas de lista (izquierda) y ruta optimizada (derecha)}
+\label{fig:cap-mobile-plantillas-ruta}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-ocr-captura.png}
+\hfill
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-ocr-revision.png}
+\caption{M\'ovil --- M\'odulo OCR: captura de ticket (izquierda) y revisi\'on de \'items (derecha)}
+\label{fig:cap-mobile-ocr}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-mapa.png}
+\hfill
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-tienda-perfil.png}
+\caption{M\'ovil --- Mapa de tiendas (izquierda) y perfil de tienda (derecha)}
+\label{fig:cap-mobile-mapa}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-favoritas.png}
+\hfill
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-asistente.png}
+\caption{M\'ovil --- Tiendas favoritas (izquierda) y asistente conversacional (derecha)}
+\label{fig:cap-mobile-favoritas-asistente}
+\end{figure}
+
+\clearpage
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-notificaciones.png}
+\hfill
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-alertas.png}
+\caption{M\'ovil --- Bandeja de notificaciones (izquierda) y alertas de precio (derecha)}
+\label{fig:cap-mobile-notif-alertas}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-perfil.png}
+\hfill
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-config-optimizador.png}
+\caption{M\'ovil --- Perfil de usuario (izquierda) y configuraci\'on del optimizador (derecha)}
+\label{fig:cap-mobile-perfil-config}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-editar-perfil.png}
+\hfill
+\includegraphics[width=0.30\textwidth]{diagramas/capturas/mobile-cambiar-password.png}
+\caption{M\'ovil --- Edici\'on de perfil (izquierda) y cambio de contrase\~na (derecha)}
+\label{fig:cap-mobile-editar-password}
+\end{figure}
+
+\clearpage
+
+\subsection{Aplicaci\'on web (usuario)}\label{subsec:galeria-web}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-home.png}
+\hfill
+\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-catalogo.png}
+\caption{Web --- Pantalla principal con accesos horizontales (izquierda) y cat\'alogo en rejilla
+multicolumna con \texttt{Cmd/Ctrl+K} (derecha)}
+\label{fig:cap-web-home-catalogo}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-comparativa.png}
+\hfill
+\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-lista-detalle.png}
+\caption{Web --- Comparativa de precios con cabecera fija y exportaci\'on CSV (izquierda) y detalle
+de lista con reordenado \emph{drag-and-drop} y exportaci\'on (derecha)}
+\label{fig:cap-web-comparativa-lista}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-listas.png}
+\hfill
+\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-plantillas.png}
+\caption{Web --- Listas (izquierda) y plantillas (derecha) con rejilla responsive}
+\label{fig:cap-web-listas-plantillas}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-mapa.png}
+\hfill
+\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-tienda-perfil.png}
+\caption{Web --- Mapa con panel de tiendas anclado a la derecha (izquierda) y perfil de tienda a
+dos columnas (derecha)}
+\label{fig:cap-web-mapa-tienda}
+\end{figure}
+
+\clearpage
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-favoritas.png}
+\hfill
+\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-asistente.png}
+\caption{Web --- Tiendas favoritas en rejilla (izquierda) y asistente centrado con copia por
+mensaje (derecha)}
+\label{fig:cap-web-favoritas-asistente}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-ruta.png}
+\hfill
+\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-ocr.png}
+\caption{Web --- Ruta optimizada con exportaci\'on (izquierda) y m\'odulo OCR centrado (derecha)}
+\label{fig:cap-web-ruta-ocr}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-notificaciones.png}
+\hfill
+\includegraphics[width=0.46\textwidth]{diagramas/capturas/web-alertas.png}
+\caption{Web --- Bandeja de notificaciones (izquierda) y alertas de precio (derecha) centradas}
+\label{fig:cap-web-notif-alertas}
+\end{figure}
+
+\clearpage
+
+\subsection{Portal web para PYMEs}\label{subsec:galeria-pyme}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{diagramas/capturas/pyme-landing.png}
+\caption{Portal PYME --- P\'agina de aterrizaje (\emph{landing})}
+\label{fig:cap-pyme-landing}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.46\textwidth]{diagramas/capturas/pyme-login.png}
+\hfill
+\includegraphics[width=0.46\textwidth]{diagramas/capturas/pyme-registro.png}
+\caption{Portal PYME --- Inicio de sesi\'on (izquierda) y registro (derecha)}
+\label{fig:cap-pyme-acceso}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{diagramas/capturas/pyme-onboarding.png}
+\caption{Portal PYME --- Onboarding del negocio (alta de datos y CIF)}
+\label{fig:cap-pyme-onboarding}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{diagramas/capturas/pyme-dashboard.png}
+\caption{Portal PYME --- Panel de control (\emph{dashboard}) con estad\'isticas}
+\label{fig:cap-pyme-dashboard}
+\end{figure}
+
+\clearpage
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.46\textwidth]{diagramas/capturas/pyme-productos.png}
+\hfill
+\includegraphics[width=0.46\textwidth]{diagramas/capturas/pyme-carga-masiva.png}
+\caption{Portal PYME --- Gesti\'on de productos (izquierda) y carga masiva por CSV (derecha)}
+\label{fig:cap-pyme-productos}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{diagramas/capturas/pyme-precios.png}
+\caption{Portal PYME --- Gesti\'on de precios (tabla editable)}
+\label{fig:cap-pyme-precios}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.46\textwidth]{diagramas/capturas/pyme-promociones.png}
+\hfill
+\includegraphics[width=0.46\textwidth]{diagramas/capturas/pyme-perfil-negocio.png}
+\caption{Portal PYME --- Gesti\'on de promociones (izquierda) y perfil del negocio (derecha)}
+\label{fig:cap-pyme-promo-perfil}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{diagramas/capturas/pyme-admin-aprobacion.png}
+\caption{Portal PYME --- Aprobaci\'on de negocios por el administrador}
+\label{fig:cap-pyme-admin}
+\end{figure}
+
+\clearpage
 
 \section{Resoluci\'on de incidencias comunes}\label{sec:manual-incidencias}
 

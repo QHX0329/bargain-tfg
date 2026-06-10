@@ -6,7 +6,7 @@
 
 \subsection{Visi\'on general}\label{subsec:vision-general}
 
-BargAIN sigue una arquitectura de \textbf{tres capas} cl\'asica (presentaci\'on, l\'ogica de
+BargAIn sigue una arquitectura de \textbf{tres capas} cl\'asica (presentaci\'on, l\'ogica de
 negocio y datos), desplegada mediante contenedores Docker y organizada internamente seg\'un los
 principios de la \textbf{arquitectura hexagonal} (puertos y adaptadores). Esta elecci\'on permite
 desacoplar la l\'ogica de dominio de los detalles de infraestructura --- bases de datos, APIs
@@ -53,8 +53,8 @@ La Figura~\ref{fig:arquitectura-capas} resume la distribuci\'on por capas de la 
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.92\textwidth]{../diagramas/arquitectura/arquitectura-capas.png}
-\caption{Arquitectura por capas de BargAIN}
+\includegraphics[width=0.92\textwidth]{diagramas/arquitectura/arquitectura-capas.png}
+\caption{Arquitectura por capas de BargAIn}
 \label{fig:arquitectura-capas}
 \end{figure}
 
@@ -67,8 +67,9 @@ La Figura~\ref{fig:arquitectura-capas} resume la distribuci\'on por capas de la 
     \texttt{.apply\_async()} sobre el broker Redis.
   \item \textbf{Backend \textrightarrow{} PostgreSQL:} Django ORM con consultas geoespaciales
     mediante \texttt{django.contrib.gis}.
-  \item \textbf{Backend \textrightarrow{} APIs externas:} Clientes HTTP aislados en
-    \texttt{apps/<modulo>/clients/} para Google Maps, Gemini API y ORS.
+  \item \textbf{Backend \textrightarrow{} APIs externas:} Clientes HTTP aislados en la capa de
+    servicios de cada m\'odulo (p.\,ej.\ \texttt{apps/optimizer/services/distance.py}) para
+    Google Places, Gemini API y OpenRouteService.
 \end{itemize}
 
 \section{Modelo de Datos}\label{sec:modelo-datos}
@@ -190,8 +191,8 @@ La Figura~\ref{fig:modelo-er} muestra el diagrama entidad-relaci\'on completo de
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{../diagramas/er/modelo-er.png}
-\caption{Diagrama entidad-relaci\'on de BargAIN}
+\includegraphics[width=\textwidth]{diagramas/er/modelo-er.png}
+\caption{Diagrama entidad-relaci\'on de BargAIn}
 \label{fig:modelo-er}
 \end{figure}
 
@@ -201,7 +202,7 @@ La Figura~\ref{fig:modelo-clases} detalla las clases principales del dominio y s
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{../diagramas/clases/modelo-clases.png}
+\includegraphics[width=\textwidth]{diagramas/clases/modelo-clases.png}
 \caption{Diagrama de clases del dominio}
 \label{fig:modelo-clases}
 \end{figure}
@@ -398,7 +399,7 @@ durante una petici\'on de optimizaci\'on.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\textwidth]{../diagramas/secuencia/secuencia-optimizacion.png}
+\includegraphics[width=0.95\textwidth]{diagramas/secuencia/secuencia-optimizacion.png}
 \caption{Diagrama de secuencia del proceso de optimizaci\'on de ruta}
 \label{fig:secuencia-optimizacion}
 \end{figure}
@@ -438,8 +439,8 @@ backend Django, que comunica con la base de datos a trav\'es de la API REST del 
 Cada cadena requiere una estrategia diferente:
 
 \begin{itemize}
-  \item \textbf{Mercadona:} API interna (\texttt{uapi.mercadona.es}) no oficial pero estable,
-    accesible mediante peticiones HTTP est\'andar.
+  \item \textbf{Mercadona:} API interna (\texttt{tienda.mercadona.es/api/}) no oficial pero
+    estable, accesible mediante peticiones HTTP est\'andar.
   \item \textbf{Carrefour / Lidl / DIA:} Cat\'alogos con renderizado del lado del cliente (SPA),
     por lo que se usa \textbf{Playwright} para ejecutar el JavaScript y obtener el DOM hidratado.
 \end{itemize}
@@ -475,7 +476,7 @@ hasta la inserci\'on de \'items en la lista.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.95\textwidth]{../diagramas/secuencia/secuencia-ocr.png}
+\includegraphics[width=0.95\textwidth]{diagramas/secuencia/secuencia-ocr.png}
 \caption{Diagrama de secuencia del flujo OCR}
 \label{fig:secuencia-ocr}
 \end{figure}
@@ -524,9 +525,12 @@ El repositorio incluye tres workflows de GitHub Actions:
     se descarga y se instala en el iPhone de demo con Sideloadly.
 \end{itemize}
 
-El deploy a staging se realiza mediante \textbf{Render Blueprints} (\texttt{render.yaml} en la
-ra\'iz del repositorio), que define declarativamente 5 servicios. Cada push a \texttt{main}
-dispara un redespliegue autom\'atico.
+El deploy a staging se realiza mediante \textbf{Render Blueprints}. El repositorio define dos
+variantes declarativas: \texttt{render.yaml}, con web service, worker Celery, scheduler beat,
+Redis y base de datos PostgreSQL independientes; y \texttt{render.free.yaml}, la variante
+free tier empleada durante el TFG, que consolida Gunicorn y un proceso Celery worker + beat
+embebido en un \'unico web service. Cada push a \texttt{main} dispara un redespliegue
+autom\'atico.
 
 \subsection{Variables de entorno}\label{subsec:env}
 
@@ -578,3 +582,40 @@ La aplicaci\'on se estructura en cinco pesta\~nas principales:
   \item \textbf{Perfil:} Datos personales, preferencias de optimizaci\'on, configuraci\'on de
     notificaciones y acceso al historial del asistente.
 \end{enumerate}
+
+\subsection{Adaptaci\'on a uso web (responsive y conveniencias de escritorio)}\label{subsec:adaptacion-web}
+
+La misma base de c\'odigo Expo (\texttt{frontend/src}) se reutiliza para ejecuci\'on en navegador
+de escritorio mediante \texttt{react-native-web}, sin duplicar pantallas ni alterar la
+navegaci\'on. La adaptaci\'on a escritorio se implementa como una capa transversal sobre las 15
+pantallas existentes, organizada en cuatro ejes:
+
+\begin{enumerate}
+  \item \textbf{Dise\~no responsive.} El hook \texttt{useBreakpoint()} (\texttt{src/hooks/})
+    clasifica el ancho del viewport en \texttt{mobile} ($<$768\,px), \texttt{tablet}
+    (768--1023\,px) y \texttt{desktop} ($\geq$1024\,px). Las pantallas centran su contenido a un
+    ancho m\'aximo legible (entre 560 y 900\,px seg\'un la pantalla) y los listados de tarjetas
+    pasan de 1 columna en m\'ovil a 2--4 columnas en escritorio. El componente
+    \texttt{MasterDetailLayout} aporta una disposici\'on maestro-detalle de dos paneles, y la
+    barra de pesta\~nas inferior se centra a 900\,px en escritorio.
+  \item \textbf{Interacci\'on con rat\'on y teclado.} Se a\~naden estados \emph{hover} (tintes y
+    realces), atajos de teclado (\texttt{Cmd/Ctrl+K} para enfocar el buscador, \texttt{Enter}
+    para a\~nadir \'item, \texttt{Esc} para cerrar), \emph{auto-focus} de campos al montar y
+    \emph{tooltips} web (\texttt{WebTooltip}). El reordenado de \'items de una lista emplea
+    \emph{drag-and-drop} HTML5 nativo en la variante \texttt{ListDetailScreen.web.tsx}.
+  \item \textbf{Conveniencias de escritorio.} Las utilidades de \texttt{src/utils/webExport.ts}
+    permiten exportar la lista de la compra a \texttt{.txt}, la comparativa de precios a
+    \texttt{.csv} y la ruta a fichero, as\'i como copiar al portapapeles direcciones y enlaces. La
+    generaci\'on de CSV incluye un \emph{guard} de inyecci\'on de f\'ormulas (OWASP) que escapa las
+    celdas que comienzan por \texttt{=}, \texttt{+}, \texttt{-} o \texttt{@}.
+  \item \textbf{Deep-linking.} La configuraci\'on \texttt{src/navigation/linking.ts} registra URLs
+    estables para las pantallas (p.\,ej.\ \texttt{/app/lists/:listId},
+    \texttt{/app/map/store/:storeId}, \texttt{/app/home/catalog?q=...}), de modo que el estado de la
+    aplicaci\'on es enlazable y navegable desde la barra de direcciones del navegador.
+\end{enumerate}
+
+Todas las adiciones est\'an condicionadas a la plataforma web (comprobaci\'on de
+\texttt{Platform.OS}) o al \emph{breakpoint} activo, de forma que el comportamiento en m\'ovil
+permanece inalterado. Estas mejoras se incorporaron en una fase espec\'ifica de adaptaci\'on web
+posterior al cierre del plan inicial, y se validaron con 111 pruebas Jest (16 \emph{suites}) y
+una bater\'ia de verificaci\'on manual en navegador.

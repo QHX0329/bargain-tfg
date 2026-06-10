@@ -1,4 +1,4 @@
-\chapter{Analisis de requisitos}\label{requisitos}
+\chapter{An\'alisis de requisitos}\label{requisitos}
 
 \section{Actores del sistema}
 
@@ -8,20 +8,20 @@ El sistema define cuatro actores principales:
 	\item \textbf{Consumidor:} crea listas, compara precios, optimiza rutas, usa OCR
 		y consulta al asistente.
 	\item \textbf{Comercio/PYME:} gestiona precios y promociones desde el portal business.
-	\item \textbf{Administrador:} verifica perfiles, modera datos y supervisa operacion.
+	\item \textbf{Administrador:} verifica perfiles, modera datos y supervisa la operaci\'on.
 	\item \textbf{Sistema automatizado:} tareas de scraping y mantenimiento en segundo plano.
 \end{itemize}
 
-\section{Requisitos de informacion}
+\section{Requisitos de informaci\'on}
 
-El modelo de informacion se articula en doce bloques (RI-001 a RI-012), que cubren:
+El modelo de informaci\'on se articula en doce bloques (RI-001 a RI-012), que cubren:
 
 \begin{itemize}
-	\item usuarios y preferencias de optimizacion,
-	\item catalogo (productos, categorias, marcas),
+	\item usuarios y preferencias de optimizaci\'on,
+	\item cat\'alogo (productos, categor\'ias, marcas),
 	\item tiendas geolocalizadas y cadenas,
-	\item precios actuales e historicos,
-	\item listas de compra y resultados de optimizacion,
+	\item precios actuales e hist\'oricos,
+	\item listas de compra y resultados de optimizaci\'on,
 	\item perfiles business y promociones,
 	\item sesiones OCR y conversaciones del asistente.
 \end{itemize}
@@ -32,18 +32,18 @@ Se definieron 35 requisitos funcionales (RF-001 a RF-035) agrupados por dominios
 
 \begin{table}[h]
 \centering
-\caption{Agrupacion de requisitos funcionales}
+\caption{Agrupaci\'on de requisitos funcionales}
 \label{tab:rf-grupos}
 \begin{tabular}{|l|c|l|}
 \hline
 \textbf{Dominio} & \textbf{IDs} & \textbf{Capacidad principal} \\
 \hline
-Autenticacion y perfil & RF-001..RF-005 & Registro, login JWT, preferencias \\
-Catalogo de productos & RF-006..RF-010 & Busqueda, detalle, crowdsourcing \\
+Autenticaci\'on y perfil & RF-001..RF-005 & Registro, login JWT, preferencias \\
+Cat\'alogo de productos & RF-006..RF-010 & B\'usqueda, detalle, crowdsourcing \\
 Tiendas y mapa & RF-011..RF-014 & Proximidad, detalle, favoritos \\
-Precios & RF-015..RF-019 & Comparacion, historico, alertas \\
+Precios & RF-015..RF-019 & Comparaci\'on, hist\'orico, alertas \\
 Listas de compra & RF-020..RF-023 & CRUD, compartir, plantillas \\
-Optimizador & RF-024..RF-027 & Ruta multicriterio y recalculo \\
+Optimizador & RF-024..RF-027 & Ruta multicriterio y rec\'alculo \\
 OCR & RF-028..RF-029 & Captura y matching fuzzy \\
 Asistente LLM & RF-030..RF-031 & Consultas naturales y sugerencias \\
 Portal business & RF-032..RF-034 & Onboarding, precios, promociones \\
@@ -52,17 +52,17 @@ Notificaciones & RF-035 & Push/email por eventos \\
 \end{tabular}
 \end{table}
 
-\section{Criterios de aceptacion del producto}
+\section{Criterios de aceptaci\'on del producto}
 
-Los criterios de aceptacion se validan a nivel funcional y de experiencia:
+Los criterios de aceptaci\'on se validan a nivel funcional y de experiencia:
 
 \begin{itemize}
 	\item flujo de alta y acceso operativo en menos de 3 minutos,
-	\item comparacion de cesta completa en entorno de tiendas cercanas,
-	\item optimizacion con top-3 rutas y desglose por parada,
-	\item OCR con confirmacion/edicion previa a insercion en lista,
-	\item portal PYME con gestion de precios y promociones,
-	\item notificaciones de eventos criticos (alertas, promociones, cambios compartidos).
+	\item comparaci\'on de cesta completa en entorno de tiendas cercanas,
+	\item optimizaci\'on con top-3 rutas y desglose por parada,
+	\item OCR con confirmaci\'on/edici\'on previa a la inserci\'on en lista,
+	\item portal PYME con gesti\'on de precios y promociones,
+	\item notificaciones de eventos cr\'iticos (alertas, promociones, cambios compartidos).
 \end{itemize}
 
 \section{Requisitos no funcionales}
@@ -70,11 +70,11 @@ Los criterios de aceptacion se validan a nivel funcional y de experiencia:
 Se definieron ocho requisitos no funcionales (RNF-001 a RNF-008):
 
 \begin{itemize}
-	\item rendimiento API (p95 bajo para operaciones CRUD y optimizacion),
+	\item rendimiento API (p95 bajo para operaciones CRUD y optimizaci\'on),
 	\item disponibilidad de staging,
 	\item seguridad (JWT, HTTPS, rate limiting),
 	\item usabilidad (flujo principal corto y criterios de accesibilidad),
-	\item escalabilidad arquitectonica,
+	\item escalabilidad arquitect\'onica,
 	\item mantenibilidad con cobertura y convenciones,
 	\item compatibilidad multiplataforma,
 	\item cumplimiento RGPD.
@@ -82,14 +82,14 @@ Se definieron ocho requisitos no funcionales (RNF-001 a RNF-008):
 
 \section{Reglas de negocio}
 
-Las reglas RN-001..RN-010 gobiernan limites y politicas operativas:
+Las reglas RN-001..RN-010 gobiernan l\'imites y pol\'iticas operativas:
 
 \begin{itemize}
-	\item radio maximo de busqueda y numero maximo de paradas,
+	\item radio m\'aximo de b\'usqueda y n\'umero m\'aximo de paradas,
 	\item caducidad y prioridad de fuentes de precio,
-	\item restricciones del asistente a dominio de compra,
-	\item verificacion previa de perfiles business,
-	\item politicas de scraping responsable y frecuencia de ejecucion.
+	\item restricciones del asistente al dominio de compra,
+	\item verificaci\'on previa de perfiles business,
+	\item pol\'iticas de scraping responsable y frecuencia de ejecuci\'on.
 \end{itemize}
 
 \section{Diagramas de casos de uso}
@@ -98,25 +98,25 @@ Los diagramas de casos de uso recogen las interacciones principales de cada acto
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.85\textwidth]{../diagramas/casos-uso/casos-uso-consumidor.png}
+\includegraphics[width=0.85\textwidth,height=0.88\textheight,keepaspectratio]{diagramas/casos-uso/casos-uso-consumidor.png}
 \caption{Casos de uso del Consumidor}
 \label{fig:casos-uso-consumidor}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.85\textwidth]{../diagramas/casos-uso/casos-uso-comercio-admin.png}
+\includegraphics[width=0.85\textwidth,height=0.80\textheight,keepaspectratio]{diagramas/casos-uso/casos-uso-comercio-admin.png}
 \caption{Casos de uso del Comercio y Administrador}
 \label{fig:casos-uso-comercio}
 \end{figure}
 
 \section{Trazabilidad}
 
-La trazabilidad entre requisitos, implementacion y pruebas se mantiene en:
+La trazabilidad entre requisitos, implementaci\'on y pruebas se mantiene en:
 
 \begin{itemize}
-	\item \texttt{docs/memoria/07-requisitos.md} (especificacion completa),
+	\item \texttt{docs/memoria/07-requisitos.md} (especificaci\'on completa),
 	\item \texttt{TASKS.md} (estado por fase/tarea),
 	\item \texttt{tests/unit}, \texttt{tests/integration} y \texttt{frontend/web/e2e}
-		(verificacion ejecutable).
+		(verificaci\'on ejecutable).
 \end{itemize}

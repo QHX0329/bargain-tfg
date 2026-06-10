@@ -1,25 +1,25 @@
-\chapter{Introduccion y objetivos del proyecto}\label{defobjetivos}
+\chapter{Introducci\'on y objetivos del proyecto}\label{defobjetivos}
 
-\section{Contexto y motivacion}
+\section{Contexto y motivaci\'on}
 
 El consumidor espa\~nol afronta la compra cotidiana en un contexto de fuerte variabilidad de
 precios entre cadenas, ausencia de una fuente unificada y alto coste temporal para comparar
 ofertas manualmente. Aunque el ahorro potencial entre supermercados es significativo, en la
-practica ese ahorro se pierde cuando no se considera el coste de desplazamiento ni el tiempo de
+pr\'actica ese ahorro se pierde cuando no se considera el coste de desplazamiento ni el tiempo de
 ruta.
 
 BargAIn nace para resolver ese problema como una plataforma de compra inteligente que integra
-precio, distancia y tiempo en una unica decision. El sistema combina una app movil para
+precio, distancia y tiempo en una \'unica decisi\'on. El sistema combina una app m\'ovil para
 consumidores, un portal web para PYMEs, y un backend modular con capacidades geoespaciales,
 OCR y asistencia conversacional.
 
 \section{Problema abordado}
 
-Las soluciones actuales de comparacion de supermercados suelen responder a la pregunta
-``que tienda tiene el precio mas bajo'', pero no a la pregunta completa ``que compra me conviene
-realmente segun mi ubicacion y mis preferencias''.
+Las soluciones actuales de comparaci\'on de supermercados suelen responder a la pregunta
+``qu\'e tienda tiene el precio m\'as bajo'', pero no a la pregunta completa ``qu\'e compra me
+conviene realmente seg\'un mi ubicaci\'on y mis preferencias''.
 
-El problema de BargAIn se formula como una optimizacion multicriterio en la que intervienen:
+El problema de BargAIn se formula como una optimizaci\'on multicriterio en la que intervienen:
 
 \begin{itemize}
 	\item coste total de la cesta,
@@ -29,47 +29,47 @@ El problema de BargAIn se formula como una optimizacion multicriterio en la que 
 
 \section{Objetivo principal}
 
-Desarrollar una aplicacion movil y web que optimice la cesta de la compra del usuario,
-calculando la combinacion de supermercados y comercios locales que ofrece la mejor relacion
-precio--distancia--tiempo segun preferencias configurables.
+Desarrollar una aplicaci\'on m\'ovil y web que optimice la cesta de la compra del usuario,
+calculando la combinaci\'on de supermercados y comercios locales que ofrece la mejor relaci\'on
+precio--distancia--tiempo seg\'un preferencias configurables.
 
-\section{Objetivos especificos}
+\section{Objetivos espec\'ificos}
 
 \begin{enumerate}
 	\item Implementar una API REST con Django y DRF para usuarios, productos, tiendas,
-		precios, listas, optimizacion, OCR, asistente y portal business.
+		precios, listas, optimizaci\'on, OCR, asistente y portal business.
 	\item Integrar una capa geoespacial con PostgreSQL + PostGIS para consultas de proximidad
-		y preparacion de rutas.
-	\item Desarrollar un optimizador multicriterio con OR-Tools y una funcion de scoring
+		y preparaci\'on de rutas.
+	\item Desarrollar un optimizador multicriterio con OR-Tools y una funci\'on de scoring
 		configurable por el usuario.
 	\item Incorporar OCR con Google Cloud Vision para digitalizar tickets y listas,
-		con validacion y correccion manual en frontend.
-	\item Integrar un asistente LLM (Gemini via backend proxy) con guardrails de dominio
+		con validaci\'on y correcci\'on manual en frontend.
+	\item Integrar un asistente LLM (Gemini v\'ia backend proxy) con guardrails de dominio
 		y contexto de compra.
-	\item Construir un portal para PYMEs con gestion de precios y promociones.
-	\item Asegurar calidad con tests unitarios, de integracion y E2E, ademas de UAT
+	\item Construir un portal para PYMEs con gesti\'on de precios y promociones.
+	\item Asegurar calidad con tests unitarios, de integraci\'on y E2E, adem\'as de UAT
 		manual para flujos nativos.
 	\item Preparar despliegue reproducible en staging con Render, Docker Compose y CI.
 \end{enumerate}
 
 \section{Alcance del proyecto}
 
-El alcance del TFG cubre el ciclo completo de ingenieria del software:
+El alcance del TFG cubre el ciclo completo de ingenier\'ia del software:
 
 \begin{itemize}
-	\item analisis y requisitos,
-	\item diseno arquitectonico y de datos,
-	\item implementacion backend y frontend,
+	\item an\'alisis y requisitos,
+	\item dise\~no arquitect\'onico y de datos,
+	\item implementaci\'on backend y frontend,
 	\item pruebas funcionales y no funcionales,
 	\item despliegue en entorno staging,
-	\item documentacion tecnica y memoria final.
+	\item documentaci\'on t\'ecnica y memoria final.
 \end{itemize}
 
-Quedan fuera del alcance de esta version: despliegue productivo global,
-acuerdos formales con todas las cadenas para APIs oficiales, y la version final
+Quedan fuera del alcance de esta versi\'on: despliegue productivo global,
+acuerdos formales con todas las cadenas para APIs oficiales, y la versi\'on final
 de Live Activities nativas en iOS (ADR-010).
 
-\section{Tecnologias clave}
+\section{Tecnolog\'ias clave}
 
 El sistema se apoya en un stack full-stack moderno y coherente:
 
@@ -77,13 +77,14 @@ El sistema se apoya en un stack full-stack moderno y coherente:
 	\item \textbf{Backend:} Django 5, DRF, Celery, Redis.
 	\item \textbf{Datos:} PostgreSQL 16 + PostGIS 3.4.
 	\item \textbf{Frontend:} React Native con Expo + companion web en React.
-	\item \textbf{IA:} Google Cloud Vision API (OCR) y Gemini via backend proxy.
-	\item \textbf{Optimizacion:} OR-Tools + calculo de distancias (ORS + fallback haversine).
+	\item \textbf{IA:} Google Cloud Vision API (OCR) y Gemini v\'ia backend proxy.
+	\item \textbf{Optimizaci\'on:} OR-Tools + c\'alculo de distancias (OpenRouteService +
+		fallback haversine).
 	\item \textbf{Ops:} Docker, GitHub Actions, Render, Sentry.
 \end{itemize}
 
 \section{Estructura de la memoria}
 
 La memoria se organiza para reflejar el recorrido completo del proyecto: contexto y objetivos,
-estado del arte, comparativa, planificacion, requisitos, diseno e implementacion,
-manual de usuario, pruebas y resultados, conclusiones y bibliografia.
+estado del arte, comparativa, planificaci\'on, requisitos, dise\~no e implementaci\'on,
+manual de usuario, pruebas y resultados, conclusiones y bibliograf\'ia.

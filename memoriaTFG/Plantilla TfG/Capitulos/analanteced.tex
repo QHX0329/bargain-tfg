@@ -1,68 +1,68 @@
-\chapter{Analisis de antecedentes y aportacion realizada}\label{analanteced}
+\chapter{An\'alisis de antecedentes y aportaci\'on realizada}\label{analanteced}
 
 \section{Contexto del sector}
 
-El mercado de distribucion alimentaria en Espana presenta una combinacion de gran
-competencia entre cadenas, alta sensibilidad al precio y fuerte fragmentacion de oferta.
-Durante los ultimos anos, la inflacion en alimentacion ha incrementado la necesidad de
+El mercado de distribuci\'on alimentaria en Espa\~na presenta una combinaci\'on de gran
+competencia entre cadenas, alta sensibilidad al precio y fuerte fragmentaci\'on de oferta.
+Durante los \'ultimos a\~nos, la inflaci\'on en alimentaci\'on ha incrementado la necesidad de
 herramientas que permitan comprar mejor sin aumentar el tiempo invertido.
 
 Aunque existen comparadores de precios consolidados, la mayor parte se centra en mostrar
-informacion de coste por tienda, sin integrar de forma nativa el impacto logistico de
+informaci\'on de coste por tienda, sin integrar de forma nativa el impacto log\'istico de
 desplazarse a varios establecimientos.
 
-\section{Estado del arte en comparacion de precios}
+\section{Estado del arte en comparaci\'on de precios}
 
-La evolucion observada puede resumirse en tres generaciones:
+La evoluci\'on observada puede resumirse en tres generaciones:
 
 \begin{enumerate}
-	\item \textbf{Directorios de precios:} listados estaticos o semiactualizados, con
+	\item \textbf{Directorios de precios:} listados est\'aticos o semiactualizados, con
 		poca cobertura y baja frecuencia de refresco.
 	\item \textbf{Comparadores multisupermercado:} soluciones como Soysuper, Findit u OCU
-		Market, con mejor catalogo y funcionalidades de lista.
-	\item \textbf{Personalizacion con IA:} tendencia emergente en la que se introducen
+		Market, con mejor cat\'alogo y funcionalidades de lista.
+	\item \textbf{Personalizaci\'on con IA:} tendencia emergente en la que se introducen
 		recomendaciones contextuales y asistencia conversacional.
 \end{enumerate}
 
-En Espana, el salto completo hacia la tercera generacion todavia es limitado,
+En Espa\~na, el salto completo hacia la tercera generaci\'on todav\'ia es limitado,
 especialmente en el segmento de cesta alimentaria diaria.
 
-\section{Tecnologias relevantes para BargAIn}
+\section{Tecnolog\'ias relevantes para BargAIn}
 
 \subsection{Geoespacial y rutas}
 
-PostGIS permite resolver consultas de proximidad con precision y rendimiento, mientras que
-OR-Tools facilita modelar el problema de ordenacion de paradas como una variante del TSP/VRP
-en instancias pequenas (maximo 3-4 paradas en nuestro caso).
+PostGIS permite resolver consultas de proximidad con precisi\'on y rendimiento, mientras que
+OR-Tools facilita modelar el problema de ordenaci\'on de paradas como una variante del TSP/VRP
+en instancias peque\~nas (m\'aximo 3--4 paradas en nuestro caso).
 
 \subsection{Ingesta de datos de precio}
 
-La combinacion Scrapy + Playwright es adecuada para catalogos dinamicos de supermercados.
-Sin embargo, por robustez de producto, BargAIn no depende de una unica fuente y combina:
+La combinaci\'on Scrapy + Playwright es adecuada para cat\'alogos din\'amicos de supermercados.
+Sin embargo, por robustez de producto, BargAIn no depende de una \'unica fuente y combina:
 
 \begin{itemize}
 	\item scraping programado,
 	\item aportaciones de crowdsourcing,
-	\item actualizacion manual de comercios verificados.
+	\item actualizaci\'on manual de comercios verificados.
 \end{itemize}
 
 \subsection{OCR y asistente}
 
-Para OCR se adopta Google Cloud Vision API por mejor rendimiento practico en tickets
+Para OCR se adopta Google Cloud Vision API por mejor rendimiento pr\'actico en tickets
 y fotos reales. Para el asistente se integra Gemini mediante backend proxy, con
 guardrails para limitar respuestas al dominio de la compra.
 
-\section{Aportacion diferencial de BargAIn}
+\section{Aportaci\'on diferencial de BargAIn}
 
-La aportacion del proyecto se concreta en cuatro ejes:
+La aportaci\'on del proyecto se concreta en cuatro ejes:
 
 \begin{itemize}
-	\item \textbf{Optimizacion multicriterio real} (precio + distancia + tiempo) en lugar de
-		comparacion aislada de precios.
-	\item \textbf{Inclusion de comercio local} mediante portal business y actualizacion de
+	\item \textbf{Optimizaci\'on multicriterio real} (precio + distancia + tiempo) en lugar de
+		comparaci\'on aislada de precios.
+	\item \textbf{Inclusi\'on de comercio local} mediante portal business y actualizaci\'on de
 		precios/promociones.
-	\item \textbf{Digitalizacion de lista} por OCR con validacion de usuario.
-	\item \textbf{Interaccion conversacional} para consultas complejas de compra.
+	\item \textbf{Digitalizaci\'on de lista} por OCR con validaci\'on de usuario.
+	\item \textbf{Interacci\'on conversacional} para consultas complejas de compra.
 \end{itemize}
 
 Estas capacidades, integradas en una sola plataforma, posicionan BargAIn en un espacio

@@ -1,29 +1,29 @@
 \cdpchapter{Resumen}
 
 BargAIn es una plataforma de compra inteligente orientada a optimizar la cesta de la compra
-del consumidor combinando tres variables de decision: precio, distancia y tiempo.
-El proyecto desarrolla una solucion full-stack con backend en Django/DRF,
-base de datos PostgreSQL + PostGIS, cliente movil en React Native (Expo),
+del consumidor combinando tres variables de decisi\'on: precio, distancia y tiempo.
+El proyecto desarrolla una soluci\'on full-stack con backend en Django/DRF,
+base de datos PostgreSQL + PostGIS, cliente m\'ovil en React Native (Expo),
 y companion web para el portal de comercios.
 
-La propuesta integra cuatro capacidades diferenciales en una unica aplicacion:
-(1) comparacion multi-tienda de precios,
-(2) optimizacion multicriterio de ruta con OR-Tools,
-(3) digitalizacion de listas y tickets mediante OCR con Google Cloud Vision,
-y (4) asistente conversacional basado en modelo LLM via backend proxy.
+La propuesta integra cuatro capacidades diferenciales en una \'unica aplicaci\'on:
+(1) comparaci\'on multi-tienda de precios,
+(2) optimizaci\'on multicriterio de ruta con OR-Tools,
+(3) digitalizaci\'on de listas y tickets mediante OCR con Google Cloud Vision,
+y (4) asistente conversacional basado en LLM (Google Gemini) v\'ia backend proxy.
 
-Desde la perspectiva de ingenieria del software, el trabajo cubre el ciclo completo:
-analisis de requisitos, diseno arquitectonico, implementacion modular,
-pruebas unitarias/integracion/E2E, despliegue en staging y documentacion tecnica.
+Desde la perspectiva de ingenier\'ia del software, el trabajo cubre el ciclo completo:
+an\'alisis de requisitos, dise\~no arquitect\'onico, implementaci\'on modular,
+pruebas unitarias/integraci\'on/E2E, despliegue en staging y documentaci\'on t\'ecnica.
 La arquitectura se organiza en dominios desacoplados
 (users, products, stores, prices, shopping\_lists, optimizer, ocr, assistant, business,
-notifications), con tareas asincronas en Celery y Redis para procesos pesados.
+notifications), con tareas as\'incronas en Celery y Redis para procesos pesados.
 
 Como resultado, se obtiene un prototipo funcional validado en entorno de desarrollo y staging,
-con cobertura de pruebas en modulos criticos, flujos E2E automatizados para web companion,
-y verificaciones manuales en flujos moviles dependientes de GPS/camara.
-La memoria documenta ademas limitaciones, decisiones arquitectonicas y lineas de evolucion
-para convertir BargAIn en producto escalable.
+con cobertura de pruebas en m\'odulos cr\'iticos, flujos E2E automatizados para el web companion,
+y verificaciones manuales en flujos m\'oviles dependientes de GPS/c\'amara.
+La memoria documenta adem\'as limitaciones, decisiones arquitect\'onicas y l\'ineas de
+evoluci\'on para convertir BargAIn en un producto escalable.
 
 \cdpchapter{Abstract}
 
@@ -36,14 +36,14 @@ The proposal integrates four key capabilities in a single system:
 (1) multi-store price comparison,
 (2) multicriteria route optimization with OR-Tools,
 (3) OCR-based list/ticket digitization using Google Cloud Vision,
-and (4) a conversational assistant powered by an LLM through a backend proxy.
+and (4) a conversational assistant powered by an LLM (Google Gemini) through a backend proxy.
 
 From a software engineering standpoint, the work covers the whole lifecycle:
 requirements analysis, architecture design, modular implementation,
 unit/integration/E2E testing, staging deployment, and technical documentation.
+The architecture is organized into decoupled domains, with asynchronous processing
+delegated to Celery workers over Redis.
 
 The final outcome is a functional prototype validated through automated and manual tests,
 with clear traceability of technical decisions, current limitations,
 and future evolution paths toward production readiness.
-
-

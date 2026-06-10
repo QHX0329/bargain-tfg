@@ -1,10 +1,12 @@
-\chapter{Analisis temporal y costes de desarrollo}\label{anatemporal}
+\chapter{An\'alisis temporal y costes de desarrollo}\label{analtemporal}
 
-\section{Planificacion temporal}
+\section{Planificaci\'on temporal}
 
-La planificacion de BargAIn se definio con una dedicacion objetivo de 300 horas,
-distribuidas en fases funcionales y tecnicas. El proyecto se ejecuto de forma iterativa,
-manteniendo trazabilidad en \texttt{TASKS.md} y en el arbol \texttt{.planning/}.
+La planificaci\'on de BargAIn se defini\'o con una dedicaci\'on planificada de 300 horas,
+distribuidas en fases funcionales y t\'ecnicas, que se ampli\'o hasta 325 horas reales al
+incorporar el cierre documental y la preparaci\'on de la defensa. El proyecto se ejecut\'o de
+forma iterativa, manteniendo trazabilidad en \texttt{TASKS.md} y en el \'arbol
+\texttt{.planning/}.
 
 \begin{table}[h]
 \centering
@@ -14,37 +16,37 @@ manteniendo trazabilidad en \texttt{TASKS.md} y en el arbol \texttt{.planning/}.
 \hline
 \textbf{Fase} & \textbf{Semanas} & \textbf{Horas est.} & \textbf{Estado} \\
 \hline
-F1 Analisis y diseno & S1--S3 & 45 & Completada \\
+F1 An\'alisis y dise\~no & S1--S3 & 45 & Completada \\
 F2 Infraestructura base & S3--S5 & 30 & Completada \\
 F3 Desarrollo core backend & S5--S12 & 95 & Completada \\
 F4 Desarrollo frontend & S8--S16 & 70 & Completada \\
 F5 IA, optimizador y scraping & S10--S17 & 35 & Completada \\
-F6 Pruebas, deploy y cierre & S17--S20 & 25 & Completada \\
-F7 Cierre final defensa & Extra & 25 & Completada \\
+F6 Portal business y app m\'ovil & S15--S18 & 25 & Completada \\
+F7 Pruebas, deploy y cierre & S18--S20 & 25 & Completada \\
 \hline
-\textbf{Total} & & \textbf{300} & \textbf{Cerrado} \\
+\textbf{Total} & & \textbf{325} & \textbf{Cerrado} \\
 \hline
 \end{tabular}
 \end{table}
 
-\section{Metodologia de trabajo}
+\section{Metodolog\'ia de trabajo}
 
-Se aplico una metodologia incremental con ciclos cortos por fase:
+Se aplic\'o una metodolog\'ia incremental con ciclos cortos por fase:
 
 \begin{itemize}
-	\item definicion de alcance y criterios de aceptacion,
-	\item implementacion por modulos,
-	\item validacion automatizada (lint + tests),
-	\item verificacion funcional y documental,
+	\item definici\'on de alcance y criterios de aceptaci\'on,
+	\item implementaci\'on por m\'odulos,
+	\item validaci\'on automatizada (lint + tests),
+	\item verificaci\'on funcional y documental,
 	\item cierre de fase con artefactos de evidencia.
 \end{itemize}
 
-Este enfoque permitio absorber cambios sin comprometer estabilidad del sistema.
+Este enfoque permiti\'o absorber cambios sin comprometer la estabilidad del sistema.
 
-\section{Estimacion de costes}
+\section{Estimaci\'on de costes}
 
-La estimacion economica se realizo mediante coste-hora por rol junior,
-alineada con referencias del informe de perfiles TIC de la Junta de Andalucia (2018).
+La estimaci\'on econ\'omica se realiz\'o mediante coste-hora por rol junior,
+alineada con referencias del informe de perfiles TIC de la Junta de Andaluc\'ia (2018).
 
 \begin{table}[h]
 \centering
@@ -54,13 +56,14 @@ alineada con referencias del informe de perfiles TIC de la Junta de Andalucia (2
 \hline
 \textbf{Bloque} & \textbf{Horas} & \textbf{Coste (EUR)} \\
 \hline
-Analisis y diseno & 45 & 1.490,40 \\
+An\'alisis y dise\~no & 45 & 1.490,40 \\
 Infraestructura & 30 & 861,60 \\
 Backend + frontend & 165 & 4.738,80 \\
 IA, optimizador y scraping & 35 & 1.005,20 \\
+Portal business y app m\'ovil & 25 & 718,00 \\
 Pruebas y despliegue & 25 & 594,25 \\
 \hline
-\textbf{Total} & \textbf{300} & \textbf{8.690,25} \\
+\textbf{Total} & \textbf{325} & \textbf{9.408,25} \\
 \hline
 \end{tabular}
 \end{table}
@@ -75,15 +78,13 @@ Los riesgos operativos principales fueron:
 \begin{itemize}
 	\item \textbf{Cambios en fuentes de scraping:} mitigado con spiders modulares y
 		fallback de crowdsourcing.
-	\item \textbf{Dependencia de APIs externas:} mitigado con cache y degradacion controlada.
+	\item \textbf{Dependencia de APIs externas:} mitigado con cach\'e y degradaci\'on controlada.
 	\item \textbf{Carga de trabajo en fases finales:} mitigado con cierre incremental de
-		entregables y automatizacion de validacion.
+		entregables y automatizaci\'on de validaci\'on.
 \end{itemize}
 
-\section{Resultado de planificacion}
+\section{Resultado de planificaci\'on}
 
-La planificacion permitio completar el alcance funcional priorizado del TFG,
-incluyendo arquitectura, implementacion, pruebas y despliegue de staging,
-manteniendo coherencia entre roadmap, requisitos y evidencias de verificacion.
-
-
+La planificaci\'on permiti\'o completar el alcance funcional priorizado del TFG,
+incluyendo arquitectura, implementaci\'on, pruebas y despliegue de staging,
+manteniendo coherencia entre roadmap, requisitos y evidencias de verificaci\'on.

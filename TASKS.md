@@ -8,7 +8,7 @@
 > **GitHub Repo:** https://github.com/QHX0329/bargain-tfg
 > **GitHub Issues:** https://github.com/QHX0329/bargain-tfg/issues
 >
-> Última sincronización: 2026-04-09 (memoria y despliegue staging revisados; cierre F7 mantenido)
+> Última sincronización: 2026-06-10 (F7-07: capturas reales del manual de usuario y galería; memoria recompilada)
 
 ---
 
@@ -241,6 +241,7 @@ Nota F5-17: bloqueada en Expo managed. Requiere extensión nativa iOS (ActivityK
 | F7-04 | Memoria caps. 8-11 + conversión LaTeX | 🔴 Crítica | ✅ | 6 | 7 | `docs/memoria/`, `memoriaTFG/Plantilla TfG/Capitulos/cap08-11.tex` |
 | F7-05 | Slides de defensa (Marp) + script demo | 🟠 Alta | ✅ | 3 | 3 | `docs/defensa/slides.md`, `demo-script.md`, `slides-outline.md` |
 | F7-06 | Cierre formal: VERIFICATION.md, TASKS.md, STATE.md | 🔴 Crítica | ✅ | 2 | 3 | `07-VERIFICATION.md`, `TASKS.md`, `STATE.md`, `BUILD-INSTRUCTIONS.md` |
+| F7-07 | Capturas reales de las 47 pantallas (móvil/web/PYME) para cap. 9 + sustitución de mockups + recompilación memoria | 🟠 Alta | ✅ | 4 | 4 | `scripts/capture-memoria.mjs`, `scripts/capture_setup.py`, `scripts/win/*.bat`, `memoriaTFG/Plantilla TfG/diagramas/capturas/*.png`, `cap09.tex`, `proyect.pdf` |
 
 ### Artefactos entregables Phase 7
 

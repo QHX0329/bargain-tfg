@@ -115,6 +115,8 @@
 
 **REGLA-04 (de ERR-004):** En settings compartidos entre host y Docker, no asumir que rutas de `.env` son portables entre sistemas. Aplicar rutas solo si existen en el runtime actual.
 
+**REGLA-05 (de ERR-008):** Nunca aplicar operaciones destructivas in-place sobre ficheros binarios accedidos a través de un montaje con sincronización diferida. Verificar integridad (p. ej. chunk IEND en PNG, carga estricta sin `LOAD_TRUNCATED_IMAGES`) y operar siempre sobre una copia de trabajo.
+
 ---
 
 ### [2026-03-17] — ERR-006 — Claude (claude-sonnet-4-6)
@@ -140,6 +142,20 @@
 **Prevención:** Tras añadir tests nuevos, ejecutar siempre primero un `pytest` focalizado del archivo editado para detectar errores de sintaxis/indentación antes de la suite ampliada.
 
 **Archivos afectados:** `backend/tests/unit/test_scraping_spiders.py`
+
+---
+
+### [2026-06-10] — ERR-008 — Claude (claude-fable-5)
+
+**Contexto:** Generación de capturas de pantalla reales para el cap. 9 de la memoria (F7-07), trabajando sobre la carpeta del repo montada en un sandbox con sincronización diferida (OneDrive/Cowork).
+
+**Error cometido:** Se convirtieron los PNG de capturas con PIL usando `ImageFile.LOAD_TRUNCATED_IMAGES = True` directamente sobre los ficheros originales mientras el espejo del sistema de archivos aún estaba sincronizando. PIL rellenó de negro los bytes ausentes de los ficheros a medio sincronizar y los sobrescribió, corrompiendo varias capturas (p. ej. `pyme-dashboard.png`).
+
+**Causa raíz:** Asumir que el contenido visible en el montaje del sandbox era el estado final del fichero, y aplicar una operación destructiva (sobrescritura in-place) con tolerancia a ficheros truncados activada.
+
+**Solución aplicada:** Recaptura completa de las 47 pantallas con `scripts/capture-memoria.mjs` y compilación en copia de trabajo (`/tmp/build`) sin modificar nunca los PNG originales. Verificación de integridad (carga PIL estricta + chunk IEND) antes de compilar.
+
+**Prevención:** REGLA-05.
 
 ---
 

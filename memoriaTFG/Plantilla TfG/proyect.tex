@@ -13,9 +13,24 @@
 \DeclareRobustCommand{\textrightarrow}{\ensuremath{\rightarrow}}
 \usepackage[hidelinks,unicode]{hyperref}
 
+% --- Placeholder de capturas pendientes -------------------------------------
+% Marca un hueco de figura cuando la captura real a\'un no se ha pegado, de modo
+% que el documento siga compilando. Para insertar la captura definitiva, basta
+% con sustituir la l\'inea \capturaPendiente{...} por:
+%   \includegraphics[width=<ancho>\textwidth]{diagramas/capturas/<archivo>}
+% Uso: \capturaPendiente{archivo.png}  o  \capturaPendiente[0.30]{archivo.png}
+\newcommand{\capturaPendiente}[2][0.60]{%
+  \fbox{\parbox[c][4cm][c]{#1\textwidth}{%
+    \centering\ttfamily\footnotesize
+    [CAPTURA PENDIENTE]\\[6pt]
+    diagramas/capturas/#2%
+  }}%
+}
+% ----------------------------------------------------------------------------
+
 \begin{document}
 \tipo{Grado}   % Grado o M\'aster
-\titulopro{BargAIN: Sistema inteligente de optimizaci\'on de la cesta de la compra}
+\titulopro{BargAIn: Sistema inteligente de optimizaci\'on de la cesta de la compra}
 \tutor{Juan Vicente Guti\'errez Santacreu}
 \departamento{Matem\'atica Aplicada I}
 \autores{Nicol\'as Parrilla Geniz}{{\ }}   % Un autor

@@ -6,7 +6,7 @@
 
 Validar que BargAIn cumple los requisitos funcionales y no funcionales definidos en la Fase de
 An\'alisis, con cobertura autom\'atica de los flujos cr\'iticos y verificaci\'on documentada de los
-requisitos no funcionales clave (NFR-02, NFR-04, NFR-05).
+requisitos no funcionales clave (RNF-002, RNF-004, RNF-005).
 
 \section{Estrategia de testing}\label{sec:estrategia}
 
@@ -18,6 +18,8 @@ Se aplica una estrategia por capas, siguiendo el modelo de pir\'amide de tests:
     \texttt{notifications}, \texttt{optimizer}).
   \item \textbf{Tests de integraci\'on backend:} flujos cross-domain que ejercitan varios m\'odulos
     en conjunto.
+  \item \textbf{Tests de componentes frontend:} Jest + React Native Testing Library
+    (111 tests en 16 suites), incluyendo los componentes y utilidades de la adaptaci\'on web.
   \item \textbf{Tests E2E con Playwright:} 4 flujos cr\'iticos del sistema integrado
     (backend + frontend web).
   \item \textbf{UAT manual en dispositivo m\'ovil:} flujos nativos con GPS y c\'amara que no son
@@ -79,7 +81,6 @@ Los tests de integraci\'on verifican flujos API completos usando una base de dat
 \texttt{test\_store\_endpoints.py} & stores & API de tiendas \\
 \texttt{test\_assistant\_api.py} & assistant & Endpoint LLM con mock Gemini \\
 \texttt{test\_promotions.py} & business & Gesti\'on de promociones \\
-\texttt{test\_distance\_ors.py} & optimizer & Cliente ORS (3 tests unitarios) \\
 \hline
 \end{tabular}
 \end{table}
@@ -158,19 +159,23 @@ Chat con asistente LLM y verificar guardrail & Verificado \\
 
 \section{Validaci\'on de Requisitos No Funcionales}\label{sec:nfr}
 
-\subsection{NFR-02: Disponibilidad $\geq$ 99\% en staging}\label{subsec:nfr02}
+\subsection{RNF-002: Disponibilidad $\geq$ 99\% en staging}\label{subsec:rnf02}
 
-El backend de staging se despleg\'o en Render.com (plan gratuito) con la siguiente arquitectura:
+El backend de staging se despleg\'o en Render.com (plan gratuito, blueprint
+\texttt{render.free.yaml}) con la siguiente arquitectura:
 \begin{itemize}
-  \item Web Service: Django Gunicorn con 3 workers
-  \item Redis: broker Celery + cach\'e Google Places
-  \item Celery worker + Celery beat: tareas as\'incronas independientes
+  \item Web Service \'unico: Django con Gunicorn (2 workers) y un proceso Celery
+    worker + beat embebido (\texttt{--concurrency 1}) para las tareas as\'incronas.
+  \item PostgreSQL 16 + PostGIS gestionado por la plataforma.
+  \item Redis: broker Celery + cach\'e Google Places.
 \end{itemize}
 
 El health check se configura en \texttt{GET /api/v1/health/} respondiendo HTTP 200. Los reinicios
-autom\'aticos ante fallos se gestionan por la plataforma Render.
+autom\'aticos ante fallos se gestionan por la plataforma Render. Como optimizaci\'on del arranque
+en fr\'io del free tier, los ficheros est\'aticos se precompilan durante el build de la imagen
+Docker en lugar de generarse en el arranque del servicio.
 
-\subsection{NFR-04: Usabilidad WCAG 2.1 AA y m\'aximo 3 taps}\label{subsec:nfr04}
+\subsection{RNF-004: Usabilidad WCAG 2.1 AA y m\'aximo 3 taps}\label{subsec:rnf04}
 
 Los flujos principales se completan en \textless{}= 3 interacciones en la app m\'ovil:
 
@@ -183,7 +188,7 @@ Los flujos principales se completan en \textless{}= 3 interacciones en la app m\
     (3 taps)
 \end{itemize}
 
-\subsection{NFR-05: Escalabilidad para 10.000 usuarios}\label{subsec:nfr05}
+\subsection{RNF-005: Escalabilidad para 10.000 usuarios}\label{subsec:rnf05}
 
 La arquitectura de BargAIn soporta el crecimiento a 10.000 usuarios concurrentes mediante cuatro
 decisiones de dise\~no complementarias:
@@ -214,14 +219,14 @@ decisiones de dise\~no complementarias:
 \hline
 \textbf{Tipo de test} & \textbf{Cantidad} & \textbf{Estado} \\
 \hline
-Tests unitarios backend & \textasciitilde{}40 & Todos pasan \\
-Tests de integraci\'on backend & \textasciitilde{}17 archivos & Todos pasan \\
-Tests unitarios ORS (\texttt{test\_distance\_ors.py}) & 3 & Todos pasan \\
+Tests unitarios backend & 162 (18 archivos) & Todos pasan \\
+Tests de integraci\'on backend & 171 (17 archivos) & Todos pasan \\
+Tests frontend (Jest) & 111 (16 suites) & Todos pasan \\
 Tests E2E Playwright & 4 flujos & Todos pasan \\
 UAT manual m\'ovil & 5 flujos & Verificados \\
-NFR-02 (Disponibilidad) & 1 & Per\'iodo de monitorizaci\'on en curso \\
-NFR-04 (Usabilidad) & 3 flujos & Verificados (3 taps m\'ax.) \\
-NFR-05 (Escalabilidad) & Justificaci\'on arquitectural & Documentado \\
+RNF-002 (Disponibilidad) & 1 & Per\'iodo de monitorizaci\'on en curso \\
+RNF-004 (Usabilidad) & 3 flujos & Verificados (3 taps m\'ax.) \\
+RNF-005 (Escalabilidad) & Justificaci\'on arquitectural & Documentado \\
 \hline
 \end{tabular}
 \end{table}
@@ -229,7 +234,8 @@ NFR-05 (Escalabilidad) & Justificaci\'on arquitectural & Documentado \\
 \section{Conclusi\'on}\label{sec:conclusion-pruebas}
 
 La estrategia de testing multicapa garantiza la calidad del sistema a diferentes niveles de
-granularidad. La cobertura de tests backend supera el 80\% sobre los m\'odulos cr\'iticos, y los
-4 flujos E2E automatizados con Playwright verifican que el sistema integrado funciona correctamente
-de extremo a extremo. Los requisitos no funcionales de disponibilidad y usabilidad quedan
-documentados con evidencia real del entorno de staging.
+granularidad. La cobertura de tests backend supera el 80\% sobre los m\'odulos cr\'iticos
+(333 tests entre unitarios y de integraci\'on), la suite frontend a\~nade 111 tests de
+componentes y utilidades con Jest, y los 4 flujos E2E automatizados con Playwright verifican que
+el sistema integrado funciona correctamente de extremo a extremo. Los requisitos no funcionales
+de disponibilidad y usabilidad quedan documentados con evidencia real del entorno de staging.

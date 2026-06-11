@@ -159,6 +159,20 @@
 
 ---
 
+### [2026-06-11] — ERR-009 — Claude (claude-fable-5)
+
+**Contexto:** Caída del servicio `bargain-free-api` en Render tras la jornada de conexión de frontends y siembra de staging (F7-08/F7-09).
+
+**Error cometido:** El endpoint de health (`/api/v1/health/`) heredaba las clases de throttling por defecto de DRF (`anon: 100/hour`). El tráfico intenso del día (verificaciones, sondas del propio Render y reinicios amplificados por el `seed_demo` añadido al arranque) agotó la cuota anónima, el health check empezó a responder **429** y Render marcó la instancia como *unhealthy*, entrando en un bucle de reinicios.
+
+**Causa raíz:** Aplicar límites de tasa pensados para clientes anónimos a un endpoint de monitorización que es consultado de forma continua por la propia plataforma de hosting.
+
+**Solución aplicada:** `@throttle_classes([])` en la vista de health (commit `9904740`), límite anónimo de producción ajustado a 300/h con margen para demos, y verificación post-deploy (login + catálogo 200, deploy *live*).
+
+**Prevención:** REGLA-06.
+
+---
+
 ## Instrucciones para agentes
 
 - **Claude:** Actualiza este archivo al final de cada sesión donde hayas cometido un error, aunque sea menor. Usa el formato estándar. Revisa las REGLAS derivadas al inicio de cada sesión.

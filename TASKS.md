@@ -247,6 +247,8 @@ Nota F5-17: bloqueada en Expo managed. Requiere extensión nativa iOS (ActivityK
 
 | F7-09 | Mejoras de cierre: diagrama de arquitectura regenerado (Gemini/ORS), seed_demo en arranque de staging (4.364 productos), mapas sin marca de agua, limitaciones del free tier en conclusiones, metodología GSD en defensa, push a main con Pages verificado E2E | 🟠 Alta | ✅ | 3 | 3 | `arquitectura-capas.puml/png`, `seed_demo.py`, `start_render_free.sh`, capturas de mapa, `cap11.tex`, `slides.md`, `script-defensa.md` |
 
+| F7-10 | Reparación del servicio en Render (health check exento de throttling, 429→OK) y sección "Metodología de trabajo y trazabilidad del proceso" desarrollada en la memoria (GSD, .planning/, TASKS.md, ai-mistakes-log, agentes/workflows/skills) | 🔴 Crítica | ✅ | 2 | 2 | `apps/core/views.py`, `prod.py`, `analtemporal.tex`, `slides.md`, `proyect-final.pdf` |
+
 ### Artefactos entregables Phase 7
 
 - `render.yaml` — infraestructura staging en Render.com (5 servicios)

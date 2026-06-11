@@ -6,7 +6,7 @@ echo === inicio %date% %time% === > tmp\logs\git-push.log
 if exist .git\index.lock del /f .git\index.lock >> tmp\logs\git-push.log 2>&1
 git add -A >> tmp\logs\git-push.log 2>&1
 git status --porcelain > tmp\logs\git-status.log 2>&1
-git commit -m "fix(core): health check exento de throttling (Render 429) y seccion de metodologia GSD/trazabilidad en la memoria (F7-09)" >> tmp\logs\git-push.log 2>&1
+git commit -m "docs: cierre F7-10 en TASKS.md y ERR-009/REGLA-06 en ai-mistakes-log" >> tmp\logs\git-push.log 2>&1
 git push origin main >> tmp\logs\git-push.log 2>&1
 echo === fin %date% %time% === >> tmp\logs\git-push.log
 exit

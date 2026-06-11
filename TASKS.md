@@ -8,7 +8,7 @@
 > **GitHub Repo:** https://github.com/QHX0329/bargain-tfg
 > **GitHub Issues:** https://github.com/QHX0329/bargain-tfg/issues
 >
-> Última sincronización: 2026-06-10 (F7-07: capturas reales del manual de usuario y galería; memoria recompilada)
+> Última sincronización: 2026-06-11 (cierre total: F1–F7 al 100 %, CLAUDE.md actualizado, sincronizado con GitHub y Notion)
 
 ---
 
@@ -126,7 +126,7 @@
 
 ---
 
-## F4 — Desarrollo Frontend (70 h) · 🔄 En progreso
+## F4 — Desarrollo Frontend (70 h) · ✅ Completada
 
 > Semanas S8–S16
 
@@ -152,7 +152,7 @@
 | F4-18 | Historial de conversaciones | Assistant | 🟡 Media | ✅ | 2 | 1 | Integrado en AssistantScreen: historial local de sesión, botón de nueva conversación |
 | F4-19 | Dashboard PYME (portal Business web) | Business | 🟡 Media | ✅ | 4 | 5 | Vite+React+AntD: Login, Dashboard, Precios, Promociones, Perfil; auth guard, token refresh |
 | F4-20 | Tests frontend (Jest + RNTL) | Infraestructura | 🟠 Alta | ✅ | 4 | 3 | Tests actualizados para reflejar shapes reales de API y cambios de pantallas |
-| F4-21 | Integración Google Places API | Stores | 🟡 Media | ⬜ | 3 | - | |
+| F4-21 | Integración Google Places API | Stores | 🟡 Media | ✅ | 3 | 3 | `GOOGLE_PLACES_API_KEY`, `Store.google_place_id`, `import_apify_places` |
 | F4-22 | Flujo catálogo-producto-listas (añadir desde lista + detalle con precios) | Products/Shopping Lists | 🔴 Crítica | ✅ | 6 | 6 | Botón en detalle de lista para abrir catálogo; catálogo con precio mínimo + añadir a listas; detalle de producto con comparación de precios |
 | F4-23 | Pulido UX catálogo/listas (cantidad + suma duplicados + simplificación detalle) | Products/Shopping Lists | 🟠 Alta | ✅ | 4 | 4 | Selector de cantidad al añadir producto, backend suma cantidades para duplicados, toast UX en catálogo y eliminación del buscador en detalle de lista |
 | F4-24 | Ajuste interacción cantidad y acciones rápidas (quick-add + control item + SearchBar Home) | Products/Shopping Lists | 🟠 Alta | ✅ | 3 | 3 | Quick-add con cantidad desde tarjeta en catálogo; botones +/- por ítem en detalle (si llega a 0 se elimina); eliminación de botón de filtros en SearchBar de Home |
@@ -166,33 +166,33 @@
 
 ---
 
-## F5 — IA, Optimizador y Scraping (35 h) · 🔄 En progreso
+## F5 — IA, Optimizador y Scraping (35 h) · ✅ Completada
 
 > Semanas S10–S17
 
 | ID | Tarea | Módulo | Prioridad | Estado | Horas est. |
 |----|-------|--------|-----------|--------|:---:|
-| F5-01 | Spider Mercadona | Scraping | 🔴 Crítica | ⬜ | 4 |
-| F5-02 | Spider Carrefour | Scraping | 🟠 Alta | ⬜ | 3 |
-| F5-03 | Spider Lidl + DIA | Scraping | 🟠 Alta | ⬜ | 4 |
+| F5-01 | Spider Mercadona | Scraping | 🔴 Crítica | ✅ | 4 |
+| F5-02 | Spider Carrefour | Scraping | 🟠 Alta | ✅ | 3 |
+| F5-03 | Spider Lidl + DIA | Scraping | 🟠 Alta | ✅ | 4 |
 | F5-14 | Spiders Costco + Alcampo + Hipercor | Scraping | 🟠 Alta | ✅ | 3 |
 | F5-15 | Spiders Eroski + Spar + Consum + Coviran | Scraping | 🟠 Alta | ✅ | 4 |
-| F5-04 | Pipeline normalización e inserción en BD | Scraping | 🔴 Crítica | ⬜ | 3 |
-| F5-05 | Programación tareas con Celery Beat | Scraping | 🟠 Alta | ⬜ | 2 |
-| F5-06 | Implementación función de scoring multicriterio | Optimizer | 🔴 Crítica | ⬜ | 5 |
-| F5-07 | Integración OR-Tools para rutas | Optimizer | 🟠 Alta | ⬜ | 4 |
-| F5-08 | Integración OSRM/Google Directions | Optimizer | 🟠 Alta | ⬜ | 3 |
-| F5-09 | Tests del optimizador (casos borde, rendimiento) | Optimizer | 🔴 Crítica | ⬜ | 3 |
-| F5-10 | Servicio OCR con Google Vision API | OCR | 🟠 Alta | ⬜ | 3 |
-| F5-11 | Matching fuzzy OCR → catálogo | OCR | 🟠 Alta | ⬜ | 2 |
-| F5-12 | Integración Claude API con contexto de compra | Assistant | 🟠 Alta | ⬜ | 3 |
-| F5-13 | Prompt engineering y guardrails del asistente | Assistant | 🟠 Alta | ⬜ | 2 |
+| F5-04 | Pipeline normalización e inserción en BD | Scraping | 🔴 Crítica | ✅ | 3 |
+| F5-05 | Programación tareas con Celery Beat | Scraping | 🟠 Alta | ✅ | 2 |
+| F5-06 | Implementación función de scoring multicriterio | Optimizer | 🔴 Crítica | ✅ | 5 |
+| F5-07 | Integración OR-Tools para rutas | Optimizer | 🟠 Alta | ✅ | 4 |
+| F5-08 | Integración OpenRouteService (ORS) + fallback haversine | Optimizer | 🟠 Alta | ✅ | 3 |
+| F5-09 | Tests del optimizador (casos borde, rendimiento) | Optimizer | 🔴 Crítica | ✅ | 3 |
+| F5-10 | Servicio OCR con Google Vision API | OCR | 🟠 Alta | ✅ | 3 |
+| F5-11 | Matching fuzzy OCR → catálogo | OCR | 🟠 Alta | ✅ | 2 |
+| F5-12 | Integración Gemini API con contexto de compra | Assistant | 🟠 Alta | ✅ | 3 |
+| F5-13 | Prompt engineering y guardrails del asistente | Assistant | 🟠 Alta | ✅ | 2 |
 | F5-16 | Persistencia de ruta optimizada + recuperación al reabrir + botón recalcular | Optimizer/Frontend | 🔴 Crítica | ✅ | 6 |
-| F5-17 | Checklist lock screen iOS con Live Activities (arquitectura nativa) | Mobile iOS | 🟠 Alta | ❌ | 5 |
+| F5-17 | Checklist lock screen iOS — cerrada con notificaciones interactivas; Live Activities documentado como trabajo futuro (ADR-010) | Mobile iOS | 🟠 Alta | ✅ | 5 |
 | F5-18 | Capa semántica Gemini para desambiguar items de lista en optimización | Optimizer/Assistant | 🔴 Crítica | ✅ | 4 | Incluye selección manual en frontend (“usar y recalcular”) y persistencia de preferencias por lista para futuras optimizaciones |
 | F5-19 | Consolidación por cadena para evitar múltiples paradas equivalentes (misma cadena/precios) | Optimizer | 🔴 Crítica | ✅ | 3 | Ajuste adicional aplicado: más candidatos por item, desempate determinista por tienda y consolidación por cadena sobre todas las tiendas candidatas; validado en tests |
 
-Nota F5-17: bloqueada en Expo managed. Requiere extensión nativa iOS (ActivityKit + Widget Extension), definida en ADR-010.
+Nota F5-17: cerrada con notificaciones interactivas en pantalla de bloqueo. La variante con Live Activities (ActivityKit + Widget Extension) requiere salir de Expo managed y queda como trabajo futuro (ADR-010).
 
 ---
 

@@ -8,8 +8,8 @@ por `cap09.tex` (galería + figuras del manual de usuario).
 ```powershell
 # 1. Backend en Docker + migraciones + seed base (usuarios/tiendas)
 make dev
-make migrate-docker
-make seed-docker
+make migrate
+make seed
 
 # 2. Datos demo para las capturas (idempotente)
 Get-Content -Raw scripts/capture_setup.py | docker compose -f docker-compose.dev.yml exec -T backend python manage.py shell

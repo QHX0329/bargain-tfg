@@ -10,16 +10,16 @@
 **Tutor:** Juan Vicente Gutiérrez Santacreu
 **Departamento:** Matemática Aplicada I
 
-## 📌 Estado actual (2026-04-05)
+## 📌 Estado actual (2026-06-11)
 
-- **F1:** completada
-- **F2:** completada
-- **F3:** completada
-- **F4:** en progreso (hasta **F4-31** completada; **F4-21** pendiente)
-- **F5:** en progreso
-- **F6:** completada
-- **F7:** activa (pendiente de cierre)
-- **Progreso global estimado:** ~62%
+- **TFG BargAIn v1.0 COMPLETADO** ✅ — fases F1–F7 cerradas (~330 h)
+- **Despliegue público operativo:**
+  - Backend + PostgreSQL/PostGIS + Redis: Render free tier (`render.free.yaml`) → `https://bargain-free-api.onrender.com`
+  - Portal PYME (web estática): GitHub Pages → `https://qhx0329.github.io/bargain-tfg/`
+  - App de usuario: Expo web en local o IPA sin firmar para iPhone (workflow `ios-build.yml` + Sideloadly)
+  - Datos demo: `python manage.py seed_demo` (idempotente, se ejecuta en cada arranque del servicio de Render)
+- **Memoria:** compilada y completa (`memoriaTFG/Plantilla TfG/proyect-final.pdf`, generada con `scripts/win/compilar-memoria.bat` — MiKTeX local)
+- Nota free tier: el servicio hiberna sin tráfico (cold start 30–60 s) y se cae unos minutos en cada redeploy; el health check (`/api/v1/health/`) está exento de throttling (REGLA-06)
 
 ---
 
@@ -34,7 +34,8 @@
 
 ### Frontend
 - **Framework móvil:** React Native con Expo
-- **Web companion:** React (compartir código con RN)
+- **App de usuario en escritorio:** la misma base Expo vía react-native-web (`npx expo start --web`, puerto 8081)
+- **Portal Business (PYMEs):** aplicación independiente en `frontend/web/` — Vite 8 + React 19 + Ant Design 6 (puerto 5173; desplegada en GitHub Pages)
 - **Mapas:** React Native Maps + Google Maps API
 - **Estado global:** Zustand
 - **HTTP:** Axios con interceptores JWT
@@ -42,17 +43,16 @@
 ### IA y ML
 - **Asistente LLM:** Google Gemini API (`gemini-2.0-flash`) vía backend proxy (ADR-008)
 - **OCR/Visión:** Google Cloud Vision API (backend) + matching fuzzy contra catálogo
-- **Optimización de rutas:** OR-Tools (Google) + algoritmo propio ponderado
+- **Optimización de rutas:** algoritmo propio ponderado multicriterio + OR-Tools; distancias reales con **OpenRouteService (ORS)** (matriz driving-car, fallback haversine) — ver `optimizer/services/distance.py`
 
 Nota de estado OCR:
-- La documentación vigente ya refleja Google Vision API como decisión aprobada.
-- El código OCR heredado todavía conserva referencias a Tesseract hasta completar la migración de F5.
+- Migración a Google Vision API **completada** (`backend/apps/ocr/services.py`); solo perviven códigos de idioma estilo Tesseract como alias de compatibilidad hacia hints BCP-47.
 
 ### Infraestructura
 - **Contenedores:** Docker + Docker Compose
 - **Entorno dev:** Modelo híbrido (ADR-002) — Backend en Docker, Frontend nativo en host
 - **CI/CD:** GitHub Actions
-- **Hosting:** Render (staging) / AWS (producción futura)
+- **Hosting:** Render free tier (`render.free.yaml`, servicio `bargain-free-api` con Celery embebido) + GitHub Pages (portal) / AWS (producción futura)
 - **Monitorización:** Sentry (errores) + Prometheus + Grafana (métricas)
 
 ---
@@ -159,18 +159,23 @@ bargain-tfg/
 ├── scraping/                    # Proyecto Scrapy independiente
 │   ├── scrapy.cfg
 │   └── bargain_scraping/
-│       ├── spiders/
-│       │   ├── mercadona.py
-│       │   ├── carrefour.py
-│       │   ├── lidl.py
-│       │   ├── dia.py
-│       │   └── alcampo.py
+│       ├── spiders/             # 11 cadenas: mercadona, carrefour, lidl,
+│       │   │                    # dia, alcampo, costco, hipercor, eroski,
+│       │   │                    # spar, consum, coviran
 │       ├── items.py
 │       ├── pipelines.py
 │       └── middlewares.py
 │
 ├── memory/                      # Contexto local del proyecto (versionado)
-├── .planning/                   # Planificación viva (roadmap/estado/fases)
+├── .planning/                   # Planificación viva GSD (roadmap/estado/fases/debug)
+├── memoriaTFG/
+│   └── Plantilla TfG/           # Memoria LaTeX (proyect.tex, Capitulos/, diagramas/
+│                                #   con capturas reales y cuadros como imágenes)
+├── scripts/
+│   ├── capture-memoria.mjs      # Captura automática de las 47 pantallas (Playwright)
+│   ├── capture_setup.py         # Datos demo vía Django shell (entorno local)
+│   └── win/                     # Lanzadores .bat/.ps1: desplegar-capturas, compilar-memoria,
+│                                #   git-publicar, verificar-render, sembrar-staging, etc.
 ├── docker-compose.yml
 ├── docker-compose.dev.yml
 ├── Makefile                     # Comandos útiles
@@ -526,10 +531,14 @@ make lint               # Lint completo (backend + frontend)
 make lint-backend       # Verificar con Ruff
 make lint-backend-fix   # Autofix con Ruff
 
-make migrate-docker     # Aplicar migraciones Django en Docker
-make makemigrations-docker # Crear nuevas migraciones en Docker
-make createsuperuser-docker # Crear superusuario Django en Docker
-make seed-docker        # Poblar BD con datos de prueba en Docker
+make frontend-web       # Levantar portal PYME (frontend/web, Vite en :5173)
+
+make migrate            # Aplicar migraciones Django (en Docker)
+make makemigrations     # Crear nuevas migraciones (en Docker)
+make createsuperuser    # Crear superusuario Django (en Docker)
+make seed               # Poblar BD con datos base (seed_data, en Docker)
+#   datos demo completos: docker compose -f docker-compose.dev.yml exec backend \
+#   python manage.py seed_demo
 
 make scrape             # Ejecutar spiders (Mercadona + Carrefour)
 make docs               # Generar documentación API (OpenAPI)
@@ -539,6 +548,19 @@ make build-dev          # Build imagen desarrollo
 make logs               # Logs de todos los servicios
 make logs-backend       # Logs solo del backend
 make deploy-staging     # Deploy a staging (Render)
+make ios-build          # Instrucciones para la IPA en GitHub Actions
+```
+
+### Lanzadores Windows (doble clic, `scripts/win/`)
+
+```
+desplegar-capturas.bat   # Pipeline completo: Docker + frontends + datos demo + 47 capturas
+recapturar.bat           # Datos demo + recaptura completa (servicios ya levantados)
+compilar-memoria.bat     # Compila la memoria con MiKTeX → proyect-final.pdf
+git-publicar.bat         # add + commit + push a main (editar mensaje antes de usar)
+verificar-render.bat     # Salud del backend público + registro/login de prueba
+sembrar-staging.bat      # Espera al deploy de Render y verifica datos en staging
+regenerar-diagrama.bat   # PlantUML → PNG del diagrama de arquitectura
 ```
 
 

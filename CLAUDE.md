@@ -17,7 +17,7 @@
   - Backend + PostgreSQL/PostGIS + Redis: Render free tier (`render.free.yaml`) → `https://bargain-free-api.onrender.com`
   - Portal PYME (web estática): GitHub Pages → `https://qhx0329.github.io/bargain-tfg/`
   - App de usuario: Expo web en local o IPA sin firmar para iPhone (workflow `ios-build.yml` + Sideloadly)
-  - Datos demo: `python manage.py seed_demo` (idempotente, se ejecuta en cada arranque del servicio de Render)
+  - Datos demo: `python manage.py seed_demo` + `python manage.py seed_sevilla` (idempotentes, se ejecutan en cada arranque del servicio de Render; seed_sevilla crea 7 cadenas ficticias, 50 tiendas por Sevilla y ~55.000 precios estilo Mercadona, ≥1.000 por tienda)
 - **Memoria:** compilada y completa (`memoriaTFG/Plantilla TfG/proyect-final.pdf`, generada con `scripts/win/compilar-memoria.bat` — MiKTeX local)
 - Nota free tier: el servicio hiberna sin tráfico (cold start 30–60 s) y se cae unos minutos en cada redeploy; el health check (`/api/v1/health/`) está exento de throttling (REGLA-06)
 

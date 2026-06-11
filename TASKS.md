@@ -249,6 +249,8 @@ Nota F5-17: cerrada con notificaciones interactivas en pantalla de bloqueo. La v
 
 | F7-10 | Reparación del servicio en Render (health check exento de throttling, 429→OK) y sección "Metodología de trabajo y trazabilidad del proceso" desarrollada en la memoria (GSD, .planning/, TASKS.md, ai-mistakes-log, agentes/workflows/skills) | 🔴 Crítica | ✅ | 2 | 2 | `apps/core/views.py`, `prod.py`, `analtemporal.tex`, `slides.md`, `proyect-final.pdf` |
 
+| F7-11 | Seed masivo `seed_sevilla`: 7 cadenas ficticias, 50 tiendas por Sevilla y área metropolitana, catálogo de 1.222 productos estilo Mercadona y ~55.000 precios (≥1.000 por tienda) con ofertas deterministas; validado en local (Ruff + idempotencia + conteos) y ejecutado en producción desde el arranque del servicio de Render | 🟠 Alta | ✅ | 2 | 2 | `seed_sevilla.py`, `backend/scripts/verify_seed_sevilla.py`, `start_render_free.sh`, `scripts/win/validar-seed-sevilla.*` |
+
 ### Artefactos entregables Phase 7
 
 - `render.yaml` — infraestructura staging en Render.com (5 servicios)

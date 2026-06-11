@@ -21,6 +21,10 @@ echo "[start] Sembrando datos de demostracion (idempotente)..."
 python manage.py seed_demo 2>&1 | tail -5 \
   || echo "[start] seed_demo fallo; continuando sin datos demo."
 
+echo "[start] Sembrando red de tiendas ficticias de Sevilla (idempotente)..."
+python manage.py seed_sevilla 2>&1 | tail -4 \
+  || echo "[start] seed_sevilla fallo; continuando."
+
 echo "[start] Lanzando Celery worker + beat embebidos (concurrency=1)..."
 celery -A config worker -B -l info --concurrency 1 \
   --scheduler django_celery_beat.schedulers:DatabaseScheduler &

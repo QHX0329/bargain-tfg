@@ -158,4 +158,4 @@ jobs:
         run: |
           echo "=== Contenido de build/output ==="
           ls -la "$EXPORT_PATH" || echo "No output directory"
-          find "$GITHUB_WORKSPACE/build" -name "*.ipa" 2>/dev
+          find "$GITHUB_WORKSPACE/build" -name "*.ipa" 2>/dev/null || true

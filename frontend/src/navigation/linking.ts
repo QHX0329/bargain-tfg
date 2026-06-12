@@ -12,14 +12,14 @@
  * que los flow plans no toquen la configuración de navegación.
  */
 
-import type { LinkingOptions } from '@react-navigation/native';
-import type { RootStackParamList } from './types';
+import type { LinkingOptions } from "@react-navigation/native";
+import type { RootStackParamList } from "./types";
 
 export const linking: LinkingOptions<RootStackParamList> = {
   prefixes: [
-    'http://localhost:19006',
-    'http://localhost:8081',
-    'https://bargain.app',
+    "http://localhost:19006",
+    "http://localhost:8081",
+    "https://bargain.app",
   ],
   config: {
     screens: {
@@ -27,50 +27,50 @@ export const linking: LinkingOptions<RootStackParamList> = {
         screens: {
           HomeTab: {
             screens: {
-              Home: 'app/home',
-              ProductsCatalog: 'app/home/catalog',
-              PriceCompare: 'app/home/compare',
-              PriceAlerts: 'app/home/alerts',
-              Notifications: 'app/home/notifications',
+              Home: "app/home",
+              ProductsCatalog: "app/home/catalog",
+              PriceCompare: "app/home/compare",
+              PriceAlerts: "app/home/alerts",
+              Notifications: "app/home/notifications",
               // FavoriteStores vive en HomeStack aunque su URL sea /app/map/favorites (Pitfall 8)
-              FavoriteStores: 'app/map/favorites',
-              ProductProposal: 'app/home/propose',
+              FavoriteStores: "app/map/favorites",
+              ProductProposal: "app/home/propose",
             },
           },
           ListsTab: {
             screens: {
-              Lists: 'app/lists',
-              ListDetail: 'app/lists/:listId',
-              Templates: 'app/lists/templates',
-              OCR: 'app/lists/ocr',
-              Route: 'app/lists/route',
+              Lists: "app/lists",
+              ListDetail: "app/lists/:listId",
+              Templates: "app/lists/templates",
+              OCR: "app/lists/ocr",
+              Route: "app/lists/route",
             },
           },
           MapTab: {
             screens: {
-              Map: 'app/map',
-              StoreProfile: 'app/map/store/:storeId',
+              Map: "app/map",
+              StoreProfile: "app/map/store/:storeId",
             },
           },
           AssistantTab: {
             screens: {
-              Assistant: 'app/assistant',
+              Assistant: "app/assistant",
             },
           },
           ProfileTab: {
             screens: {
-              Profile: 'app/profile',
-              EditProfile: 'app/profile/edit',
-              ChangePassword: 'app/profile/password',
-              OptimizerConfig: 'app/profile/optimizer',
+              Profile: "app/profile",
+              EditProfile: "app/profile/edit",
+              ChangePassword: "app/profile/password",
+              OptimizerConfig: "app/profile/optimizer",
             },
           },
         },
       },
       Auth: {
         screens: {
-          Login: 'login',
-          Register: 'register',
+          Login: "login",
+          Register: "register",
         },
       },
     },

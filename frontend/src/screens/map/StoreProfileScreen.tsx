@@ -497,11 +497,7 @@ export const StoreProfileScreen: React.FC<Props> = ({ route, navigation }) => {
               }
               activeOpacity={0.7}
             >
-              <Ionicons
-                name="globe-outline"
-                size={14}
-                color={colors.primary}
-              />
+              <Ionicons name="globe-outline" size={14} color={colors.primary} />
               <Text style={styles.placesLinkText}>Sitio web oficial</Text>
             </TouchableOpacity>
           )}
@@ -621,7 +617,10 @@ export const StoreProfileScreen: React.FC<Props> = ({ route, navigation }) => {
           style={styles.desktopLeft}
           contentContainerStyle={styles.desktopLeftContent}
           refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+            />
           }
         >
           {storeInfoSection}

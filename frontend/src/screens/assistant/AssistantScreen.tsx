@@ -109,9 +109,13 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
           isUser ? bubbleStyles.bubbleUser : bubbleStyles.bubbleBot,
         ]}
         // @ts-ignore — onMouseEnter/onMouseLeave son props solo-web (react-native-web)
-        onMouseEnter={Platform.OS === "web" && !isUser ? () => setHovered(true) : undefined}
+        onMouseEnter={
+          Platform.OS === "web" && !isUser ? () => setHovered(true) : undefined
+        }
         // @ts-ignore — ver arriba
-        onMouseLeave={Platform.OS === "web" && !isUser ? () => setHovered(false) : undefined}
+        onMouseLeave={
+          Platform.OS === "web" && !isUser ? () => setHovered(false) : undefined
+        }
       >
         <Text style={[bubbleStyles.text, isUser && bubbleStyles.textUser]}>
           {message.content}
@@ -127,7 +131,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
               <TouchableOpacity
                 style={[
                   bubbleStyles.copyButton,
-                  hovered && !copied && { backgroundColor: colors.surfaceVariant },
+                  hovered &&
+                    !copied && { backgroundColor: colors.surfaceVariant },
                 ]}
                 onPress={handleCopy}
                 accessibilityRole="button"

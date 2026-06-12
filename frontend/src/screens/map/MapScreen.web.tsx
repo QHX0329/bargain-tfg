@@ -351,7 +351,8 @@ export const MapScreen: React.FC = () => {
         </View>
       </TouchableOpacity>
 
-      {!storesPanelExpanded && breakpoint !== "desktop" ? null : stores.length > 0 ? (
+      {!storesPanelExpanded && breakpoint !== "desktop" ? null : stores.length >
+        0 ? (
         <>
           {selectedStore && (
             <TouchableOpacity
@@ -432,7 +433,9 @@ export const MapScreen: React.FC = () => {
                     {selectedStore.chain?.toUpperCase() ?? "TIENDA"} ·{" "}
                     {selectedStore.isOpen ? "ABIERTO" : "CERRADO"}
                   </p>
-                  <p style={infoWindowStyles.address}>{selectedStore.address}</p>
+                  <p style={infoWindowStyles.address}>
+                    {selectedStore.address}
+                  </p>
                 </div>
               </InfoWindow>
             )}
@@ -455,9 +458,7 @@ export const MapScreen: React.FC = () => {
         </View>
 
         {/* Panel derecho — UI-SPEC: 320px fijo, altura completa */}
-        <View style={styles.rightPanel}>
-          {storePanelContent}
-        </View>
+        <View style={styles.rightPanel}>{storePanelContent}</View>
       </View>
     );
   }
@@ -514,9 +515,7 @@ export const MapScreen: React.FC = () => {
       )}
 
       {/* ── Panel inferior ───────────── */}
-      <View style={styles.bottomPanel}>
-        {storePanelContent}
-      </View>
+      <View style={styles.bottomPanel}>{storePanelContent}</View>
     </View>
   );
 };

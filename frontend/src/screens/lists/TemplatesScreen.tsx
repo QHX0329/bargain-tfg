@@ -139,7 +139,8 @@ export const TemplatesScreen: React.FC = () => {
   const navigation = useNavigation<Nav>();
   const breakpoint = useBreakpoint();
   // Grid responsivo: 3 columnas en desktop, 2 en tablet, 1 en móvil
-  const numColumns = breakpoint === "desktop" ? 3 : breakpoint === "tablet" ? 2 : 1;
+  const numColumns =
+    breakpoint === "desktop" ? 3 : breakpoint === "tablet" ? 2 : 1;
 
   const [templates, setTemplates] = useState<ListTemplate[]>([]);
   const [loading, setLoading] = useState(true);

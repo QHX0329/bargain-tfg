@@ -18,7 +18,10 @@ jest.mock("react-native-safe-area-context", () => ({
 import React from "react";
 import { Dimensions, Text } from "react-native";
 import { render } from "@testing-library/react-native";
-import { BottomTabBar, type TabDefinition } from "../../../components/ui/BottomTabBar";
+import {
+  BottomTabBar,
+  type TabDefinition,
+} from "../../../components/ui/BottomTabBar";
 
 const dimensionsSpy = jest.spyOn(Dimensions, "get");
 

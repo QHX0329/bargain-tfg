@@ -11,7 +11,7 @@
  * - todayStamp: devuelve la fecha actual en formato YYYY-MM-DD
  */
 
-import { Platform } from 'react-native';
+import { Platform } from "react-native";
 
 /**
  * Descarga un fichero en el navegador usando un enlace <a> temporal.
@@ -19,11 +19,15 @@ import { Platform } from 'react-native';
  *
  * Convenio de nombre: `bargain-{tipo}-{YYYY-MM-DD}.{ext}`
  */
-export function downloadFile(content: string, filename: string, mimeType: string): void {
-  if (Platform.OS !== 'web') return;
+export function downloadFile(
+  content: string,
+  filename: string,
+  mimeType: string,
+): void {
+  if (Platform.OS !== "web") return;
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
+  const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = filename;
   anchor.click();
@@ -36,20 +40,20 @@ export function downloadFile(content: string, filename: string, mimeType: string
  * Devuelve false en plataformas nativas.
  */
 export async function copyToClipboard(text: string): Promise<boolean> {
-  if (Platform.OS !== 'web') return false;
+  if (Platform.OS !== "web") return false;
   try {
     await navigator.clipboard.writeText(text);
     return true;
   } catch {
     // Fallback para contextos HTTP (Clipboard API requiere HTTPS o localhost)
-    const ta = document.createElement('textarea');
+    const ta = document.createElement("textarea");
     ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
     document.body.appendChild(ta);
     ta.focus();
     ta.select();
-    const ok = document.execCommand('copy');
+    const ok = document.execCommand("copy");
     document.body.removeChild(ta);
     return ok;
   }
@@ -65,7 +69,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
  *    y escapar comillas internas duplicándolas
  */
 function escapeCsvCell(value: string): string {
-  let cell = value ?? '';
+  let cell = value ?? "";
   // Guard against formula injection (OWASP): incluye TAB (\t) y CR (\r),
   // que algunos importadores recortan para exponer el carácter de fórmula.
   if (/^[=+\-@\t\r]/.test(cell)) cell = `'${cell}`;
@@ -80,8 +84,8 @@ function escapeCsvCell(value: string): string {
  * Aplica escapado de inyección de fórmulas y cumple RFC 4180.
  */
 export function buildCsv(headers: string[], rows: string[][]): string {
-  const head = headers.map(escapeCsvCell).join(',');
-  const body = rows.map((r) => r.map(escapeCsvCell).join(',')).join('\n');
+  const head = headers.map(escapeCsvCell).join(",");
+  const body = rows.map((r) => r.map(escapeCsvCell).join(",")).join("\n");
   return `${head}\n${body}`;
 }
 

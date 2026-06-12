@@ -51,62 +51,67 @@ const StoreCard: React.FC<StoreCardProps> = ({
   const [isHovered, setIsHovered] = React.useState(false);
 
   // Web focus ring (D-06) — applied via inline style on web only
-  const focusStyle = Platform.OS === "web"
-    ? { outlineColor: colors.primary, outlineWidth: 2, outlineOffset: 2 }
-    : {};
+  const focusStyle =
+    Platform.OS === "web"
+      ? { outlineColor: colors.primary, outlineWidth: 2, outlineOffset: 2 }
+      : {};
 
   return (
-  <View
-    style={[
-      cardStyles.card,
-      shadows.card,
-      isHovered && { backgroundColor: colors.primaryTint },
-    ]}
-    // @ts-ignore — onMouseEnter/onMouseLeave son props solo-web (react-native-web)
-    onMouseEnter={() => setIsHovered(true)}
-    // @ts-ignore — ver arriba
-    onMouseLeave={() => setIsHovered(false)}
-  >
-    <TouchableOpacity
-      style={[cardStyles.left, focusStyle]}
-      onPress={() => onOpenProfile(store)}
-      activeOpacity={0.85}
-      accessibilityRole="button"
-      accessibilityLabel={`Abrir perfil de ${store.name}`}
+    <View
+      style={[
+        cardStyles.card,
+        shadows.card,
+        isHovered && { backgroundColor: colors.primaryTint },
+      ]}
+      // @ts-ignore — onMouseEnter/onMouseLeave son props solo-web (react-native-web)
+      onMouseEnter={() => setIsHovered(true)}
+      // @ts-ignore — ver arriba
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <View style={cardStyles.iconWrap}>
-        <Ionicons name="storefront-outline" size={18} color={colors.primary} />
-      </View>
-      <View style={cardStyles.info}>
-        <Text style={cardStyles.name} numberOfLines={1}>
-          {store.name}
-        </Text>
-        {store.address ? (
-          <Text style={cardStyles.address} numberOfLines={1}>
-            {store.address}
+      <TouchableOpacity
+        style={[cardStyles.left, focusStyle]}
+        onPress={() => onOpenProfile(store)}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={`Abrir perfil de ${store.name}`}
+      >
+        <View style={cardStyles.iconWrap}>
+          <Ionicons
+            name="storefront-outline"
+            size={18}
+            color={colors.primary}
+          />
+        </View>
+        <View style={cardStyles.info}>
+          <Text style={cardStyles.name} numberOfLines={1}>
+            {store.name}
           </Text>
-        ) : null}
-        <Text style={cardStyles.chain}>
-          {store.chain
-            ? store.chain.charAt(0).toUpperCase() + store.chain.slice(1)
-            : "Local"}
-        </Text>
-        <Text style={cardStyles.profileLink}>Ver perfil de tienda</Text>
-      </View>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={() => onToggleFavorite(store)}
-      disabled={isRemoving}
-      style={cardStyles.heartButton}
-      accessibilityLabel="Quitar de favoritos"
-    >
-      <Ionicons
-        name="heart"
-        size={22}
-        color={isRemoving ? colors.textDisabled : (colors.error ?? "#E53E3E")}
-      />
-    </TouchableOpacity>
-  </View>
+          {store.address ? (
+            <Text style={cardStyles.address} numberOfLines={1}>
+              {store.address}
+            </Text>
+          ) : null}
+          <Text style={cardStyles.chain}>
+            {store.chain
+              ? store.chain.charAt(0).toUpperCase() + store.chain.slice(1)
+              : "Local"}
+          </Text>
+          <Text style={cardStyles.profileLink}>Ver perfil de tienda</Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => onToggleFavorite(store)}
+        disabled={isRemoving}
+        style={cardStyles.heartButton}
+        accessibilityLabel="Quitar de favoritos"
+      >
+        <Ionicons
+          name="heart"
+          size={22}
+          color={isRemoving ? colors.textDisabled : (colors.error ?? "#E53E3E")}
+        />
+      </TouchableOpacity>
+    </View>
   );
 };
 

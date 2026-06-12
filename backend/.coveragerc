@@ -1,0 +1,8 @@
+# Configuracion de cobertura (pytest-cov / coverage.py)
+# Se excluyen los scripts operativos de datos de demostracion: no contienen
+# logica de negocio (se ejecutan en el arranque de Render para sembrar datos
+# demo) y distorsionan la medicion del umbral del 80% (RNF-006).
+[run]
+omit =
+    apps/core/management/commands/seed_demo.py
+    apps/core/management/commands/seed_sevilla.py

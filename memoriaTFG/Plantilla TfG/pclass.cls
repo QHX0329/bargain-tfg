@@ -96,7 +96,7 @@
 
 %%%%%%%%%%%%%%%%%%%%% BIBLIOGRAF{\'I}A%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\usepackage{apacite}
+% apacite se carga en proyect.tex tras hyperref (requisito de orden de carga)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CABECERAS DE P{\'A}GINAS %%%%%%%%%%%%%%%%%%%
 \usepackage{fancyhdr}

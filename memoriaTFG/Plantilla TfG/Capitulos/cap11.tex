@@ -13,9 +13,9 @@ El proyecto BargAIn ha completado todos los bloques de desarrollo planificados:
   \item \textbf{F4:} frontend base y avanzado --- autenticaci\'on, listas, cat\'alogo, mapa,
     notificaciones, perfil y Places enrichment.
   \item \textbf{F5:} sistema de optimizaci\'on multicriterio (OR-Tools + OpenRouteService),
-    scraping de precios (Scrapy + Playwright, 4 cadenas), OCR de tickets (Google Cloud Vision API
-    + fuzzy matching), asistente LLM (Google Gemini 2.0 Flash Lite) y wiring de pantallas
-    m\'oviles a endpoints reales.
+    scraping de precios (Scrapy + Playwright, 11 spiders implementados y 4 en operaci\'on
+    programada), OCR de tickets (Google Cloud Vision API + fuzzy matching), asistente LLM
+    (Google Gemini 2.0 Flash Lite) y wiring de pantallas m\'oviles a endpoints reales.
   \item \textbf{F6:} portal business completo para PYMEs --- servicio de aprobaci\'on compartido,
     gesti\'on de precios y promociones, tests de integraci\'on, UAT verificada, notificaciones push
     y email, sincronizaci\'on documental.
@@ -33,13 +33,16 @@ verificados de forma automatizada con Playwright.
 \section{Aportaciones principales del trabajo}\label{sec:aportaciones}
 
 \begin{itemize}
-  \item \textbf{Algoritmo de optimizaci\'on multicriterio propio:} funci\'on de scoring ponderada
-    (precio, distancia, tiempo) con OR-Tools para el VRP y OpenRouteService para distancias reales
-    de conducci\'on. Es el n\'ucleo diferencial del TFG.
+  \item \textbf{Optimizador multicriterio propio con capa sem\'antica:} resoluci\'on
+    sem\'antico-difusa de cada \'item (trigramas + Gemini + fuzzy matching con desambiguaci\'on
+    interactiva), consolidaci\'on de paradas y ordenaci\'on de la ruta con el routing solver de
+    OR-Tools, con costes de arco ponderados (precio, distancia, tiempo) y distancias reales de
+    conducci\'on de OpenRouteService. Es el n\'ucleo diferencial del TFG.
 
-  \item \textbf{Pipeline de datos de precios automatizado:} cuatro spiders Scrapy para Mercadona,
-    Carrefour, Lidl y DIA, con programaci\'on peri\'odica v\'ia Celery Beat y normalizaci\'on de
-    producto contra cat\'alogo interno.
+  \item \textbf{Pipeline de datos de precios automatizado:} once spiders Scrapy implementados y
+    verificados con tests, de los que cuatro (Mercadona, Carrefour, Lidl y DIA) operan con
+    programaci\'on peri\'odica v\'ia Celery Beat y normalizaci\'on de producto contra cat\'alogo
+    interno.
 
   \item \textbf{OCR sobre tickets con Google Vision API:} extracci\'on de texto, fuzzy matching
     contra cat\'alogo y conversi\'on autom\'atica a \'items de lista. Elimina la entrada manual.
@@ -62,9 +65,13 @@ verificados de forma automatizada con Playwright.
 \section{Limitaciones}\label{sec:limitaciones}
 
 \begin{itemize}
-  \item \textbf{Cobertura de scraping:} el sistema cubre actualmente cuatro cadenas de
-    supermercados (Mercadona, Carrefour, Lidl, DIA). Las cadenas con protecci\'on agresiva contra
-    scrapers (Alcampo, Aldi) requieren mantenimiento adicional de los spiders.
+  \item \textbf{Cobertura de scraping:} el sistema opera de forma programada contra cuatro
+    cadenas (Mercadona, Carrefour, Lidl, DIA). Los otros siete spiders implementados (Alcampo,
+    Eroski, Hipercor, Consum, Covir\'an, Spar, Costco) est\'an verificados a nivel de parser pero
+    no validados de forma continuada contra los sitios reales, y las cadenas con protecci\'on
+    agresiva contra scrapers requieren mantenimiento adicional. Asimismo, la opci\'on global de
+    respeto a \texttt{robots.txt} del proyecto Scrapy debe activarse antes de cualquier
+    operaci\'on a escala (Cap\'itulo~\ref{cap08}).
 
   \item \textbf{Caducidad de precios:} los precios de scraping tienen TTL de 48 horas y los de
     crowdsourcing 24 horas; pueden no reflejar cambios de precio intradiarios.
@@ -87,6 +94,17 @@ verificados de forma automatizada con Playwright.
   \item \textbf{RNF-005 sin load test real:} la justificaci\'on de escalabilidad a 10.000 usuarios
     concurrentes es arquitectural (Celery workers independientes, PostGIS spatial index, API
     stateless). Un load test completo requeriría infraestructura de pago fuera del alcance del TFG.
+
+  \item \textbf{Validaciones no funcionales pendientes:} no se ha realizado una campa\~na formal
+    de medici\'on de latencias p95 (RNF-001) ni se ha instrumentado monitorizaci\'on continua de
+    disponibilidad (RNF-002); la conformidad WCAG 2.1 AA (RNF-004) se ha verificado solo de forma
+    heur\'istica. Las tres validaciones quedan acotadas en el Cap\'itulo~\ref{cap10} y recogidas
+    como trabajo futuro.
+
+  \item \textbf{Una \'unica ruta recomendada:} el dise\~no preliminar contemplaba devolver tres
+    rutas alternativas; la implementaci\'on final prioriza una \'unica ruta con desambiguaci\'on
+    sem\'antica interactiva (Cap\'itulo~\ref{cap08}). La generaci\'on de alternativas se pospone
+    como trabajo futuro.
 \end{itemize}
 
 \section{Lecciones aprendidas}\label{sec:lecciones}
@@ -122,8 +140,11 @@ verificados de forma automatizada con Playwright.
     para iniciar el proceso de publicaci\'on. Requiere cuenta de desarrollador Apple/Google y
     revisi\'on de las gu\'ias de contenido.
 
-  \item \textbf{Ampliaci\'on de scrapers:} incorporar Alcampo, Aldi, Lidl.es (versi\'on
-    alternativa), El Corte Ingl\'es alimentaci\'on y PYMEs locales v\'ia integraci\'on API propia.
+  \item \textbf{Activaci\'on y ampliaci\'on de scrapers:} poner en operaci\'on programada y
+    validar contra los sitios reales los siete spiders ya implementados (Alcampo, Eroski,
+    Hipercor, Consum, Covir\'an, Spar, Costco), activar el respeto global a \texttt{robots.txt},
+    e incorporar nuevas cadenas (Aldi, El Corte Ingl\'es alimentaci\'on) y PYMEs locales v\'ia
+    integraci\'on API propia.
 
   \item \textbf{Precios en tiempo real:} varios supermercados est\'an desplegando APIs semi-p\'ublicas
     o feeds RSS de precios; la arquitectura est\'a preparada para incorporarlos como fuente
@@ -140,6 +161,11 @@ verificados de forma automatizada con Playwright.
   \item \textbf{Internacionalizaci\'on:} la arquitectura soporta m\'ultiples pa\'ises; la
     expansi\'on requiere scrapers por mercado y ajuste de la l\'ogica de normalizaci\'on de
     cadenas.
+
+  \item \textbf{Rutas alternativas y validaci\'on no funcional completa:} generar las top-3
+    rutas alternativas del dise\~no preliminar sobre el pipeline actual, instrumentar
+    monitorizaci\'on continua de disponibilidad, medir latencias p95 contra RNF-001 y ejecutar
+    una auditor\'ia WCAG 2.1 AA \cite{wcag21} con prueba de carga para RNF-005.
 \end{enumerate}
 
 \section{Cierre}\label{sec:cierre}
@@ -147,5 +173,7 @@ verificados de forma automatizada con Playwright.
 BargAIn demuestra que es posible construir, en el marco de un TFG, un sistema full-stack de
 complejidad real que integra optimizaci\'on combinatoria, geoespacial, procesamiento de im\'agenes,
 generaci\'on de lenguaje natural y scraping automatizado bajo una arquitectura coherente y
-verificada. El proyecto cumple todos los objetivos planteados en la fase de an\'alisis y deja una
-base t\'ecnica s\'olida para su evoluci\'on como producto real.
+verificada. El proyecto cumple los objetivos planteados en la fase de an\'alisis ---con las
+desviaciones de dise\~no y validaciones pendientes documentadas expl\'icitamente en los
+Cap\'itulos~\ref{cap08} y~\ref{cap10}--- y deja una base t\'ecnica s\'olida para su evoluci\'on
+como producto real.

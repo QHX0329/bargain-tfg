@@ -11,7 +11,11 @@
 \renewcommand{\sfdefault}{\rmdefault}
 
 \DeclareRobustCommand{\textrightarrow}{\ensuremath{\rightarrow}}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
 \usepackage[hidelinks,unicode]{hyperref}
+\usepackage{apacite}
 
 % --- Placeholder de capturas pendientes -------------------------------------
 % Marca un hueco de figura cuando la captura real a\'un no se ha pegado, de modo
@@ -49,6 +53,8 @@
 	\listoftables    % Índice de cuadros
 	\listoffigures   % Índice de figuras
 
+	\input{acronimos}
+
 \mainmatter
 
      \input{Capitulos/defobjetivos}
@@ -61,11 +67,12 @@
      \input{Capitulos/cap10}
      \input{Capitulos/cap11}
 
+\appendix
+
+\input{Capitulos/apendices}
+
 \backmatter
 
-% \input{Capitulos/apendices}
-
-\nocite{*}
 \bibliographystyle{apacite}
 
 \bibliography{pfcbib}

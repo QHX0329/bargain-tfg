@@ -4,7 +4,8 @@
 
 El mercado de distribuci\'on alimentaria en Espa\~na presenta una combinaci\'on de gran
 competencia entre cadenas, alta sensibilidad al precio y fuerte fragmentaci\'on de oferta.
-Durante los \'ultimos a\~nos, la inflaci\'on en alimentaci\'on ha incrementado la necesidad de
+Durante los \'ultimos a\~nos, la evoluci\'on al alza del \'indice de precios de la
+alimentaci\'on registrada por el IPC \cite{ine_ipc} ha incrementado la necesidad de
 herramientas que permitan comprar mejor sin aumentar el tiempo invertido.
 
 Aunque existen comparadores de precios consolidados, la mayor parte se centra en mostrar
@@ -18,8 +19,9 @@ La evoluci\'on observada puede resumirse en tres generaciones:
 \begin{enumerate}
 	\item \textbf{Directorios de precios:} listados est\'aticos o semiactualizados, con
 		poca cobertura y baja frecuencia de refresco.
-	\item \textbf{Comparadores multisupermercado:} soluciones como Soysuper, Findit u OCU
-		Market, con mejor cat\'alogo y funcionalidades de lista.
+	\item \textbf{Comparadores multisupermercado:} soluciones como Soysuper
+		\cite{soysuper_web}, Findit u OCU Market \cite{ocu_web}, con mejor cat\'alogo y
+		funcionalidades de lista.
 	\item \textbf{Personalizaci\'on con IA:} tendencia emergente en la que se introducen
 		recomendaciones contextuales y asistencia conversacional.
 \end{enumerate}
@@ -31,13 +33,17 @@ especialmente en el segmento de cesta alimentaria diaria.
 
 \subsection{Geoespacial y rutas}
 
-PostGIS permite resolver consultas de proximidad con precisi\'on y rendimiento, mientras que
-OR-Tools facilita modelar el problema de ordenaci\'on de paradas como una variante del TSP/VRP
-en instancias peque\~nas (m\'aximo 3--4 paradas en nuestro caso).
+PostGIS \cite{postgis_docs, postgis_in_action} permite resolver consultas de proximidad con
+precisi\'on y rendimiento, mientras que OR-Tools \cite{ortools_docs} facilita modelar el
+problema de ordenaci\'on de paradas como una variante del TSP/VRP \cite{tsp_study} en
+instancias peque\~nas (m\'aximo 3--4 paradas en nuestro caso). Para el c\'alculo de distancias
+reales por carretera existen servicios de enrutamiento sobre datos de OpenStreetMap
+\cite{osrm_2011}, de los que el proyecto adopta OpenRouteService \cite{ors_docs}.
 
 \subsection{Ingesta de datos de precio}
 
-La combinaci\'on Scrapy + Playwright es adecuada para cat\'alogos din\'amicos de supermercados.
+La combinaci\'on de Scrapy \cite{scrapy_docs} y Playwright \cite{playwright_docs} es adecuada
+para cat\'alogos din\'amicos de supermercados.
 Sin embargo, por robustez de producto, BargAIn no depende de una \'unica fuente y combina:
 
 \begin{itemize}
@@ -48,9 +54,13 @@ Sin embargo, por robustez de producto, BargAIn no depende de una \'unica fuente 
 
 \subsection{OCR y asistente}
 
-Para OCR se adopta Google Cloud Vision API por mejor rendimiento pr\'actico en tickets
-y fotos reales. Para el asistente se integra Gemini mediante backend proxy, con
-guardrails para limitar respuestas al dominio de la compra.
+Para OCR se adopta Google Cloud Vision API \cite{vision_docs} por mejor rendimiento pr\'actico
+en tickets y fotos reales. Para el asistente se integra Gemini \cite{gemini_docs} mediante
+backend proxy, con guardrails para limitar respuestas al dominio de la compra. La viabilidad
+de este tipo de asistentes se apoya en la capacidad de los grandes modelos de lenguaje para
+resolver tareas con pocos ejemplos \cite{brown2020} y en t\'ecnicas de generaci\'on aumentada
+con datos externos \cite{lewis2020}, que en BargAIn se concreta en inyectar el contexto real
+de precios y tiendas del usuario en cada consulta.
 
 \section{Aportaci\'on diferencial de BargAIn}
 

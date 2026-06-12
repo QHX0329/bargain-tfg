@@ -1,0 +1,291 @@
+% !TEX root = ../proyect.tex
+
+\chapter{Catálogo de requisitos}\label{apendice-requisitos}
+
+Este apéndice recoge el catálogo completo de requisitos del sistema. La especificación
+extendida, con criterios de aceptación e historias de usuario (HU-001 a HU-030), se mantiene
+versionada en el repositorio (\texttt{docs/memoria/07-requisitos.md}).
+
+\section{Requisitos de información}
+
+\begin{description}
+  \item[RI-001 Usuarios.] Identidad (nombre de usuario único, email único, contraseña hasheada),
+    rol (consumidor, comercio, administrador), ubicación por defecto (PointField SRID 4326),
+    radio de búsqueda, máximo de paradas, pesos de optimización y preferencias de notificación.
+  \item[RI-002 Productos.] Catálogo normalizado: nombre, nombre normalizado, EAN-13 opcional,
+    categoría, marca, unidad, imagen y estado.
+  \item[RI-003 Categorías.] Jerarquía navegable con categoría padre y orden de visualización.
+  \item[RI-004 Marcas.] Nombre, logotipo y vínculo opcional con cadena (marca blanca).
+  \item[RI-005 Cadenas.] Nombre, logotipo, web, disponibilidad de API oficial y color corporativo.
+  \item[RI-006 Tiendas.] Establecimiento físico geolocalizado (PointField con índice GiST),
+    cadena opcional, horario JSON, indicador de comercio local y nivel de suscripción.
+  \item[RI-007 Precios.] Precio actual e histórico por par producto--tienda: precio, precio
+    unitario, oferta y caducidad, fuente (API/scraping/comercio/crowdsourcing), verificación y
+    bandera de caducidad.
+  \item[RI-008 Listas.] Listas por usuario con ítems de texto libre normalizado, cantidad y
+    estado de comprado; la vinculación a productos se resuelve de forma diferida.
+  \item[RI-009 Optimizaciones.] Resultado persistente: ubicación, radio, pesos, totales, ruta
+    (paradas ordenadas e ítems por parada) y preferencias semánticas confirmadas.
+  \item[RI-010 Perfiles de negocio.] Datos fiscales (NIF/CIF único), estado de verificación,
+    umbral de alerta competitiva y promociones asociadas.
+  \item[RI-011 Sesiones OCR.] Imagen procesada, texto extraído, candidatos reconocidos con
+    confianza y estado de la sesión.
+  \item[RI-012 Conversaciones.] Historial de mensajes usuario/asistente con fechas y estado.
+\end{description}
+
+\section{Requisitos funcionales}
+
+\begin{small}
+\begin{longtable}{@{}p{2.1cm}p{4.2cm}p{7.6cm}@{}}
+\caption{Catálogo de requisitos funcionales}\label{tab:rf-catalogo}\\
+\toprule
+\textbf{ID} & \textbf{Nombre} & \textbf{Síntesis} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Nombre} & \textbf{Síntesis} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+RF-001 & Registro de usuario & Alta con nombre de usuario, email único y contraseña validada. \\
+RF-002 & Inicio de sesión & Autenticación con nombre de usuario y contraseña; par de tokens JWT con rotación; tiempos de vida configurables por entorno (60 min/7 días en la configuración de referencia). \\
+RF-003 & Gestión de perfil & Consulta y modificación de datos personales y preferencias. \\
+RF-004 & Preferencias de optimización & Pesos relativos de precio/distancia/tiempo, radio (1--25 km) y paradas (1--4). \\
+RF-005 & Recuperación de contraseña & Restablecimiento por enlace de correo con caducidad. \\
+RF-006 & Consulta de productos & Búsqueda con filtros, paginación y ordenación. \\
+RF-007 & Detalle de producto & Ficha completa con rango de precios en tiendas cercanas. \\
+RF-008 & Autocompletado & Sugerencias en tiempo real con matching fuzzy sobre nombre normalizado. \\
+RF-009 & Categorías & Jerarquía de categorías navegable. \\
+RF-010 & Alta por crowdsourcing & Propuesta de producto sujeta a aprobación del administrador. \\
+RF-011 & Tiendas por proximidad & Listado por radio configurable ordenado por distancia. \\
+RF-012 & Detalle de tienda & Información completa y precios de la lista activa del usuario. \\
+RF-013 & Mapa & Mapa interactivo con marcadores diferenciados por cadena/comercio local. \\
+RF-014 & Tiendas favoritas & Marcado de favoritas con acceso rápido y notificaciones. \\
+RF-015 & Comparación por producto & Precios en todas las tiendas del radio con fuente y antigüedad. \\
+RF-016 & Comparación de cesta & Coste total de la lista en cada tienda individual. \\
+RF-017 & Histórico de precios & Evolución temporal del precio con gráfico. \\
+RF-018 & Alerta de precio & Notificación al alcanzar un precio objetivo. \\
+RF-019 & Crowdsourcing de precios & Reporte de precios con caducidad de 24 h. \\
+RF-020 & Gestión de listas & CRUD de listas con límite de 20 activas. \\
+RF-021 & Gestión de ítems & Texto libre normalizado, cantidades y marcado de comprado. \\
+RF-022 & Compartir lista & Edición colaborativa con otros usuarios registrados. \\
+RF-023 & Plantillas & Listas reutilizables instanciables. \\
+RF-024 & Optimización de ruta & Asignación ítem$\to$(producto, tienda) con resolución semántico-difusa y ruta recomendada ordenada con OR-Tools según pesos del usuario; ambigüedades resolubles con recálculo. \\
+RF-025 & Ruta en mapa & Recorrido, paradas y productos por parada sobre mapa interactivo. \\
+RF-026 & Desglose de ahorro & Precio total, distancia, tiempo y desglose por parada. \\
+RF-027 & Recálculo bajo demanda & Nueva optimización en menos de 5 s al cambiar parámetros. \\
+RF-028 & Captura OCR & Foto de lista o ticket procesada con OCR. \\
+RF-029 & Matching OCR & Candidatos del catálogo con nivel de confianza y corrección manual. \\
+RF-030 & Consulta en lenguaje natural & Chat con respuestas contextualizadas con datos reales. \\
+RF-031 & Sugerencias de ahorro & Estrategias de ahorro limitadas al dominio de compra. \\
+RF-032 & Registro de negocio & Alta PYME con datos fiscales sujeta a verificación. \\
+RF-033 & Precios del comercio & Actualización manual con fuente verificada sin caducidad. \\
+RF-034 & Promociones & Creación y gestión de promociones con vigencia. \\
+RF-035 & Notificaciones & Push y email por eventos según preferencias. \\
+\end{longtable}
+\end{small}
+
+\section{Requisitos no funcionales}
+
+\begin{description}
+  \item[RNF-001 Rendimiento.] API con p95 inferior a 500 ms en operaciones CRUD e inferior a
+    5 segundos para la optimización de rutas.
+  \item[RNF-002 Disponibilidad.] Disponibilidad mínima del 99\,\% mensual en staging,
+    excluyendo mantenimientos. (Véase el alcance real de su validación en el
+    Capítulo~\ref{cap10}.)
+  \item[RNF-003 Seguridad.] HTTPS obligatorio, JWT con rotación, rate limiting (100/h anónimos,
+    1.000/h autenticados), hashing seguro de contraseñas y cifrado de datos sensibles.
+  \item[RNF-004 Usabilidad.] Directrices WCAG 2.1 AA \cite{wcag21}, diseño responsive y
+    acciones principales en un máximo de 3 interacciones.
+  \item[RNF-005 Escalabilidad.] Crecimiento hasta 10.000 usuarios concurrentes mediante
+    workers Celery independientes y API stateless.
+  \item[RNF-006 Mantenibilidad.] Cobertura de tests $\geq$ 80\,\% verificada de forma
+    bloqueante en CI; convenciones PEP 8 y ESLint/Prettier.
+  \item[RNF-007 Compatibilidad.] iOS 15+, Android 10+ y las dos últimas versiones de los
+    navegadores principales.
+  \item[RNF-008 Protección de datos.] Cumplimiento del RGPD \cite{rgpd2016}: consentimiento
+    explícito de ubicación, derecho al olvido y minimización de datos.
+\end{description}
+
+\section{Reglas de negocio}
+
+\begin{description}
+  \item[RN-001] Radio de búsqueda entre 1 y 25 km (10 km por defecto).
+  \item[RN-002] Máximo 4 paradas por ruta (3 por defecto).
+  \item[RN-003] Caducidad de precios: 48 h scraping, 24 h crowdsourcing; sin caducidad para
+    comercio verificado.
+  \item[RN-004] Prioridad de fuentes: API oficial $>$ scraping $>$ comercio verificado $>$
+    crowdsourcing.
+  \item[RN-005] Rechazo de precios no positivos y marcado de precios anómalos ($>$200\,\% de la
+    media) como sospechosos.
+  \item[RN-006] Máximo 20 listas activas por usuario.
+  \item[RN-007] El asistente solo responde consultas del dominio de compra.
+  \item[RN-008] Verificación administrativa previa de perfiles de comercio.
+  \item[RN-009] Respeto a las directivas \texttt{robots.txt} \cite{rfc9309} y exclusión de
+    cadenas que prohíban el acceso automatizado.
+  \item[RN-010] Frecuencia máxima de scraping de una vez cada 24 h por cadena, con retardo
+    mínimo de 2 segundos entre peticiones.
+\end{description}
+
+\section{Trazabilidad requisitos--módulos--pruebas}
+
+\begin{table}[htbp]
+\centering
+\caption{Trazabilidad de dominios funcionales a módulos y suites de prueba}
+\label{tab:trazabilidad}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Dominio (RF)} & \textbf{Módulo} & \textbf{Suites de prueba} \\
+\midrule
+Autenticación (001--005) & \texttt{apps/users} & \texttt{test\_users}, \texttt{test\_auth\_endpoints}, \texttt{auth.spec} \\
+Catálogo (006--010) & \texttt{apps/products} & \texttt{test\_products}, \texttt{test\_product\_endpoints} \\
+Tiendas (011--014) & \texttt{apps/stores} & \texttt{test\_stores}, \texttt{test\_store\_endpoints} \\
+Precios (015--019) & \texttt{apps/prices} & \texttt{test\_prices}, \texttt{test\_price\_endpoints} \\
+Listas (020--023) & \texttt{apps/shopping\_lists} & \texttt{test\_shopping\_lists}, \texttt{test\_list\_endpoints} \\
+Optimizador (024--027) & \texttt{apps/optimizer} & \texttt{test\_optimizer*}, \texttt{test\_distance\_ors}, \texttt{optimizer.spec} \\
+OCR (028--029) & \texttt{apps/ocr} & \texttt{test\_ocr}, \texttt{test\_ocr\_api}, \texttt{ocr.spec} \\
+Asistente (030--031) & \texttt{apps/assistant} & \texttt{test\_assistant}, \texttt{test\_assistant\_api} \\
+Business (032--034) & \texttt{apps/business} & \texttt{test\_business\_*}, \texttt{business.spec} \\
+Notificaciones (035) & \texttt{apps/notifications} & \texttt{test\_notification\_*} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\clearpage
+
+\chapter{Relación de endpoints de la API}\label{apendice-endpoints}
+
+Todos los endpoints cuelgan del prefijo \texttt{/api/v1/} y, salvo indicación contraria,
+requieren autenticación JWT. La especificación OpenAPI completa se publica en
+\texttt{/api/v1/schema/} (con interfaces Swagger UI y ReDoc).
+
+\begin{small}
+\begin{longtable}{@{}llp{6.4cm}@{}}
+\caption{Endpoints de la API por módulo}\label{tab:endpoints-completos}\\
+\toprule
+\textbf{Método} & \textbf{Ruta} & \textbf{Descripción} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Método} & \textbf{Ruta} & \textbf{Descripción} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+GET & \texttt{health/} & Health check público (exento de throttling) \\
+\midrule
+POST & \texttt{auth/register/} & Registro de usuario (público) \\
+POST & \texttt{auth/token/} & Obtención de tokens JWT (público) \\
+POST & \texttt{auth/token/refresh/} & Renovación del token de acceso \\
+POST & \texttt{auth/password-reset/} & Solicitud de restablecimiento (público) \\
+POST & \texttt{auth/password-reset/confirm/} & Confirmación de restablecimiento \\
+GET/PATCH & \texttt{auth/profile/} & Perfil y preferencias del usuario \\
+\midrule
+GET & \texttt{products/} & Listado y búsqueda fuzzy de productos \\
+GET & \texttt{products/\{id\}/} & Detalle de producto \\
+GET & \texttt{products/categories/} & Jerarquía de categorías \\
+POST & \texttt{products/proposals/} & Propuesta de producto (crowdsourcing) \\
+* & \texttt{products/proposals/admin/} & Moderación de propuestas (administrador) \\
+\midrule
+GET & \texttt{stores/} & Búsqueda geoespacial (\texttt{lat}, \texttt{lng}, \texttt{radius\_km}) o favoritas \\
+GET & \texttt{stores/\{id\}/} & Detalle de tienda \\
+POST & \texttt{stores/\{id\}/favorite/} & Alternar tienda favorita \\
+\midrule
+POST & \texttt{prices/compare/} & Comparativa de un producto entre tiendas \\
+POST & \texttt{prices/list-total/} & Coste total de una lista por tienda \\
+POST & \texttt{prices/crowdsource/} & Aporte de precio por crowdsourcing \\
+GET & \texttt{prices/\{product\_id\}/history/} & Histórico de precios \\
+* & \texttt{prices/alerts/} & CRUD de alertas de precio \\
+\midrule
+* & \texttt{lists/} & CRUD de listas de la compra e ítems \\
+* & \texttt{lists/templates/} & CRUD de plantillas de lista \\
+\midrule
+POST & \texttt{optimize/} & Calcular o recalcular la ruta óptima \\
+GET & \texttt{optimize/?shopping\_list\_id=\{id\}} & Última ruta persistida de una lista \\
+POST & \texttt{optimize/choices/} & Resolución de ambigüedad semántica y recálculo \\
+\midrule
+POST & \texttt{ocr/scan/} & Procesado OCR de imagen (límite 60/h) \\
+\midrule
+POST & \texttt{assistant/chat/} & Mensaje al asistente LLM (límite 30/h) \\
+\midrule
+* & \texttt{business/profiles/} & Alta y gestión de perfiles PYME, con acciones de aprobación y rechazo para administradores \\
+* & \texttt{business/prices/} & Gestión de precios del comercio (incl. carga CSV) \\
+* & \texttt{business/promotions/} & Gestión de promociones \\
+\midrule
+* & \texttt{notifications/} & Buzón de notificaciones (lectura, borrado lógico) \\
+POST & \texttt{notifications/push-token/} & Registro del token push del dispositivo \\
+\end{longtable}
+\end{small}
+
+Las filas marcadas con * corresponden a \emph{routers} DRF que exponen el conjunto estándar de
+operaciones (GET de colección y detalle, POST, PATCH, DELETE) más las acciones espec\'ificas
+indicadas.
+
+\clearpage
+
+\chapter{Capturas de la versión de escritorio}\label{apendice-capturas-web}
+
+Este apéndice complementa la Sección~\ref{sec:manual-web} con las capturas restantes de la
+aplicación de usuario ejecutada en navegador de escritorio (ventana de 1440$\times$900).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-comparativa.png}
+\hfill
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-lista-detalle.png}
+\caption{Comparativa de precios con cabecera fija y exportación CSV (izquierda) y detalle de
+lista con reordenado por arrastre y exportación (derecha)}
+\label{fig:manual-web-comparativa}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-listas.png}
+\hfill
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-plantillas.png}
+\caption{Colecciones en rejilla responsiva: listas de la compra (izquierda) y plantillas
+(derecha)}
+\label{fig:manual-web-listas}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-mapa.png}
+\hfill
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-tienda-perfil.png}
+\caption{Mapa con panel lateral de tiendas (izquierda) y perfil de tienda a dos columnas
+(derecha)}
+\label{fig:manual-web-mapa}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-favoritas.png}
+\hfill
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-asistente.png}
+\caption{Tiendas favoritas en rejilla (izquierda) y asistente conversacional centrado con copia
+por mensaje (derecha)}
+\label{fig:manual-web-favoritas}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-ruta.png}
+\hfill
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-ocr.png}
+\caption{Ruta optimizada con exportación del itinerario (izquierda) y módulo OCR adaptado al
+escritorio (derecha)}
+\label{fig:manual-web-ruta}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-notificaciones.png}
+\hfill
+\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-alertas.png}
+\caption{Bandeja de notificaciones (izquierda) y alertas de precio (derecha) en la versión de
+escritorio}
+\label{fig:manual-web-notifs}
+\end{figure}

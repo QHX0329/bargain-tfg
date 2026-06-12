@@ -18,7 +18,7 @@ La correcta definición de los actores que intervienen en BargAIn es fundamental
 
 ### RI-001 Información de usuarios
 
-El sistema debe gestionar y almacenar de forma segura la información relativa a los diferentes perfiles de usuario. Para cada usuario se registrará: nombre de usuario único, correo electrónico (utilizado como identificador de login), contraseña encriptada, nombre y apellidos, teléfono de contacto (opcional), avatar (opcional), rol en el sistema (consumidor, comercio o administrador), ubicación por defecto (campo geoespacial PostGIS PointField con SRID 4326), radio máximo de búsqueda en kilómetros (por defecto 10), número máximo de paradas por ruta (por defecto 3), preferencia de optimización (precio, distancia, tiempo o equilibrado), preferencias de notificaciones (push y email), fecha de registro y fecha de última actualización.
+El sistema debe gestionar y almacenar de forma segura la información relativa a los diferentes perfiles de usuario. Para cada usuario se registrará: nombre de usuario único, correo electrónico (único, empleado para comunicaciones y recuperación de contraseña; el login se realiza con el nombre de usuario), contraseña encriptada, nombre y apellidos, teléfono de contacto (opcional), avatar (opcional), rol en el sistema (consumidor, comercio o administrador), ubicación por defecto (campo geoespacial PostGIS PointField con SRID 4326), radio máximo de búsqueda en kilómetros (por defecto 10), número máximo de paradas por ruta (por defecto 3), preferencia de optimización (precio, distancia, tiempo o equilibrado), preferencias de notificaciones (push y email), fecha de registro y fecha de última actualización.
 
 ### RI-002 Información de productos
 
@@ -72,7 +72,7 @@ El sistema debe almacenar las conversaciones entre los usuarios y el asistente L
 
 **RF-001 Registro de usuario.** El sistema debe permitir el registro de nuevos usuarios mediante correo electrónico y contraseña, validando que el email no esté ya registrado, que la contraseña cumpla los requisitos de seguridad (mínimo 8 caracteres, al menos una mayúscula y un número) y que se acepten los términos de uso.
 
-**RF-002 Inicio de sesión.** El sistema debe autenticar a los usuarios mediante correo y contraseña, devolviendo un par de tokens JWT (acceso y refresco). El token de acceso tendrá una validez de 60 minutos y el de refresco de 7 días, con rotación automática.
+**RF-002 Inicio de sesión.** El sistema debe autenticar a los usuarios mediante nombre de usuario y contraseña, devolviendo un par de tokens JWT (acceso y refresco) con rotación automática y lista negra del token rotado. Los tiempos de vida son configurables por entorno; la configuración de referencia fija 60 minutos para el acceso y 7 días para el refresco.
 
 **RF-003 Gestión de perfil.** El sistema debe permitir al usuario consultar y modificar sus datos personales: nombre, apellidos, teléfono, avatar, ubicación por defecto y preferencias de notificaciones.
 
@@ -126,7 +126,7 @@ El sistema debe almacenar las conversaciones entre los usuarios y el asistente L
 
 ### Optimizador de Ruta
 
-**RF-024 Optimización multicriterio de ruta.** El sistema debe calcular, dada una lista de la compra y la ubicación del usuario, la combinación óptima de tiendas (máximo de paradas configurado) que minimiza la función de coste ponderada: `Score = w_precio × ahorro_normalizado - w_distancia × distancia_extra_normalizada - w_tiempo × tiempo_extra_normalizado`. El resultado debe incluir las top-3 rutas ordenadas por score.
+**RF-024 Optimización multicriterio de ruta.** El sistema debe calcular, dada una lista de la compra y la ubicación del usuario, la combinación óptima de tiendas (máximo de paradas configurado) que minimiza la función de coste ponderada: `Score = w_precio × ahorro_normalizado - w_distancia × distancia_extra_normalizada - w_tiempo × tiempo_extra_normalizado`. El resultado debe incluir la ruta recomendada con su desglose por parada y las ambigüedades semánticas detectadas, resolubles por el usuario con recálculo.
 
 **RF-025 Visualización de ruta en mapa.** El sistema debe representar la ruta optimizada sobre un mapa interactivo, mostrando el recorrido entre paradas, las tiendas seleccionadas, los productos a comprar en cada parada y el ahorro desglosado.
 
@@ -224,7 +224,7 @@ El sistema debe almacenar las conversaciones entre los usuarios y el asistente L
 ### Optimización de Ruta
 
 **HU-012.** Como consumidor, quiero que el sistema calcule la mejor ruta de compra para mi lista, combinando varias tiendas si es necesario, para ahorrar dinero sin perder demasiado tiempo.
-*Criterios de aceptación:* Top-3 rutas propuestas; máximo de paradas respetado; cálculo en menos de 5 segundos.
+*Criterios de aceptación:* Ruta recomendada con desglose por parada; máximo de paradas respetado; cálculo en menos de 5 segundos.
 
 **HU-013.** Como consumidor, quiero ver la ruta optimizada en un mapa con el recorrido y las paradas marcadas, para saber exactamente a dónde ir.
 *Criterios de aceptación:* Mapa interactivo con polylines; marcadores por tienda; secuencia de paradas numerada.

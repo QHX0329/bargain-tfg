@@ -12,7 +12,7 @@
 
 ## 📌 Estado actual (2026-06-11)
 
-- **TFG BargAIn v1.0 COMPLETADO** ✅ — fases F1–F7 cerradas (~330 h)
+- **TFG BargAIn v1.0 COMPLETADO** ✅ — fases F1–F7 cerradas (325 h)
 - **Despliegue público operativo:**
   - Backend + PostgreSQL/PostGIS + Redis: Render free tier (`render.free.yaml`) → `https://bargain-free-api.onrender.com`
   - Portal PYME (web estática): GitHub Pages → `https://qhx0329.github.io/bargain-tfg/`

@@ -125,13 +125,14 @@ modelo h\'ibrido adoptado en el ADR-002.
 \section{Registro y acceso al sistema}\label{sec:manual-acceso}
 
 El acceso a la aplicaci\'on se articula en torno a un esquema cl\'asico de autenticaci\'on con
-correo electr\'onico y contrase\~na sobre tokens JWT. La pantalla de inicio de sesi\'on
+nombre de usuario y contrase\~na sobre tokens JWT. La pantalla de inicio de sesi\'on
 (Figura~\ref{fig:manual-acceso}, izquierda) presenta un formulario deliberadamente austero
 ---dos campos y una \'unica acci\'on principal--- con el fin de minimizar la fricci\'on de
 entrada. El formulario de registro (Figura~\ref{fig:manual-acceso}, derecha) solicita
-\'unicamente los datos imprescindibles para crear la cuenta: nombre, apellidos, correo y
-contrase\~na con confirmaci\'on, aplicando validaci\'on inmediata en el cliente antes de delegar
-en la validaci\'on definitiva del servidor.
+\'unicamente los datos imprescindibles para crear la cuenta: nombre de usuario, nombre y
+apellidos, correo electr\'onico (\'unico, empleado para comunicaciones y recuperaci\'on de
+contrase\~na) y contrase\~na con confirmaci\'on, aplicando validaci\'on inmediata en el cliente
+antes de delegar en la validaci\'on definitiva del servidor.
 
 \begin{figure}[htbp]
 \centering
@@ -317,7 +318,9 @@ precio igual o inferior, el backend dispara la notificaci\'on correspondiente.
 
 La pesta\~na \emph{Perfil} (Figura~\ref{fig:manual-perfil}, izquierda) agrupa la identidad del
 usuario y la configuraci\'on global de la aplicaci\'on: datos personales, preferencias de
-notificaci\'on y cierre de sesi\'on, que invalida el token de refresco en el servidor. Su
+notificaci\'on y cierre de sesi\'on, que elimina ambos tokens del almacenamiento seguro del
+dispositivo (el token de refresco rotado queda adem\'as en lista negra en el servidor en la
+siguiente renovaci\'on). Su
 apartado m\'as relevante para el comportamiento del sistema es la configuraci\'on del optimizador
 (Figura~\ref{fig:manual-perfil}, derecha), donde el usuario gobierna la funci\'on de
 \emph{scoring} multicriterio descrita en el Cap\'itulo~\ref{cap08}: el radio m\'aximo de
@@ -470,102 +473,23 @@ cat\'alogo en rejilla multicolumna con soporte de teclado (derecha)}
 \label{fig:manual-web-home}
 \end{figure}
 
-La comparativa de precios (Figura~\ref{fig:manual-web-comparativa}, izquierda) gana una cabecera
-fija durante el desplazamiento y un bot\'on de exportaci\'on de la tabla a \texttt{CSV},
-pensado para el usuario que desea elaborar sus propios an\'alisis. En el detalle de lista
-(Figura~\ref{fig:manual-web-comparativa}, derecha) aparece una interacci\'on exclusiva del
-escritorio: el reordenado de \'items mediante arrastre (\emph{drag-and-drop}), v\'alido durante
-la sesi\'on, junto con la exportaci\'on de la lista en texto plano y la copia de un enlace
-directo de compartici\'on.
+El resto de pantallas sigue el mismo patr\'on de adaptaci\'on; sus capturas se recogen en el
+Ap\'endice~\ref{apendice-capturas-web} para no sobrecargar este cap\'itulo. En s\'intesis: la
+comparativa de precios (Figura~\ref{fig:manual-web-comparativa}) gana una cabecera fija y
+exportaci\'on de la tabla a \texttt{CSV}; el detalle de lista a\~nade el reordenado de \'items
+por arrastre y la exportaci\'on en texto plano; las colecciones de listas y plantillas
+(Figura~\ref{fig:manual-web-listas}) se presentan como rejillas de tarjetas; el mapa ancla el
+panel de tiendas como columna lateral y el perfil de tienda adopta dos columnas
+(Figura~\ref{fig:manual-web-mapa}); las tiendas favoritas y el asistente conversacional
+(Figura~\ref{fig:manual-web-favoritas}) centran su contenido a un ancho de lectura c\'omodo,
+con copia individual de cada respuesta del asistente; la ruta optimizada incorpora la
+exportaci\'on del itinerario y el m\'odulo OCR delega en el selector de ficheros del sistema
+cuando no hay c\'amara (Figura~\ref{fig:manual-web-ruta}); y la bandeja de notificaciones y las
+alertas (Figura~\ref{fig:manual-web-notifs}) se centran a un ancho fijo.
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-comparativa.png}
-\hfill
-\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-lista-detalle.png}
-\caption{Comparativa de precios con cabecera fija y exportaci\'on CSV (izquierda) y detalle de
-lista con reordenado por arrastre y exportaci\'on (derecha)}
-\label{fig:manual-web-comparativa}
-\end{figure}
-
-Las vistas de colecci\'on se benefician igualmente de la rejilla responsiva: tanto las listas
-como las plantillas (Figura~\ref{fig:manual-web-listas}) se presentan como tarjetas en
-m\'ultiples columnas, lo que facilita la comparaci\'on visual entre compras recurrentes.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-listas.png}
-\hfill
-\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-plantillas.png}
-\caption{Colecciones en rejilla responsiva: listas de la compra (izquierda) y plantillas
-(derecha)}
-\label{fig:manual-web-listas}
-\end{figure}
-
-En el mapa (Figura~\ref{fig:manual-web-mapa}, izquierda), el panel de tiendas abandona la
-posici\'on inferior del m\'ovil y se ancla como columna lateral derecha, de forma que mapa y
-listado permanecen visibles simult\'aneamente. El perfil de tienda
-(Figura~\ref{fig:manual-web-mapa}, derecha) adopta una composici\'on a dos columnas
----informaci\'on del establecimiento y cat\'alogo de productos--- e incorpora la copia de la
-direcci\'on al portapapeles.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-mapa.png}
-\hfill
-\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-tienda-perfil.png}
-\caption{Mapa con panel lateral de tiendas (izquierda) y perfil de tienda a dos columnas
-(derecha)}
-\label{fig:manual-web-mapa}
-\end{figure}
-
-\clearpage
-
-Las tiendas favoritas se muestran en rejilla (Figura~\ref{fig:manual-web-favoritas}, izquierda),
-y el asistente conversacional (Figura~\ref{fig:manual-web-favoritas}, derecha) centra la
-conversaci\'on a un ancho de lectura c\'omodo, recibe el foco autom\'aticamente al abrirse y
-a\~nade la copia individual de cada respuesta.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-favoritas.png}
-\hfill
-\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-asistente.png}
-\caption{Tiendas favoritas en rejilla (izquierda) y asistente conversacional centrado con copia
-por mensaje (derecha)}
-\label{fig:manual-web-favoritas}
-\end{figure}
-
-La ruta optimizada (Figura~\ref{fig:manual-web-ruta}, izquierda) reproduce el desglose por
-paradas del m\'ovil ampliado con la exportaci\'on del itinerario, mientras que el m\'odulo OCR
-(Figura~\ref{fig:manual-web-ruta}, derecha) centra el asistente de captura y delega en el
-selector de ficheros del sistema cuando no hay c\'amara disponible.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-ruta.png}
-\hfill
-\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-ocr.png}
-\caption{Ruta optimizada con exportaci\'on del itinerario (izquierda) y m\'odulo OCR adaptado al
-escritorio (derecha)}
-\label{fig:manual-web-ruta}
-\end{figure}
-
-Por \'ultimo, la bandeja de notificaciones y la gesti\'on de alertas
-(Figura~\ref{fig:manual-web-notifs}) se centran a un ancho fijo que preserva la legibilidad de
-cada aviso. Cada pantalla relevante de la versi\'on web dispone adem\'as de URL propia, de modo
-que cualquier estado ---una b\'usqueda concreta del cat\'alogo mediante \texttt{?q=}, una lista,
+Cada pantalla relevante de la versi\'on web dispone adem\'as de URL propia, de modo que
+cualquier estado ---una b\'usqueda concreta del cat\'alogo mediante \texttt{?q=}, una lista,
 una tienda--- puede guardarse como marcador o compartirse como enlace.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-notificaciones.png}
-\hfill
-\includegraphics[width=0.48\textwidth]{diagramas/capturas/web-alertas.png}
-\caption{Bandeja de notificaciones (izquierda) y alertas de precio (derecha) en la versi\'on de
-escritorio}
-\label{fig:manual-web-notifs}
-\end{figure}
 
 \clearpage
 

@@ -28,13 +28,31 @@ El modelo de informaci\'on se articula en doce bloques (RI-001 a RI-012), que cu
 
 \section{Requisitos funcionales}
 
-Se definieron 35 requisitos funcionales (RF-001 a RF-035) agrupados por dominios:
+Se definieron 35 requisitos funcionales (RF-001 a RF-035) agrupados por dominios, tal y como
+resume el Cuadro~\ref{tab:rf-grupos}. El cat\'alogo completo, con el enunciado de cada
+requisito, se recoge en el Ap\'endice~\ref{apendice-requisitos}.
 
 \begin{table}[htbp]
 \centering
 \caption{Agrupaci\'on de requisitos funcionales}
 \label{tab:rf-grupos}
-\includegraphics[width=0.92\textwidth]{diagramas/cuadros/cuadro-rf-grupos.png}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Dominio} & \textbf{IDs} & \textbf{Capacidad principal} \\
+\midrule
+Autenticaci\'on y perfil & RF-001..RF-005 & Registro, login JWT, preferencias \\
+Cat\'alogo de productos & RF-006..RF-010 & B\'usqueda, detalle, crowdsourcing \\
+Tiendas y mapa & RF-011..RF-014 & Proximidad, detalle, favoritos \\
+Precios & RF-015..RF-019 & Comparaci\'on, hist\'orico, alertas \\
+Listas de compra & RF-020..RF-023 & CRUD, compartir, plantillas \\
+Optimizador & RF-024..RF-027 & Ruta multicriterio y rec\'alculo \\
+OCR & RF-028..RF-029 & Captura y matching fuzzy \\
+Asistente LLM & RF-030..RF-031 & Consultas naturales y sugerencias \\
+Portal business & RF-032..RF-034 & Onboarding, precios, promociones \\
+Notificaciones & RF-035 & Push / email por eventos \\
+\bottomrule
+\end{tabular}
 \end{table}
 
 \section{Criterios de aceptaci\'on del producto}
@@ -44,7 +62,8 @@ Los criterios de aceptaci\'on se validan a nivel funcional y de experiencia:
 \begin{itemize}
 	\item flujo de alta y acceso operativo en menos de 3 minutos,
 	\item comparaci\'on de cesta completa en entorno de tiendas cercanas,
-	\item optimizaci\'on con top-3 rutas y desglose por parada,
+	\item optimizaci\'on con ruta recomendada, desglose por parada y resoluci\'on de
+		ambig\"uedades sem\'anticas con rec\'alculo,
 	\item OCR con confirmaci\'on/edici\'on previa a la inserci\'on en lista,
 	\item portal PYME con gesti\'on de precios y promociones,
 	\item notificaciones de eventos cr\'iticos (alertas, promociones, cambios compartidos).
@@ -52,17 +71,22 @@ Los criterios de aceptaci\'on se validan a nivel funcional y de experiencia:
 
 \section{Requisitos no funcionales}
 
-Se definieron ocho requisitos no funcionales (RNF-001 a RNF-008):
+Se definieron ocho requisitos no funcionales (RNF-001 a RNF-008), cuyo enunciado completo se
+recoge en el Ap\'endice~\ref{apendice-requisitos}:
 
 \begin{itemize}
-	\item rendimiento API (p95 bajo para operaciones CRUD y optimizaci\'on),
-	\item disponibilidad de staging,
-	\item seguridad (JWT, HTTPS, rate limiting),
-	\item usabilidad (flujo principal corto y criterios de accesibilidad),
-	\item escalabilidad arquitect\'onica,
-	\item mantenibilidad con cobertura y convenciones,
-	\item compatibilidad multiplataforma,
-	\item cumplimiento RGPD.
+	\item \textbf{RNF-001} rendimiento API (p95 inferior a 500 ms en CRUD y a 5 s en
+		optimizaci\'on),
+	\item \textbf{RNF-002} disponibilidad del entorno de staging,
+	\item \textbf{RNF-003} seguridad (HTTPS, JWT con rotaci\'on, rate limiting, hashing de
+		contrase\~nas),
+	\item \textbf{RNF-004} usabilidad (flujo principal en un m\'aximo de 3 interacciones y
+		criterios de accesibilidad WCAG 2.1 \cite{wcag21}),
+	\item \textbf{RNF-005} escalabilidad arquitect\'onica,
+	\item \textbf{RNF-006} mantenibilidad (cobertura de tests $\geq$ 80\,\% y convenciones
+		verificadas en CI),
+	\item \textbf{RNF-007} compatibilidad multiplataforma,
+	\item \textbf{RNF-008} protecci\'on de datos conforme al RGPD \cite{rgpd2016}.
 \end{itemize}
 
 \section{Reglas de negocio}
@@ -97,11 +121,13 @@ Los diagramas de casos de uso recogen las interacciones principales de cada acto
 
 \section{Trazabilidad}
 
-La trazabilidad entre requisitos, implementaci\'on y pruebas se mantiene en:
+La trazabilidad entre requisitos, implementaci\'on y pruebas se documenta en tres niveles:
 
 \begin{itemize}
-	\item \texttt{docs/memoria/07-requisitos.md} (especificaci\'on completa),
-	\item \texttt{TASKS.md} (estado por fase/tarea),
+	\item el Ap\'endice~\ref{apendice-requisitos} de esta memoria (cat\'alogo completo de
+		requisitos y tabla de trazabilidad dominio--m\'odulo--suite de pruebas),
+	\item \texttt{TASKS.md} en el repositorio (estado por fase/tarea, con identificadores
+		referenciados desde los commits),
 	\item \texttt{tests/unit}, \texttt{tests/integration} y \texttt{frontend/web/e2e}
 		(verificaci\'on ejecutable).
 \end{itemize}

@@ -29,15 +29,30 @@ Write-Host "pdflatex: $pdflatex"
 $initexmf = Join-Path (Split-Path $pdflatex) 'initexmf.exe'
 & $initexmf --set-config-value "[MPM]AutoInstall=1" 2>$null
 
+$bibtex = Join-Path (Split-Path $pdflatex) 'bibtex.exe'
+
 Set-Location "$root\memoriaTFG\Plantilla TfG"
 # proyect.pdf puede estar bloqueado por un visor: compilamos con jobname propio
-Remove-Item proyect-final.aux, proyect-final.toc, proyect-final.lof, proyect-final.lot, proyect-final.out -ErrorAction SilentlyContinue
+Remove-Item proyect-final.aux, proyect-final.toc, proyect-final.lof, proyect-final.lot, proyect-final.out, proyect-final.bbl, proyect-final.blg -ErrorAction SilentlyContinue
 
-for ($pass = 1; $pass -le 3; $pass++) {
+# Cadena completa: pdflatex -> bibtex -> pdflatex x2 (resuelve bibliografia y referencias)
+Write-Host "== Pasada 1 de pdflatex =="
+& $pdflatex -interaction=nonstopmode -jobname=proyect-final proyect.tex > "$root\tmp\logs\pdflatex-pass1.log" 2>&1
+Write-Host ("   exit: " + $LASTEXITCODE)
+
+Write-Host "== BibTeX =="
+& $bibtex proyect-final > "$root\tmp\logs\bibtex.log" 2>&1
+Write-Host ("   exit: " + $LASTEXITCODE)
+
+for ($pass = 2; $pass -le 3; $pass++) {
     Write-Host "== Pasada $pass de pdflatex =="
     & $pdflatex -interaction=nonstopmode -jobname=proyect-final proyect.tex > "$root\tmp\logs\pdflatex-pass$pass.log" 2>&1
     Write-Host ("   exit: " + $LASTEXITCODE)
 }
+
+# Verificacion: la bibliografia debe estar en el PDF
+$bbl = Test-Path proyect-final.bbl
+if (-not $bbl) { Write-Host 'AVISO: no se genero proyect-final.bbl (bibliografia ausente)' }
 
 $errors = Select-String -Path proyect-final.log -Pattern '^!' -ErrorAction SilentlyContinue | Select-Object -First 5
 if ($errors) { Write-Host 'ERRORES:'; $errors | ForEach-Object { Write-Host ("  " + $_.Line) } }

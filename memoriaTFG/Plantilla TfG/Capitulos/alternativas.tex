@@ -6,23 +6,42 @@ Para el an\'alisis competitivo se han considerado cinco soluciones de referencia
 mercado espa\~nol de comparaci\'on de compra:
 
 \begin{itemize}
-	\item Soysuper
+	\item Soysuper \cite{soysuper_web}
 	\item Findit
-	\item OCU Market
+	\item OCU Market \cite{ocu_web}
 	\item PreciRadar
 	\item RadarPrice
 \end{itemize}
 
 Adicionalmente, se han valorado como competencia indirecta las apps nativas de cadenas
-y como sustituto no tecnol\'ogico la comparaci\'on manual con folletos.
+y como sustituto no tecnol\'ogico la comparaci\'on manual con folletos. La revisi\'on de
+capacidades se realiz\'o sobre las versiones p\'ublicas de cada herramienta durante la fase
+de an\'alisis del proyecto (marzo de 2026), por lo que la matriz refleja el estado de las
+soluciones en esa fecha.
 
 \section{Matriz funcional resumida}
 
+El Cuadro~\ref{tab:comparativa-alternativas} resume la comparativa de capacidades clave;
+el an\'alisis extendido, caracter\'istica a caracter\'istica, se mantiene en la documentaci\'on
+del repositorio (\texttt{docs/memoria/04-comparativa.md}).
+
 \begin{table}[htbp]
 \centering
-\caption{Comparativa de capacidades clave}
+\caption{Comparativa de capacidades clave (elaboraci\'on propia, marzo de 2026)}
 \label{tab:comparativa-alternativas}
-\includegraphics[width=0.95\textwidth]{diagramas/cuadros/cuadro-comparativa-alternativas.png}
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Capacidad} & \textbf{BargAIn} & \textbf{Soysuper} & \textbf{OCU Market} & \textbf{Resto} \\
+\midrule
+Comparaci\'on multi-tienda de cesta & Completa & Completa & Parcial & Parcial \\
+Optimizaci\'on de ruta (precio + distancia + tiempo) & Completa & No & No & No \\
+Integraci\'on de PYMEs / comercio local & Completa & No & No & No \\
+OCR de lista / ticket & Completa & No & No & No \\
+Asistente conversacional IA & Completa & No & No & No \\
+Hist\'orico avanzado de precios & Parcial & Limitado & Limitado & Variable \\
+\bottomrule
+\end{tabular}
 \end{table}
 
 \section{Brechas estrat\'egicas detectadas}

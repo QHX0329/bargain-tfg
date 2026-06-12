@@ -12,7 +12,21 @@ forma iterativa, manteniendo trazabilidad en \texttt{TASKS.md} y en el \'arbol
 \centering
 \caption{Resumen por fases del proyecto}
 \label{tab:fases-temporales}
-\includegraphics[width=0.85\textwidth]{diagramas/cuadros/cuadro-fases-temporales.png}
+\begin{tabular}{@{}llcc@{}}
+\toprule
+\textbf{Fase} & \textbf{Semanas} & \textbf{Horas} & \textbf{Estado} \\
+\midrule
+F1 $\cdot$ An\'alisis y dise\~no & S1--S3 & 45 & Completada \\
+F2 $\cdot$ Infraestructura base & S3--S5 & 30 & Completada \\
+F3 $\cdot$ Desarrollo core backend & S5--S12 & 95 & Completada \\
+F4 $\cdot$ Desarrollo frontend & S8--S16 & 70 & Completada \\
+F5 $\cdot$ IA, optimizador y scraping & S10--S17 & 35 & Completada \\
+F6 $\cdot$ Portal business y app m\'ovil & S15--S18 & 25 & Completada \\
+F7 $\cdot$ Pruebas, deploy y cierre & S18--S20 & 25 & Completada \\
+\midrule
+\textbf{Total} & & \textbf{325} & Cerrado \\
+\bottomrule
+\end{tabular}
 \end{table}
 
 \section{Metodolog\'ia de trabajo y trazabilidad del proceso}\label{sec:metodologia-trazabilidad}
@@ -97,14 +111,33 @@ sino la historia completa de decisiones que lo produjo.
 
 \section{Estimaci\'on de costes}
 
-La estimaci\'on econ\'omica se realiz\'o mediante coste-hora por rol junior,
-alineada con referencias del informe de perfiles TIC de la Junta de Andaluc\'ia (2018).
+La estimaci\'on econ\'omica se realiz\'o mediante coste-hora por rol junior, tomando como
+referencia el informe de perfiles profesionales TIC de la Junta de Andaluc\'ia
+\cite{junta_perfiles_2018} (columna de media acotada para perfiles con menos de seis a\~nos
+de experiencia). Conviene se\~nalar que se trata de la referencia p\'ublica m\'as completa
+disponible para tarifas por rol en Andaluc\'ia pero data de 2018, por lo que las tarifas
+aplicadas deben entenderse como una cota conservadora: los salarios TIC de mercado en 2026
+son superiores, de modo que el coste real de un desarrollo equivalente ser\'ia previsiblemente
+mayor que el estimado.
 
 \begin{table}[htbp]
 \centering
 \caption{Coste estimado del desarrollo}
 \label{tab:coste-estimado}
-\includegraphics[width=0.75\textwidth]{diagramas/cuadros/cuadro-coste-estimado.png}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+\textbf{Bloque} & \textbf{Horas} & \textbf{Coste (EUR)} \\
+\midrule
+An\'alisis y dise\~no & 45 & 1.490,40 \\
+Infraestructura & 30 & 861,60 \\
+Backend + frontend & 165 & 4.738,80 \\
+IA, optimizador y scraping & 35 & 1.005,20 \\
+Portal business y app m\'ovil & 25 & 718,00 \\
+Pruebas y despliegue & 25 & 594,25 \\
+\midrule
+\textbf{Total} & \textbf{325} & \textbf{9.408,25} \\
+\bottomrule
+\end{tabular}
 \end{table}
 
 Adicionalmente, el coste operativo en staging se mantuvo bajo durante el TFG

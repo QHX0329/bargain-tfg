@@ -19,7 +19,7 @@ Se aplica una estrategia por capas, siguiendo el modelo de pir\'amide de tests:
   \item \textbf{Tests de integraci\'on backend:} flujos cross-domain que ejercitan varios m\'odulos
     en conjunto.
   \item \textbf{Tests de componentes frontend:} Jest + React Native Testing Library
-    (111 tests en 16 suites), incluyendo los componentes y utilidades de la adaptaci\'on web.
+    (111 tests en 15 suites), incluyendo los componentes y utilidades de la adaptaci\'on web.
   \item \textbf{Tests E2E con Playwright:} 4 flujos cr\'iticos del sistema integrado
     (backend + frontend web).
   \item \textbf{UAT manual en dispositivo m\'ovil:} flujos nativos con GPS y c\'amara que no son
@@ -54,21 +54,52 @@ cd frontend/web && npx playwright test --reporter=html
 \subsection{Tests de integraci\'on}\label{subsec:tests-integracion}
 
 Los tests de integraci\'on verifican flujos API completos usando una base de datos de test real
-(sin mocks de BD), validando el comportamiento end-to-end del backend.
+(sin mocks de BD), validando el comportamiento end-to-end del backend. La suite backend
+completa suma \textbf{333 tests}: 162 unitarios (17 archivos) y 171 de integraci\'on (17
+archivos). El Cuadro~\ref{tab:tests-integracion} resume las suites de integraci\'on.
 
 \begin{table}[htbp]
 \centering
 \caption{Suite de tests de integraci\'on backend}
 \label{tab:tests-integracion}
-\includegraphics[width=0.92\textwidth]{diagramas/cuadros/cuadro-tests-integracion.png}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Archivo de test} & \textbf{M\'odulo} & \textbf{Cobertura funcional} \\
+\midrule
+\texttt{test\_auth\_endpoints.py} & users & Registro, login, refresh, perfil \\
+\texttt{test\_optimizer\_api.py} & optimizer & \texttt{POST /optimize/} con matriz mock \\
+\texttt{test\_ocr\_api.py} & ocr & \texttt{POST /ocr/scan/} con Vision API mock \\
+\texttt{test\_business\_verification.py} & business & Aprobar/rechazar BusinessProfile \\
+\texttt{test\_business\_registration.py} & business & Onboarding PYME \\
+\texttt{test\_business\_prices.py} & business & Gesti\'on de precios PYME \\
+\texttt{test\_bulk\_prices.py} & business & Actualizaci\'on masiva CSV \\
+\texttt{test\_proposal\_admin.py} & business & Aprobar/rechazar propuestas \\
+\texttt{test\_promotions.py} & business & Gesti\'on de promociones \\
+\texttt{test\_list\_endpoints.py} & shopping\_lists & CRUD de listas e \'items \\
+\texttt{test\_cross\_domain.py} & core & Flujos cross-domain \\
+\texttt{test\_notification\_dispatch.py} & notifications & Despacho push/email \\
+\texttt{test\_notification\_events.py} & notifications & Eventos de notificaci\'on \\
+\texttt{test\_price\_endpoints.py} & prices & API de precios \\
+\texttt{test\_product\_endpoints.py} & products & API de productos \\
+\texttt{test\_store\_endpoints.py} & stores & API de tiendas \\
+\texttt{test\_assistant\_api.py} & assistant & Endpoint LLM con mock de Gemini \\
+\bottomrule
+\end{tabular}
 \end{table}
 
 \subsection{Cobertura}\label{subsec:cobertura}
 
-La suite backend alcanza una cobertura m\'inima del 80\% sobre los m\'odulos de aplicaci\'on
-(\texttt{apps/}), medida con \texttt{pytest-cov}. Los m\'odulos con mayor densidad de tests son
-\texttt{users}, \texttt{business} y \texttt{optimizer}, que concentran la l\'ogica de negocio
-principal.
+La suite backend mantiene una cobertura m\'inima del 80\,\% sobre los m\'odulos de aplicaci\'on
+(\texttt{apps/}), medida con \texttt{pytest-cov}. El umbral no es declarativo sino
+\textbf{bloqueante}: el workflow \texttt{ci-backend.yml} ejecuta \texttt{pytest --cov=apps
+--cov-fail-under=80}, de modo que ninguna integraci\'on por debajo de ese umbral supera la CI;
+el informe se publica adem\'as en Codecov en cada build. La distribuci\'on de tests unitarios
+por m\'odulo refleja d\'onde se concentra la l\'ogica de negocio: \texttt{shopping\_lists} (19),
+\texttt{products} (17), \texttt{prices} (15), \texttt{scraping} (22 entre spiders y pipeline),
+\texttt{stores} (11), \texttt{business} (11), \texttt{notifications} (11), \texttt{ocr} (9),
+\texttt{users} (8), \texttt{assistant} (8) y \texttt{optimizer} (15 entre solver, sem\'antica y
+cliente ORS), adem\'as de tests de configuraci\'on (despliegue Render y comandos de seed).
 
 \section{Tests E2E con Playwright}\label{sec:playwright}
 
@@ -79,7 +110,17 @@ sistema integrado (backend + web companion Vite+React):
 \centering
 \caption{Suite de tests E2E con Playwright}
 \label{tab:tests-e2e}
-\includegraphics[width=0.98\textwidth]{diagramas/cuadros/cuadro-tests-e2e.png}
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Flujo} & \textbf{Archivo} & \textbf{Tipo} & \textbf{Descripci\'on} \\
+\midrule
+Autenticaci\'on completa & \texttt{auth.spec.ts} & UI + API & Registro $\to$ login $\to$ refresh $\to$ logout \\
+Lista $\to$ Optimizar $\to$ Ruta & \texttt{optimizer.spec.ts} & API-level & Crear lista $\to$ optimizar $\to$ verificar \\
+OCR ticket $\to$ lista & \texttt{ocr.spec.ts} & API-level & Subir imagen $\to$ OCR $\to$ respuesta \\
+Business portal & \texttt{business.spec.ts} & UI & Registro PYME $\to$ aprobaci\'on $\to$ panel \\
+\bottomrule
+\end{tabular}
 \end{table}
 
 Los flujos de optimizador y OCR se implementan como tests API-level (usando el fixture
@@ -108,12 +149,22 @@ un iPhone con la app compilada mediante el workflow \texttt{ios-build.yml}:
 \centering
 \caption{Resultados UAT en dispositivo m\'ovil}
 \label{tab:uat}
-\includegraphics[width=0.85\textwidth]{diagramas/cuadros/cuadro-uat.png}
+\begin{tabular}{@{}lc@{}}
+\toprule
+\textbf{Flujo UAT} & \textbf{Resultado} \\
+\midrule
+Solicitar ubicaci\'on y ver tiendas en mapa & Verificado \\
+Crear lista y a\~nadir \'items manualmente & Verificado \\
+Capturar ticket con c\'amara y reconocer productos & Verificado \\
+Lanzar optimizaci\'on y navegar la ruta sugerida & Verificado \\
+Chat con asistente LLM y verificar guardrail & Verificado \\
+\bottomrule
+\end{tabular}
 \end{table}
 
 \section{Validaci\'on de Requisitos No Funcionales}\label{sec:nfr}
 
-\subsection{RNF-002: Disponibilidad $\geq$ 99\% en staging}\label{subsec:rnf02}
+\subsection{RNF-002: Disponibilidad del entorno de staging}\label{subsec:rnf02}
 
 El backend de staging se despleg\'o en Render.com (plan gratuito, blueprint
 \texttt{render.free.yaml}) con la siguiente arquitectura:
@@ -129,7 +180,17 @@ autom\'aticos ante fallos se gestionan por la plataforma Render. Como optimizaci
 en fr\'io del free tier, los ficheros est\'aticos se precompilan durante el build de la imagen
 Docker en lugar de generarse en el arranque del servicio.
 
-\subsection{RNF-004: Usabilidad WCAG 2.1 AA y m\'aximo 3 taps}\label{subsec:rnf04}
+Debe precisarse el alcance de la validaci\'on: el enunciado original de RNF-002 (disponibilidad
+mensual $\geq$ 99\,\%) \textbf{no es medible tal cual en el free tier}, porque la plataforma
+hiberna el servicio tras unos minutos de inactividad (Secci\'on~\ref{sec:manual-requisitos}) y
+no se ha desplegado monitorizaci\'on continua de uptime. Lo que se ha verificado es la
+\emph{disponibilidad funcional durante las ventanas de evaluaci\'on}: el health check responde
+correctamente tras cada despliegue, y los cuatro flujos E2E se ejecutan con \'exito contra el
+staging p\'ublico. La instrumentaci\'on de monitorizaci\'on continua (y, con ella, la
+verificaci\'on del 99\,\% en sentido estricto) queda registrada como trabajo pendiente en el
+Cap\'itulo~\ref{cap11}.
+
+\subsection{RNF-004: Usabilidad y flujo m\'aximo de 3 interacciones}\label{subsec:rnf04}
 
 Los flujos principales se completan en \textless{}= 3 interacciones en la app m\'ovil:
 
@@ -141,6 +202,13 @@ Los flujos principales se completan en \textless{}= 3 interacciones en la app m\
   \item \textbf{A\~nadir \'item OCR:} Lista \textrightarrow{} C\'amara \textrightarrow{} Confirmar
     (3 taps)
 \end{itemize}
+
+Respecto al criterio de accesibilidad de RNF-004, la verificaci\'on realizada ha sido
+\emph{heur\'istica} (flujos cortos, etiquetas de formularios, estados de foco en la versi\'on
+web y \emph{tooltips} accesibles): no se ha ejecutado una auditor\'ia formal WCAG 2.1 AA
+\cite{wcag21} con herramientas espec\'ificas (contraste, navegaci\'on por teclado completa,
+lector de pantalla), que queda identificada como tarea previa a cualquier publicaci\'on en
+tiendas de aplicaciones.
 
 \subsection{RNF-005: Escalabilidad para 10.000 usuarios}\label{subsec:rnf05}
 
@@ -169,14 +237,31 @@ decisiones de dise\~no complementarias:
 \centering
 \caption{Resumen de resultados de la estrategia de testing}
 \label{tab:resumen-pruebas}
-\includegraphics[width=0.9\textwidth]{diagramas/cuadros/cuadro-resumen-pruebas.png}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Tipo de test} & \textbf{Cantidad} & \textbf{Estado} \\
+\midrule
+Tests unitarios backend & 162 (17 archivos) & Todos pasan \\
+Tests de integraci\'on backend & 171 (17 archivos) & Todos pasan \\
+Tests frontend (Jest) & 111 (15 suites) & Todos pasan \\
+Tests E2E Playwright & 4 flujos & Todos pasan \\
+UAT manual m\'ovil & 5 flujos & Verificados \\
+RNF-002 $\cdot$ Disponibilidad & Health check + E2E en staging & Verificaci\'on funcional \\
+RNF-004 $\cdot$ Usabilidad & 3 flujos & Verificaci\'on heur\'istica (3 taps m\'ax.) \\
+RNF-005 $\cdot$ Escalabilidad & Justificaci\'on arquitectural & Documentado \\
+\bottomrule
+\end{tabular}
 \end{table}
 
 \section{Conclusi\'on}\label{sec:conclusion-pruebas}
 
 La estrategia de testing multicapa garantiza la calidad del sistema a diferentes niveles de
-granularidad. La cobertura de tests backend supera el 80\% sobre los m\'odulos cr\'iticos
-(333 tests entre unitarios y de integraci\'on), la suite frontend a\~nade 111 tests de
-componentes y utilidades con Jest, y los 4 flujos E2E automatizados con Playwright verifican que
-el sistema integrado funciona correctamente de extremo a extremo. Los requisitos no funcionales
-de disponibilidad y usabilidad quedan documentados con evidencia real del entorno de staging.
+granularidad. La cobertura de tests backend se mantiene por encima del 80\,\% con umbral
+bloqueante en CI (333 tests entre unitarios y de integraci\'on), la suite frontend a\~nade 111
+tests de componentes y utilidades con Jest, y los 4 flujos E2E automatizados con Playwright
+verifican que el sistema integrado funciona correctamente de extremo a extremo contra el
+entorno de staging. Quedan expl\'icitamente acotadas las validaciones pendientes: medici\'on
+formal de latencias p95 (RNF-001), monitorizaci\'on continua de disponibilidad (RNF-002),
+auditor\'ia WCAG completa (RNF-004) y prueba de carga (RNF-005), todas recogidas como trabajo
+futuro en el Cap\'itulo~\ref{cap11}.

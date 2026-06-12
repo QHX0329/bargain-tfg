@@ -36,7 +36,7 @@
 ## Estado actual del proyecto
 
 **Fase activa:** — TFG BargAIn v1.0 completado ✅
-**Horas consumidas:** ~210 h / 300 h totales (F7: ~25 h)
+**Horas consumidas:** 325 h / 325 h (cierre F1–F7; 300 h planificadas + 25 h de ampliación de cierre)
 **Progreso global:** ████████████████████ ~100%
 
 ---

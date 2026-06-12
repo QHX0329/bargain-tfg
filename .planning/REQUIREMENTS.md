@@ -1,4 +1,4 @@
-# Requirements: BargAIn
+# Requirements: BarGAIN
 
 Defined: 2026-03-16
 Synced: 2026-04-05

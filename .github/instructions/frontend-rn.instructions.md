@@ -1,6 +1,6 @@
 ---
 description: "Use when editing Expo/React Native frontend files in frontend/src/**/*.{ts,tsx}, including screens, components, navigation, hooks, state, and API clients."
-name: "BargAIn Frontend RN Rules"
+name: "BarGAIN Frontend RN Rules"
 applyTo: "frontend/src/**/*.{ts,tsx}"
 ---
 

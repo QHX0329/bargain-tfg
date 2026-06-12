@@ -1,5 +1,5 @@
 """
-Permisos personalizados para la API de BargAIn.
+Permisos personalizados para la API de BarGAIN.
 
 Basados en el rol del usuario (consumer / business / admin).
 """

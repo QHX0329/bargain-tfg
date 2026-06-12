@@ -1,5 +1,5 @@
 /**
- * Configuración de deep-linking de React Navigation para BargAIn.
+ * Configuración de deep-linking de React Navigation para BarGAIN.
  *
  * Refleja la jerarquía exacta del navegador:
  * RootStack → Main → {HomeTab, ListsTab, MapTab, AssistantTab, ProfileTab} → stacks de screens

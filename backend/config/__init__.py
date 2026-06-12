@@ -1,5 +1,5 @@
 """
-Paquete de configuracion de BargAIn.
+Paquete de configuracion de BarGAIN.
 
 Importa la app de Celery para que las tareas se autodescubran
 cuando Django arranca (necesario para `celery -A config`).

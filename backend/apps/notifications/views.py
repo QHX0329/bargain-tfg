@@ -1,4 +1,4 @@
-"""Vistas del módulo de notificaciones de BargAIn."""
+"""Vistas del módulo de notificaciones de BarGAIN."""
 
 import structlog
 from django.utils import timezone

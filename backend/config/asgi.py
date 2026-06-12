@@ -1,4 +1,4 @@
-"""ASGI config para el proyecto BargAIn."""
+"""ASGI config para el proyecto BarGAIN."""
 
 import os
 

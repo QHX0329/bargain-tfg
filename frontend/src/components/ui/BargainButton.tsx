@@ -1,5 +1,5 @@
 /**
- * [C01] BargainButton — Botón principal del design system de BargAIn.
+ * [C01] BargainButton — Botón principal del design system de BarGAIN.
  *
  * Variantes:
  *   primary  — Naranja Triana. CTA principal de la pantalla.

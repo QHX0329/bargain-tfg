@@ -1,4 +1,4 @@
-﻿# Contexto del Proyecto BargAIn
+﻿# Contexto del Proyecto BarGAIN
 
 ## Estado global (2026-04-05)
 

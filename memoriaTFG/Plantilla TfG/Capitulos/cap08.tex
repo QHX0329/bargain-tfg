@@ -6,7 +6,7 @@
 
 \subsection{Visi\'on general}\label{subsec:vision-general}
 
-BargAIn sigue una arquitectura de \textbf{tres capas} cl\'asica (presentaci\'on, l\'ogica de
+BarGAIN sigue una arquitectura de \textbf{tres capas} cl\'asica (presentaci\'on, l\'ogica de
 negocio y datos), desplegada mediante contenedores Docker y organizada internamente como una
 \textbf{arquitectura en capas con capa de servicios expl\'icita} por aplicaci\'on Django
 \cite{django_docs, drf_docs}: las vistas se limitan a la gesti\'on HTTP y la l\'ogica de dominio
@@ -59,7 +59,7 @@ La Figura~\ref{fig:arquitectura-capas} resume la distribuci\'on por capas de la 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.92\textwidth]{diagramas/arquitectura/arquitectura-capas.png}
-\caption{Arquitectura por capas de BargAIn}
+\caption{Arquitectura por capas de BarGAIN}
 \label{fig:arquitectura-capas}
 \end{figure}
 
@@ -193,7 +193,7 @@ La Figura~\ref{fig:modelo-er} muestra el diagrama entidad-relaci\'on completo de
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\textwidth]{diagramas/er/modelo-er.png}
-\caption{Diagrama entidad-relaci\'on de BargAIn}
+\caption{Diagrama entidad-relaci\'on de BarGAIN}
 \label{fig:modelo-er}
 \end{figure}
 
@@ -540,7 +540,7 @@ proyecto aborda expl\'icitamente:
   \item \textbf{Naturaleza de los datos.} Los datos extra\'idos son precios de venta al
     p\'ublico, informaci\'on factual y p\'ublica sin datos personales; el RGPD \cite{rgpd2016}
     no aplica a esta extracci\'on, aunque s\'i al tratamiento de los datos de los usuarios de
-    BargAIn (en particular su ubicaci\'on), que se realiza con consentimiento expl\'icito.
+    BarGAIN (en particular su ubicaci\'on), que se realiza con consentimiento expl\'icito.
   \item \textbf{Protocolo de exclusi\'on.} La regla de negocio RN-009 exige respetar las
     directivas \texttt{robots.txt} \cite{rfc9309} y excluir las cadenas que proh\'iban
     expresamente el acceso automatizado. Debe se\~nalarse con honestidad que, en la

@@ -5,7 +5,7 @@
 \section{Introducci\'on}\label{sec:manual-intro}
 
 Este cap\'itulo describe, desde la perspectiva del usuario final, el funcionamiento completo de
-BargAIn en sus tres contextos de uso: la aplicaci\'on m\'ovil para consumidores (iOS),
+BarGAIN en sus tres contextos de uso: la aplicaci\'on m\'ovil para consumidores (iOS),
 su versi\'on de escritorio ejecutada en navegador, y el portal web orientado a peque\~nos y
 medianos comercios (PYMEs). La exposici\'on sigue el recorrido natural de un usuario: desde el
 registro y el acceso, pasando por la gesti\'on de listas de la compra y la comparaci\'on de
@@ -22,7 +22,7 @@ de un tel\'efono actual de gama media; las de escritorio, a una ventana de 1440$
 
 \section{Despliegue y acceso al sistema}\label{sec:manual-requisitos}
 
-BargAIn se encuentra desplegado en infraestructura p\'ublica: el backend (API REST, base de
+BarGAIN se encuentra desplegado en infraestructura p\'ublica: el backend (API REST, base de
 datos PostgreSQL/PostGIS y cola Redis) se ejecuta en \emph{Render} bajo la URL
 \texttt{https://bargain-free-api.onrender.com}, y el portal para comercios se sirve como
 aplicaci\'on est\'atica desde \emph{GitHub Pages} en
@@ -91,13 +91,13 @@ npx expo start --web
 
 La distribuci\'on para iOS se apoya en el flujo de integraci\'on continua \emph{iOS Build}
 (GitHub Actions), que compila la aplicaci\'on en un runner macOS y publica como artefacto una
-IPA sin firmar (\texttt{BargAIn-unsigned}). Al no estar distribuida a trav\'es del App Store,
+IPA sin firmar (\texttt{BarGAIN-unsigned}). Al no estar distribuida a trav\'es del App Store,
 la instalaci\'on requiere firmar la IPA con un identificador de Apple, operaci\'on que resuelven
 herramientas de \emph{sideloading} como \emph{Sideloadly} o \emph{AltStore}. El procedimiento
 con Sideloadly es el siguiente:
 
 \begin{enumerate}
-  \item Descargar el artefacto \texttt{BargAIn-unsigned} de la \'ultima ejecuci\'on del
+  \item Descargar el artefacto \texttt{BarGAIN-unsigned} de la \'ultima ejecuci\'on del
     workflow \emph{iOS Build} en la pesta\~na \emph{Actions} del repositorio, y descomprimirlo
     para obtener el fichero \texttt{.ipa}.
   \item Conectar el iPhone al ordenador mediante USB y autorizar el equipo desde el tel\'efono.
@@ -108,12 +108,12 @@ con Sideloadly es el siguiente:
   \item Pulsar \emph{Start} y esperar a que finalice la firma e instalaci\'on.
   \item En el iPhone, confiar en el certificado del desarrollador desde \emph{Ajustes
     \textrightarrow{} General \textrightarrow{} VPN y gesti\'on de dispositivos}.
-  \item Abrir BargAIn. La aplicaci\'on se conecta autom\'aticamente al backend de Render, por
+  \item Abrir BarGAIN. La aplicaci\'on se conecta autom\'aticamente al backend de Render, por
     lo que no requiere configuraci\'on adicional; conceder el permiso de ubicaci\'on cuando se
     solicite para habilitar el mapa y la optimizaci\'on de rutas.
 \end{enumerate}
 
-La versi\'on actual de BargAIn se distribuye exclusivamente para iPhone (iOS 14 o superior) y
+La versi\'on actual de BarGAIN se distribuye exclusivamente para iPhone (iOS 14 o superior) y
 navegadores de escritorio; las funciones de mapa y optimizaci\'on requieren adem\'as el permiso
 de ubicaci\'on concedido y conexi\'on a Internet.
 
@@ -172,7 +172,7 @@ tiendas cercanas y alertas de precio}
 
 \section{Gesti\'on de listas de la compra}\label{sec:manual-listas}
 
-La lista de la compra es la entidad vertebradora de BargAIn: sobre ella se calculan totales por
+La lista de la compra es la entidad vertebradora de BarGAIN: sobre ella se calculan totales por
 tienda, se lanza la optimizaci\'on de rutas y se articula la colaboraci\'on entre usuarios. La
 pesta\~na \emph{Listas} (Figura~\ref{fig:manual-listas}, izquierda) muestra las listas del
 usuario con acciones directas de duplicado, conversi\'on en plantilla y archivado. El detalle de
@@ -291,7 +291,7 @@ determinados establecimientos.
 
 \section{Alertas de precio y notificaciones}\label{sec:manual-notificaciones}
 
-BargAIn invierte la carga de la vigilancia de precios: en lugar de obligar al usuario a consultar
+BarGAIN invierte la carga de la vigilancia de precios: en lugar de obligar al usuario a consultar
 peri\'odicamente la comparativa, es el sistema quien le avisa cuando se cumple una condici\'on de
 inter\'es. La bandeja de notificaciones (Figura~\ref{fig:manual-notificaciones}, izquierda)
 centraliza tres familias de avisos ---bajadas de precio que alcanzan el objetivo fijado, nuevas
@@ -497,7 +497,7 @@ una tienda--- puede guardarse como marcador o compartirse como enlace.
 
 El portal \emph{business} es la contrapartida del sistema para el peque\~no comercio: una
 aplicaci\'on web independiente desde la que un establecimiento local publica sus precios y
-promociones para competir en igualdad de condiciones con las grandes cadenas dentro de BargAIn.
+promociones para competir en igualdad de condiciones con las grandes cadenas dentro de BarGAIN.
 Su p\'agina de presentaci\'on (Figura~\ref{fig:manual-pyme-landing}) expone la propuesta de
 valor para el comercio ---visibilidad ante consumidores cercanos, gesti\'on aut\'onoma de precios
 y promociones, y estimaciones orientativas de retorno--- y resume el proceso de alta en tres
@@ -581,7 +581,7 @@ Figura~\ref{fig:manual-pyme-precios}: cada fila representa un precio publicado
 (producto--tienda) y el panel lateral permite modificar el precio base, el precio unitario y,
 opcionalmente, un precio de oferta con fecha de caducidad. Los cambios se publican de forma
 inmediata en la aplicaci\'on de consumo con la fuente \emph{business}, que el sistema de
-prioridades de BargAIn sit\'ua por delante de los datos de \emph{scraping} por tratarse de
+prioridades de BarGAIN sit\'ua por delante de los datos de \emph{scraping} por tratarse de
 informaci\'on de primera mano.
 
 \begin{figure}[htbp]

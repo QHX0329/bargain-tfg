@@ -2,7 +2,7 @@
 marp: true
 theme: default
 paginate: true
-header: 'BargAIn — TFG ETSII-US'
+header: 'BarGAIN — TFG ETSII-US'
 footer: 'Nicolás Parrilla Geniz'
 style: |
   section {
@@ -20,7 +20,7 @@ style: |
 
 <!-- _class: lead -->
 
-# BargAIn
+# BarGAIN
 ## Sistema de Optimización de Cesta de la Compra
 
 **Nicolás Parrilla Geniz**
@@ -41,7 +41,7 @@ Junio 2026
 
 **La oportunidad:**
 - Las PYMEs locales no pueden competir en visibilidad digital con las grandes cadenas
-- BargAIn equilibra el campo: **ahorro para consumidores + visibilidad para PYMEs**
+- BarGAIN equilibra el campo: **ahorro para consumidores + visibilidad para PYMEs**
 
 ---
 

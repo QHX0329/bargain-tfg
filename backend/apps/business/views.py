@@ -1,4 +1,4 @@
-"""Vistas del portal business de BargAIn."""
+"""Vistas del portal business de BarGAIN."""
 
 from typing import Any
 

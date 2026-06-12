@@ -1,5 +1,5 @@
 """
-Fixtures globales de pytest para el backend de BargAIn.
+Fixtures globales de pytest para el backend de BarGAIN.
 
 Disponibles en todos los módulos de tests sin importar explícitamente.
 """

@@ -1,4 +1,4 @@
-"""Serializers para el módulo OCR de BargAIn."""
+"""Serializers para el módulo OCR de BarGAIN."""
 
 from rest_framework import serializers
 

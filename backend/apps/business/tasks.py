@@ -1,5 +1,5 @@
 """
-Tareas Celery para el portal business de BargAIn.
+Tareas Celery para el portal business de BarGAIN.
 
 Tareas:
 - send_business_approval_email: notificación de aprobación al negocio
@@ -28,13 +28,13 @@ def send_business_approval_email(self, profile_id: int) -> None:
         return
 
     send_mail(
-        subject="Tu negocio ha sido verificado en BargAIn",
+        subject="Tu negocio ha sido verificado en BarGAIN",
         message=(
             f"Hola {profile.user.get_full_name() or profile.user.username},\n\n"
             f"Nos complace informarte que tu negocio «{profile.business_name}» "
-            "ha sido verificado en BargAIn.\n\n"
+            "ha sido verificado en BarGAIN.\n\n"
             "Ya puedes actualizar tus precios y crear promociones desde el portal.\n\n"
-            "El equipo de BargAIn"
+            "El equipo de BarGAIN"
         ),
         from_email="noreply@bargain.app",
         recipient_list=[profile.user.email],
@@ -55,14 +55,14 @@ def send_business_rejection_email(self, profile_id: int, reason: str) -> None:
         return
 
     send_mail(
-        subject="Solicitud de verificación de negocio en BargAIn",
+        subject="Solicitud de verificación de negocio en BarGAIN",
         message=(
             f"Hola {profile.user.get_full_name() or profile.user.username},\n\n"
             f"Hemos revisado la solicitud de verificación de «{profile.business_name}» "
             "y, lamentablemente, no ha podido ser aprobada en este momento.\n\n"
             f"Motivo: {reason}\n\n"
             "Si tienes dudas, ponte en contacto con soporte@bargain.app.\n\n"
-            "El equipo de BargAIn"
+            "El equipo de BarGAIN"
         ),
         from_email="noreply@bargain.app",
         recipient_list=[profile.user.email],
@@ -136,14 +136,14 @@ def check_competitor_prices(self) -> None:
             diff_pct = abs(float(scraped.price) - float(bp.price)) / float(bp.price) * 100
             if diff_pct > profile.price_alert_threshold_pct:
                 send_mail(
-                    subject="Alerta de precio competidor en BargAIn",
+                    subject="Alerta de precio competidor en BarGAIN",
                     message=(
                         f"Hola {profile.user.get_full_name() or profile.user.username},\n\n"
                         f"Se ha detectado una diferencia de precio mayor al "
                         f"{profile.price_alert_threshold_pct}% para «{bp.product.name}» "
                         f"en «{bp.store.name}».\n\n"
                         f"Tu precio: {bp.price}€ | Precio de referencia: {scraped.price}€\n\n"
-                        "Revisa tu catálogo en BargAIn.\n\nEl equipo de BargAIn"
+                        "Revisa tu catálogo en BarGAIN.\n\nEl equipo de BarGAIN"
                     ),
                     from_email="noreply@bargain.app",
                     recipient_list=[profile.user.email],

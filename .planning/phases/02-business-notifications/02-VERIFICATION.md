@@ -121,7 +121,7 @@ Scanned: `business/models.py`, `business/permissions.py`, `business/views.py`, `
 ### 1. Email delivery in approval/rejection flow
 
 **Test:** Approve a BusinessProfile via POST /api/v1/business/profiles/{id}/approve/ with a real email configured; check that the email arrives.
-**Expected:** Email received with subject "Tu negocio ha sido verificado en BargAIn" containing the business name.
+**Expected:** Email received with subject "Tu negocio ha sido verificado en BarGAIN" containing the business name.
 **Why human:** Email delivery depends on SMTP configuration (EMAIL_BACKEND) in the runtime environment; cannot verify programmatically without a live mail server.
 
 ### 2. Expo push notification delivery end-to-end

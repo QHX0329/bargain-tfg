@@ -1,5 +1,5 @@
 """
-Configuración base de Django para el proyecto BargAIn.
+Configuración base de Django para el proyecto BarGAIN.
 Configuraciones comunes a todos los entornos.
 """
 
@@ -274,7 +274,7 @@ CELERY_BEAT_SCHEDULE = {
 # ── DRF Spectacular (OpenAPI) ────────────────────────
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "BargAIn API",
+    "TITLE": "BarGAIN API",
     "DESCRIPTION": "API del Asistente Unificado de Rutas y Ahorro",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,

@@ -1,6 +1,6 @@
 ﻿# START TASK (Claude)
 
-Actua como asistente de desarrollo para BargAIn.
+Actua como asistente de desarrollo para BarGAIN.
 
 Contexto de entrada:
 - Tarea: <TASK_ID y objetivo>

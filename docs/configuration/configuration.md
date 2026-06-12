@@ -43,7 +43,7 @@ Source of truth: `.env.example`.
 | `SENTRY_PROFILES_SAMPLE_RATE` | No | `0.0` | Profiles sample rate |
 | `LOG_LEVEL` | No | `INFO` | Logging verbosity |
 | `LOG_JSON_FORMAT` | No | `false` | Structured JSON logs toggle |
-| `SCRAPING_USER_AGENT` | No | `BargAIn-Bot/1.0 (+https://github.com/QHX0329/bargain-tfg)` | User agent for spiders |
+| `SCRAPING_USER_AGENT` | No | `BarGAIN-Bot/1.0 (+https://github.com/QHX0329/bargain-tfg)` | User agent for spiders |
 | `SCRAPING_CONCURRENT_REQUESTS` | No | `4` | Scraper concurrency |
 | `SCRAPING_DOWNLOAD_DELAY` | No | `2` | Scraper delay seconds |
 

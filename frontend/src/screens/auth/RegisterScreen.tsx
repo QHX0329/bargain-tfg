@@ -141,7 +141,7 @@ export const RegisterScreen: React.FC = () => {
               Crea tu cuenta
             </Text>
             <Text style={styles.subtitle}>
-              Únete a BargAIn y empieza a ahorrar
+              Únete a BarGAIN y empieza a ahorrar
             </Text>
           </View>
 

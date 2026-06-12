@@ -1,5 +1,5 @@
 """
-Pipelines de Scrapy para el proyecto BargAIn.
+Pipelines de Scrapy para el proyecto BarGAIN.
 
 PriceUpsertPipeline persiste el catalogo scrapeado como fuente de verdad,
 sin depender del seed local para resolver productos.

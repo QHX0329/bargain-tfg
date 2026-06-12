@@ -1,5 +1,5 @@
 /**
- * Paleta de colores de BargAIn — "Mercado Mediterráneo Digital"
+ * Paleta de colores de BarGAIN — "Mercado Mediterráneo Digital"
  *
  * Inspirada en los mercados de Sevilla (Triana, Lonja del Barranco):
  * azulejos, naranja sevillano, verde oliva y cerámica artesanal
@@ -86,7 +86,7 @@ export const colors = {
     carrefour: "#004A99",
     dia: "#E30613",
     alcampo: "#E4002B",
-    local: "#E8541A", // Comercio local = primario BargAIn
+    local: "#E8541A", // Comercio local = primario BarGAIN
   },
 
   // ─── Compat legacy (v1 theme API) ─────────────────────────────────────

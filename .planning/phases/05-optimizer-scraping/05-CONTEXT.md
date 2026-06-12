@@ -48,7 +48,7 @@ with haversine already in PostGIS (Graphhopper chosen), persistent chat history 
 
 - **D-15:** Scope (guardrails): The assistant answers only shopping-domain queries — product/price comparison, shopping list suggestions, and recipes based on available ingredients. Rejects off-topic requests with a polite message ("Soy un asistente de compras. ¿Puedo ayudarte con tu lista?").
 - **D-16:** Implementation: backend proxy `POST /assistant/chat/`. Frontend sends `{ messages: [{ role, content }] }` array (full local session history). Backend passes history to Claude API. No history persisted in DB — session-scoped only.
-- **D-17:** System prompt enforces scope guardrails and sets context as BargAIn shopping assistant. Cost control: truncate history to last 10 turns before sending to Claude API.
+- **D-17:** System prompt enforces scope guardrails and sets context as BarGAIN shopping assistant. Cost control: truncate history to last 10 turns before sending to Claude API.
 - **D-18:** LLM model: `claude-haiku-4-5-20251001` for cost efficiency. The assistant endpoint is rate-limited (existing DRF throttle or `django-ratelimit`).
 
 ### Frontend Integration

@@ -1,5 +1,5 @@
 """
-Servicios OCR para el modulo de reconocimiento de imagenes de BargAIn.
+Servicios OCR para el modulo de reconocimiento de imagenes de BarGAIN.
 
 Proporciona:
 - extract_text_from_image: extrae lineas de texto de una imagen con Google Vision API

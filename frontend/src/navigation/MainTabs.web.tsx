@@ -1,5 +1,5 @@
 /**
- * Tab Navigator principal de BargAIn (variante WEB — react-native-web).
+ * Tab Navigator principal de BarGAIN (variante WEB — react-native-web).
  *
  * Idéntico a MainTabs.tsx en estructura (mismos 5 stacks + BottomTabBar custom),
  * pero usa @react-navigation/bottom-tabs en lugar de material-top-tabs.

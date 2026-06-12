@@ -4,7 +4,7 @@
 
 ### 8.1.1 Visión general
 
-BargAIn sigue una arquitectura de **tres capas** clásica (presentación, lógica de negocio y datos), desplegada mediante contenedores Docker y organizada internamente según los principios de la **arquitectura hexagonal** (puertos y adaptadores). Esta elección permite desacoplar la lógica de dominio de los detalles de infraestructura —bases de datos, APIs externas, brokers de mensajería— facilitando el testing independiente de cada componente y la sustitución de servicios sin alterar el núcleo del sistema.
+BarGAIN sigue una arquitectura de **tres capas** clásica (presentación, lógica de negocio y datos), desplegada mediante contenedores Docker y organizada internamente según los principios de la **arquitectura hexagonal** (puertos y adaptadores). Esta elección permite desacoplar la lógica de dominio de los detalles de infraestructura —bases de datos, APIs externas, brokers de mensajería— facilitando el testing independiente de cada componente y la sustitución de servicios sin alterar el núcleo del sistema.
 
 Para evitar duplicidad con la Sección 5, en este capítulo se describen decisiones de
 diseño e implementación, mientras que la justificación comparativa de herramientas se
@@ -951,7 +951,7 @@ El sistema de prompts incluye un **guardrail** que limita las respuestas del asi
 
 ```python
 SYSTEM_PROMPT = """
-Eres BargAIn Assistant, un asistente especializado en ayudar a los usuarios
+Eres BarGAIN Assistant, un asistente especializado en ayudar a los usuarios
 a optimizar su compra semanal. Tu ámbito es exclusivamente:
 - Comparación de precios de productos en supermercados
 - Recomendaciones de ahorro y sustitución de productos

@@ -1,5 +1,5 @@
 """
-Tests unitarios para el modulo OCR de BargAIn.
+Tests unitarios para el modulo OCR de BarGAIN.
 
 Cubre:
 - extract_text_from_image: extraccion de texto con Google Vision API (mockeada)

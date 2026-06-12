@@ -57,7 +57,7 @@
 | 4 capítulos LaTeX generados | `ls memoriaTFG/Plantilla\ TfG/Capitulos/cap0*.tex` → cap08-11 | PASS |
 | proyect.tex incluye cap08/10/11 | `grep "cap08\|cap10\|cap11" proyect.tex` | PASS |
 | proyect.tex usa Helvetica | `grep "helvet" proyect.tex` | PASS |
-| proyect.tex tiene metadatos BargAIn | Autor, tutor, departamento actualizados | PASS |
+| proyect.tex tiene metadatos BarGAIN | Autor, tutor, departamento actualizados | PASS |
 
 **Plan 07-04 Status: PASS**
 
@@ -118,4 +118,4 @@ Todos los planes 07-01 a 07-05 están en estado PASS. Los artefactos documentale
 demo, slides PDF) se generan a partir de las fuentes versionadas y están pendientes de ejecución
 manual por el autor antes de la fecha de entrega.
 
-**Phase 7 completada. TFG BargAIn v1.0 listo para defensa.**
+**Phase 7 completada. TFG BarGAIN v1.0 listo para defensa.**

@@ -1,4 +1,4 @@
-"""Vistas para el modulo OCR de BargAIn."""
+"""Vistas para el modulo OCR de BarGAIN."""
 
 import structlog
 from django.core.exceptions import ImproperlyConfigured

@@ -1,4 +1,4 @@
-# render.free.yaml — Despliegue 100% gratuito de BargAIn en Render.
+# render.free.yaml — Despliegue 100% gratuito de BarGAIN en Render.
 #
 # A diferencia de render.yaml (que usa background workers de pago para Celery),
 # este blueprint cabe entero en el free tier de Render:

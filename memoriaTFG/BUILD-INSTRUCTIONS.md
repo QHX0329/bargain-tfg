@@ -1,4 +1,4 @@
-# Instrucciones para compilar la memoria BargAIn (PDF)
+# Instrucciones para compilar la memoria BarGAIN (PDF)
 
 ## Opción A: Overleaf (recomendada, sin instalación)
 

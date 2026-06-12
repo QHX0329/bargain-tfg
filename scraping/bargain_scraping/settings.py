@@ -1,4 +1,4 @@
-"""Configuracion minima de Scrapy para el proyecto BargAIn."""
+"""Configuracion minima de Scrapy para el proyecto BarGAIN."""
 
 BOT_NAME = "bargain_scraping"
 

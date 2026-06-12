@@ -1,5 +1,5 @@
 /**
- * [P03-04] NotificationScreen — Buzón de notificaciones de BargAIn.
+ * [P03-04] NotificationScreen — Buzón de notificaciones de BarGAIN.
  *
  * Características:
  * - Notificaciones agrupadas por día (Hoy / Ayer / Esta semana / más antiguas)

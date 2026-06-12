@@ -1,7 +1,7 @@
 ﻿---
-title: BargAIn — TFG Ingeniería del Software
+title: BarGAIN — TFG Ingeniería del Software
 aliases:
-  - BargAIn
+  - BarGAIN
   - Proyecto TFG
 tags:
   - tfg
@@ -34,12 +34,12 @@ cssclasses:
   - wide-page
 ---
 
-# BargAIn — Optimizador Inteligente de Compra
+# BarGAIN — Optimizador Inteligente de Compra
 
 > [!info]
 > Esta nota se conserva como resumen ejecutivo del proyecto. La entrada principal de la bóveda es [[00 Dashboard/Inicio]].
 
-> [!abstract] ¿Qué es BargAIn?
+> [!abstract] ¿Qué es BarGAIN?
 > Aplicación web/móvil que optimiza la cesta de la compra cruzando **precio**, **distancia** y **tiempo** entre múltiples supermercados y comercios locales.
 
 ## Estado del Proyecto

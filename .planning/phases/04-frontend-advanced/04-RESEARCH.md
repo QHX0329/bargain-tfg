@@ -37,7 +37,7 @@
 
 ### Deferred Ideas (OUT OF SCOPE)
 
-- Crowdsource store suggestion flow (user suggests a Places result as a new BargAIn store → admin moderation queue).
+- Crowdsource store suggestion flow (user suggests a Places result as a new BarGAIN store → admin moderation queue).
 - "Buscar en Google Maps" for the web version of MapScreen.
 - Favorites for Places-only stores with auto-creation of Store DB records.
 </user_constraints>
@@ -312,7 +312,7 @@ useEffect(() => {
 
 **What goes wrong:** Autocomplete costs one SKU call per keystroke; `fetchDetails: true` adds a Place Details call per selection. At high usage this hits quota limits.
 **Why it happens:** The component automatically fires a Place Details request on every `onPress` when `fetchDetails` is true.
-**How to avoid:** This is acceptable for the BargAIn use case (TFG scope, not high traffic). The key mitigation is the backend 24h Redis cache for enrichment. For the frontend autocomplete, `fetchDetails: true` is required to get `geometry.location` for map panning — accept the cost.
+**How to avoid:** This is acceptable for the BarGAIN use case (TFG scope, not high traffic). The key mitigation is the backend 24h Redis cache for enrichment. For the frontend autocomplete, `fetchDetails: true` is required to get `geometry.location` for map panning — accept the cost.
 **Warning signs:** 429 responses from Places API in logs.
 
 ### Pitfall 4: `Store` model migration adds column without default
@@ -401,7 +401,7 @@ import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplet
   key={`places-${placeId}`}
   coordinate={{ latitude, longitude }}
   title={name}
-  pinColor="#9CA3AF"   // Tailwind gray-400 — clearly not a BargAIn chain marker
+  pinColor="#9CA3AF"   // Tailwind gray-400 — clearly not a BarGAIN chain marker
   onPress={() => setSelectedPlacesMarker({ name, address, placeId })}
 />
 ```

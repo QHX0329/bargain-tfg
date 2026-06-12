@@ -1,5 +1,5 @@
 /**
- * Entry point de la aplicación BargAIn.
+ * Entry point de la aplicación BarGAIN.
  *
  * Configura el NavigationContainer y renderiza el RootNavigator.
  * Llama a authStore.hydrate() en el montaje para restaurar la sesión

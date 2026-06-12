@@ -1,4 +1,4 @@
-"""Modelos de usuario personalizados para BargAIn."""
+"""Modelos de usuario personalizados para BarGAIN."""
 
 from django.contrib.auth.models import AbstractUser
 from django.contrib.gis.db import models as gis_models

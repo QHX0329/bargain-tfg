@@ -303,7 +303,7 @@ Use a custom `BargainResponse`:
 from rest_framework.response import Response
 
 def success_response(data, status=200) -> Response:
-    """Wraps data in BargAIn standard success envelope."""
+    """Wraps data in BarGAIN standard success envelope."""
     return Response({"success": True, "data": data}, status=status)
 ```
 

@@ -15,7 +15,7 @@ next_action: Trigger CI run to confirm archive generation/export end-to-end on G
 
 expected: Workflow should build and create .xcarchive, then export IPA successfully.
 actual: Export step cannot find archive at expected path and exits 65.
-errors: archive not found at /Users/runner/work/bargain-tfg/bargain-tfg/build/BargAIn.xcarchive
+errors: archive not found at /Users/runner/work/bargain-tfg/bargain-tfg/build/BarGAIN.xcarchive
 reproduction: Trigger iOS deploy workflow in GitHub Actions (staging iOS deployment).
 started: Current recurring CI failure; prior success unknown.
 
@@ -30,7 +30,7 @@ started: Current recurring CI failure; prior success unknown.
 
 - timestamp: 2026-04-10T08:51:42.3999965+02:00
 	checked: .github/workflows/*.yml for xcarchive/export usage
-	found: Only ios-build.yml uses xcodebuild archive/export, with archive step in frontend/ios using ../../build/BargAIn.xcarchive and export step using build/BargAIn.xcarchive.
+	found: Only ios-build.yml uses xcodebuild archive/export, with archive step in frontend/ios using ../../build/BarGAIN.xcarchive and export step using build/BarGAIN.xcarchive.
 	implication: Archive/export path handling is centralized in ios-build.yml and currently depends on relative-path assumptions across steps.
 
 - timestamp: 2026-04-10T08:53:32.6992605+02:00
@@ -60,7 +60,7 @@ started: Current recurring CI failure; prior success unknown.
 
 - timestamp: 2026-04-10T09:18:00.0000000+02:00
 	checked: Deterministic assertions over ios-build.yml path arguments
-	found: Legacy ../../build/BargAIn.xcarchive string is absent and all three -archivePath usages resolve to $ARCHIVE_PATH.
+	found: Legacy ../../build/BarGAIN.xcarchive string is absent and all three -archivePath usages resolve to $ARCHIVE_PATH.
 	implication: The original archive-path mismatch regression vector is statically eliminated in the current workflow file.
 
 - timestamp: 2026-04-10T10:04:00.0000000+02:00

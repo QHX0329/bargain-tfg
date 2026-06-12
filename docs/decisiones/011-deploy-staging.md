@@ -204,7 +204,7 @@ a `https://api.openrouteservice.org/v2/matrix/driving-car` con la API key como v
 ### Sideload iOS para la demo
 
 1. Ir a `.github/workflows/ios-build.yml` → Actions → Run workflow
-2. Descargar el artefacto `BargAIn-unsigned-*.ipa` del run
+2. Descargar el artefacto `BarGAIN-unsigned-*.ipa` del run
 3. En Windows: abrir Sideloadly → arrastrar el `.ipa` → conectar iPhone por USB
 4. Iniciar sesión con Apple ID gratuito → Install
 5. En iPhone: Settings → General → VPN & Device Management → confiar en el certificado

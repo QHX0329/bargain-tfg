@@ -8,7 +8,7 @@ area: proyecto
 estado: activo
 fuente:
   - docs/memoria/07-requisitos.md
-  - TFG/BargAIn — TFG.md
+  - TFG/BarGAIN — TFG.md
 actualizado: 2026-04-05
 relacionados:
   - "[[01 Proyecto/Mapa del Proyecto]]"
@@ -36,6 +36,6 @@ Activas.
 ## Fuente de verdad
 
 - `docs/memoria/07-requisitos.md`
-- `TFG/BargAIn — TFG.md`
+- `TFG/BarGAIN — TFG.md`
 
 

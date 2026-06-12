@@ -1,4 +1,4 @@
-﻿# Proyecto BargAIn
+﻿# Proyecto BarGAIN
 
 ## Snapshot (2026-04-05)
 

@@ -56,7 +56,7 @@ El contrato de la API REST (`POST /api/v1/assistant/chat/`) no cambia.
 - La dependencia `anthropic>=0.30` se elimina de `requirements/base.txt`.
   Se añade `google-generativeai>=0.8`.
 - Los tests unitarios del asistente mockean `google.generativeai` en lugar de `anthropic`.
-- El historial de mensajes se convierte internamente: el rol `"assistant"` de BargAIn se mapea
+- El historial de mensajes se convierte internamente: el rol `"assistant"` de BarGAIN se mapea
   a `"model"` en el protocolo Gemini antes de la llamada a la API.
 - La documentación de memoria del TFG (sección de herramientas y decisiones de diseño) debe
   reflejar Gemini como proveedor LLM activo.

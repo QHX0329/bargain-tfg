@@ -1,5 +1,5 @@
 /**
- * Design System de BargAIn — "Mercado Mediterráneo Digital"
+ * Design System de BarGAIN — "Mercado Mediterráneo Digital"
  *
  * Barrel export unificado. Importa siempre desde '@/theme', nunca
  * desde sub-archivos directamente, para mantener la API estable.

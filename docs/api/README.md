@@ -1,4 +1,4 @@
-﻿# Referencia de la API REST — BargAIn (Corte técnico v1.0)
+﻿# Referencia de la API REST — BarGAIN (Corte técnico v1.0)
 
 > Estado de sincronización: 2026-04-09. La API backend core y su consumo principal están cerrados para el hito técnico F7; la evolución posterior se gestiona como mantenimiento incremental según TASKS.md.
 
@@ -1140,7 +1140,7 @@ Si no se proporciona `name`, se usa el nombre de la plantilla.
 
 ---
 
-*Documentación generada para la Fase 1 del TFG BargAIn — ETSII-US, 2026.*
+*Documentación generada para la Fase 1 del TFG BarGAIN — ETSII-US, 2026.*
 
 
 

@@ -1,4 +1,4 @@
-"""Permisos personalizados para el portal business de BargAIn."""
+"""Permisos personalizados para el portal business de BarGAIN."""
 
 from rest_framework.permissions import BasePermission
 

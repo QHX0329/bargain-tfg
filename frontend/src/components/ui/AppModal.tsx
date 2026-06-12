@@ -1,5 +1,5 @@
 /**
- * AppModal — Modal personalizado del design system de BargAIn.
+ * AppModal — Modal personalizado del design system de BarGAIN.
  *
  * Reemplaza Alert.alert, Alert.prompt y window.prompt con un modal
  * diseñado acorde al sistema visual "Mercado Mediterráneo Digital".

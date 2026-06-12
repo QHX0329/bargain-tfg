@@ -1,5 +1,5 @@
 /**
- * Piezas compartidas del Tab Navigator principal de BargAIn.
+ * Piezas compartidas del Tab Navigator principal de BarGAIN.
  *
  * Tanto la variante nativa (MainTabs.tsx → material-top-tabs, con swipe lado-a-lado)
  * como la variante web (MainTabs.web.tsx → bottom-tabs, compatible con react-native-web)

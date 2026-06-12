@@ -206,7 +206,7 @@ export const AssistantScreen: React.FC = () => {
       id: "welcome",
       role: "assistant",
       content:
-        "¡Hola! Soy el asistente de compras de **BargAIn** 🛒\n\nPuedo ayudarte a comparar precios, encontrar ofertas y optimizar tu lista de la compra. ¿En qué puedo ayudarte hoy?",
+        "¡Hola! Soy el asistente de compras de **BarGAIN** 🛒\n\nPuedo ayudarte a comparar precios, encontrar ofertas y optimizar tu lista de la compra. ¿En qué puedo ayudarte hoy?",
       timestamp: new Date().toISOString(),
     },
   ]);
@@ -317,7 +317,7 @@ export const AssistantScreen: React.FC = () => {
             <Ionicons name="sparkles" size={20} color={colors.white} />
           </View>
           <View>
-            <Text style={styles.headerTitle}>Asistente BargAIn</Text>
+            <Text style={styles.headerTitle}>Asistente BarGAIN</Text>
             <View style={styles.statusRow}>
               <View style={styles.onlineDot} />
               <Text style={styles.statusText}>IA de compras</Text>

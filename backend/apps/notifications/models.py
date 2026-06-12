@@ -1,4 +1,4 @@
-"""Modelos del sistema de notificaciones de BargAIn."""
+"""Modelos del sistema de notificaciones de BarGAIN."""
 
 from django.conf import settings
 from django.db import models

@@ -1,5 +1,5 @@
 /**
- * Utilidades de conveniencia web para BargAIn.
+ * Utilidades de conveniencia web para BarGAIN.
  *
  * Todas las funciones están protegidas con Platform.OS !== 'web'
  * para garantizar comportamiento no-op en dispositivos nativos.

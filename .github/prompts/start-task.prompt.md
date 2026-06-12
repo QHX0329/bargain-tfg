@@ -1,10 +1,10 @@
 ---
-description: "Start a BargAIn task with project protocol: read tracker files, set task in progress, identify scope, and produce a short execution checklist."
-name: "Start BargAIn Task"
+description: "Start a BarGAIN task with project protocol: read tracker files, set task in progress, identify scope, and produce a short execution checklist."
+name: "Start BarGAIN Task"
 argument-hint: "Task ID and goal, e.g. F3-02 implementar login JWT"
 agent: "agent"
 ---
-Prepare a clean task kickoff for BargAIn.
+Prepare a clean task kickoff for BarGAIN.
 
 Input to use:
 - Task identifier and objective: ${input:Task}

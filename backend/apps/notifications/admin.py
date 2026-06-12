@@ -1,4 +1,4 @@
-"""Admin para el módulo de notificaciones de BargAIn."""
+"""Admin para el módulo de notificaciones de BarGAIN."""
 
 from django.contrib import admin
 

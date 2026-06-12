@@ -1,10 +1,10 @@
 ---
-description: "Close a BargAIn task by validating changes, updating TASKS.md, checking docs impact, and generating a PR-ready summary."
-name: "Close BargAIn Task"
+description: "Close a BarGAIN task by validating changes, updating TASKS.md, checking docs impact, and generating a PR-ready summary."
+name: "Close BarGAIN Task"
 argument-hint: "Task ID and completion note, e.g. F3-02 login JWT completado"
 agent: "agent"
 ---
-Run a task closure workflow for BargAIn.
+Run a task closure workflow for BarGAIN.
 
 Input to use:
 - Task identifier and completion note: ${input:Task}

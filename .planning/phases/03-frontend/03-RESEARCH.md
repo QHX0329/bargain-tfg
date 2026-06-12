@@ -420,7 +420,7 @@ const UnverifiedGuard: React.FC<{ children: ReactNode }> = ({ children }) => {
 {
   "plugins": [
     ["expo-location", {
-      "locationAlwaysAndWhenInUsePermission": "BargAIn necesita tu ubicación para mostrar tiendas cercanas."
+      "locationAlwaysAndWhenInUsePermission": "BarGAIN necesita tu ubicación para mostrar tiendas cercanas."
     }]
   ]
 }

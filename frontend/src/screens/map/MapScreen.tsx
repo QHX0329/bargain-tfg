@@ -732,7 +732,7 @@ export const MapScreen: React.FC = () => {
               <View style={styles.markerCalloutContent}>
                 <Text style={styles.markerCalloutTitle}>{marker.name}</Text>
                 <Text style={styles.markerCalloutMeta}>
-                  Tienda no disponible en BargAIn
+                  Tienda no disponible en BarGAIN
                 </Text>
                 <Text style={styles.markerCalloutAddress} numberOfLines={2}>
                   {marker.address}

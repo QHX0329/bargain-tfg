@@ -1,6 +1,6 @@
 ---
-description: "Use when editing Django backend code in backend/**/*.py, including models, serializers, viewsets, services, tasks, and tests. Enforces BargAIn backend quality and validation flow."
-name: "BargAIn Backend Python Rules"
+description: "Use when editing Django backend code in backend/**/*.py, including models, serializers, viewsets, services, tasks, and tests. Enforces BarGAIN backend quality and validation flow."
+name: "BarGAIN Backend Python Rules"
 applyTo: "backend/**/*.py"
 ---
 

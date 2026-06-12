@@ -1,5 +1,5 @@
 /**
- * Tipos de dominio de BargAIn.
+ * Tipos de dominio de BarGAIN.
  *
  * Estos tipos reflejan los modelos del backend (ver CLAUDE.md).
  * Las propiedades opcionales pueden no estar presentes en respuestas

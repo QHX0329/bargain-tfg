@@ -18,7 +18,7 @@ BarGAIN necesita un OCR más robusto para:
 - un backend que ya opera con integraciones externas controladas.
 
 ## Decisión
-Se adopta **Google Cloud Vision API** como proveedor OCR backend para BargAIn.
+Se adopta **Google Cloud Vision API** como proveedor OCR backend para BarGAIN.
 
 La decisión afecta a la documentación y al diseño objetivo de F5/F6. El repositorio todavía
 contiene implementación basada en Tesseract; esa base queda considerada **legado en migración**

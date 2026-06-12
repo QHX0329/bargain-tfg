@@ -59,7 +59,7 @@ Pasos clave:
 6. `pod install --repo-update`
 7. Build `.xcarchive` con descubrimiento dinámico de workspace y scheme — no hardcoded
 8. Export `.ipa` con `frontend/ExportOptions.plist`
-9. Upload artifact `BargAIn-unsigned-{sha}` con retención 7 días
+9. Upload artifact `BarGAIN-unsigned-{sha}` con retención 7 días
 
 ### `frontend/ExportOptions.plist`
 Configuración de exportación unsigned para Sideloadly:

@@ -1,5 +1,5 @@
 /**
- * Navegador raíz de la aplicación BargAIn.
+ * Navegador raíz de la aplicación BarGAIN.
  *
  * Gestiona la bifurcación entre:
  * - Auth Stack (Login/Register) → si no hay token

@@ -1,5 +1,5 @@
 /**
- * [C02] ProductCard — Tarjeta de producto del design system de BargAIn.
+ * [C02] ProductCard — Tarjeta de producto del design system de BarGAIN.
  *
  * Dos variantes de layout:
  *

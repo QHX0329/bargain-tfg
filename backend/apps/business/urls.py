@@ -1,4 +1,4 @@
-"""URLs del módulo business de BargAIn."""
+"""URLs del módulo business de BarGAIN."""
 
 from rest_framework.routers import DefaultRouter
 

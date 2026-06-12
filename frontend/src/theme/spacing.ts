@@ -1,5 +1,5 @@
 /**
- * Espaciado, bordes y sombras de BargAIn — "Mercado Mediterráneo Digital"
+ * Espaciado, bordes y sombras de BarGAIN — "Mercado Mediterráneo Digital"
  *
  * Grid base: 8pt (mínimo 4pt para detalles finos).
  * Todos los valores son múltiplos de 4 para alineación pixel-perfect en
@@ -107,7 +107,7 @@ const _buildShadow = (
 
 export const shadows = {
   /**
-   * card — sombra cálida de cards con tinte naranja BargAIn.
+   * card — sombra cálida de cards con tinte naranja BarGAIN.
    * 0 2px 12px rgba(232,84,26, 0.08)
    */
   card: _buildShadow("#E8541A", 0, 2, 6, 0.08, 2),

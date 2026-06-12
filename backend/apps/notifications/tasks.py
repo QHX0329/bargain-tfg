@@ -1,4 +1,4 @@
-"""Tareas Celery del módulo de notificaciones de BargAIn."""
+"""Tareas Celery del módulo de notificaciones de BarGAIN."""
 
 import redis as redis_lib
 import structlog

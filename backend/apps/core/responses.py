@@ -1,11 +1,11 @@
-"""Helpers de respuesta estándar para la API de BargAIn."""
+"""Helpers de respuesta estándar para la API de BarGAIN."""
 
 from rest_framework import status as http_status
 from rest_framework.response import Response
 
 
 def success_response(data: object, status: int = http_status.HTTP_200_OK) -> Response:
-    """Devuelve una respuesta de éxito con el formato estándar de BargAIn.
+    """Devuelve una respuesta de éxito con el formato estándar de BarGAIN.
 
     Args:
         data: Datos a incluir en el campo ``data`` de la respuesta.

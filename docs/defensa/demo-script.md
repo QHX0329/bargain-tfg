@@ -1,4 +1,4 @@
-# Script de Demo Grabada — BargAIn TFG
+# Script de Demo Grabada — BarGAIN TFG
 
 **Duración objetivo:** 3-4 minutos
 **Herramienta de grabación:** OBS Studio (recomendado) o QuickTime (Mac)
@@ -22,7 +22,7 @@
 **Pantalla:** iPhone (captura via Quicktime o grabación directa)
 
 **Acciones:**
-1. Abrir la app BargAIn en iPhone
+1. Abrir la app BarGAIN en iPhone
 2. Mostrar pantalla de login (3 segundos)
 3. Hacer login con `demo@bargain.local`
 4. Navegar a "Mis Listas"
@@ -116,7 +116,7 @@ flujo de aprobación del administrador antes de ser visibles al usuario final."
 - [ ] Añadir subtítulos si es vídeo sin narración
 - [ ] Exportar a MP4, resolución 1080p
 - [ ] Duración final: entre 3 min 30 s y 4 min
-- [ ] Nombrar: `BargAIn-demo-defensa.mp4`
+- [ ] Nombrar: `BarGAIN-demo-defensa.mp4`
 
 ---
 

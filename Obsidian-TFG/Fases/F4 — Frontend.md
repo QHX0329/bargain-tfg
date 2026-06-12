@@ -23,7 +23,7 @@ relacionados:
 
 # F4 — Frontend
 
-[[BargAIn — TFG|← Volver al proyecto]]
+[[BarGAIN — TFG|← Volver al proyecto]]
 [[02 Gestión/Roadmap y Fases|Mapa de fases]]
 
 ## Resumen

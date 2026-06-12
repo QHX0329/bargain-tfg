@@ -1,8 +1,8 @@
-# BargAIn
+# BarGAIN
 
 ## What This Is
 
-BargAIn es una aplicacion movil y web de compra inteligente para el mercado espanol que optimiza la cesta de la compra cruzando precio, distancia y tiempo entre multiples supermercados y comercios locales. El sistema calcula la combinacion optima de paradas para maximizar el ahorro real del usuario.
+BarGAIN es una aplicacion movil y web de compra inteligente para el mercado espanol que optimiza la cesta de la compra cruzando precio, distancia y tiempo entre multiples supermercados y comercios locales. El sistema calcula la combinacion optima de paradas para maximizar el ahorro real del usuario.
 
 ## Core Value
 

@@ -1,4 +1,4 @@
-"""Modelos de tiendas y cadenas comerciales para BargAIn."""
+"""Modelos de tiendas y cadenas comerciales para BarGAIN."""
 
 from django.contrib.gis.db import models as gis_models
 from django.contrib.postgres.indexes import GistIndex

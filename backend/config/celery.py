@@ -1,4 +1,4 @@
-"""Configuracion de Celery para el proyecto BargAIn."""
+"""Configuracion de Celery para el proyecto BarGAIN."""
 
 import os
 

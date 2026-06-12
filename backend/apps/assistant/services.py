@@ -1,5 +1,5 @@
 """
-Servicio de asistente LLM para BargAIn.
+Servicio de asistente LLM para BarGAIN.
 
 Proxy hacia la API de Google Gemini con guardarraíles de dominio de compras,
 truncado de historial y logging estructurado.
@@ -18,7 +18,7 @@ logger = structlog.get_logger(__name__)
 # ── Prompt del sistema ────────────────────────────────
 
 SYSTEM_PROMPT = (
-    "Eres BargAIn, un asistente de compra inteligente para Espana. "
+    "Eres BarGAIN, un asistente de compra inteligente para Espana. "
     "Tu unica funcion es ayudar a los usuarios con: comparacion de precios de productos, "
     "sugerencias para su lista de la compra y recetas economicas con ingredientes disponibles. "
     "Si el usuario pregunta algo fuera de estos temas, responde amablemente: "
@@ -34,7 +34,7 @@ GEMINI_MODEL = getattr(settings, "GEMINI_MODEL", "gemini-2.0-flash-lite")
 
 
 def _to_gemini_contents(messages: list[dict]) -> list[types.Content]:
-    """Convierte mensajes del formato BargAIn al formato Gemini.
+    """Convierte mensajes del formato BarGAIN al formato Gemini.
 
     Gemini usa el rol "model" en lugar de "assistant".
     """

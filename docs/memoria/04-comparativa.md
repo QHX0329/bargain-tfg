@@ -2,11 +2,11 @@
 
 ## 4.1 Mapa del panorama competitivo
 
-El análisis competitivo de BargAIn requiere identificar distintos niveles de competencia en función de la proximidad de la propuesta de valor. Se distinguen cuatro categorías: competidores directos, competidores indirectos, soluciones adyacentes y sustitutos no tecnológicos.
+El análisis competitivo de BarGAIN requiere identificar distintos niveles de competencia en función de la proximidad de la propuesta de valor. Se distinguen cuatro categorías: competidores directos, competidores indirectos, soluciones adyacentes y sustitutos no tecnológicos.
 
 ### 4.1.1 Competidores directos
 
-Los competidores directos son aquellos productos que intentan resolver el mismo problema (optimizar la cesta de la compra en precio) para el mismo segmento de usuarios (consumidor final en España). Se han identificado cinco aplicaciones que compiten directamente con BargAIn en el mercado español:
+Los competidores directos son aquellos productos que intentan resolver el mismo problema (optimizar la cesta de la compra en precio) para el mismo segmento de usuarios (consumidor final en España). Se han identificado cinco aplicaciones que compiten directamente con BarGAIN en el mercado español:
 
 **Soysuper** es la aplicación de referencia en el mercado español de comparación de precios en supermercados. Fundada en 2013 en Madrid, ofrece cobertura de nueve cadenas nacionales y un catálogo de más de 130.000 productos. Su propuesta de valor se centra en la creación de listas de la compra y la comparación simultánea de su coste en múltiples supermercados, con integración de lectura de código de barras y recomendación de establecimientos por código postal. Carece completamente de optimización de rutas y de asistencia por IA.
 
@@ -49,7 +49,7 @@ La siguiente figura resume el posicionamiento de los principales actores en dos 
 ```
                         OPTIMIZACIÓN ALTA
                               │
-                              │             ● BargAIn
+                              │             ● BarGAIN
                               │              (objetivo)
                               │
   UNA SOLA   ─────────────────┼──────────────────────── MÚLTIPLES
@@ -62,21 +62,21 @@ La siguiente figura resume el posicionamiento de los principales actores en dos 
                         (presentación de información)
 ```
 
-*Figura 4.1. Mapa de posicionamiento competitivo de BargAIn respecto a los principales competidores. Elaboración propia.*
+*Figura 4.1. Mapa de posicionamiento competitivo de BarGAIN respecto a los principales competidores. Elaboración propia.*
 
-BargAIn ocupa la posición superior derecha del mapa —alta optimización y cobertura multisupermercado incluyendo PYMEs—, un espacio que ningún competidor actual ocupa.
+BarGAIN ocupa la posición superior derecha del mapa —alta optimización y cobertura multisupermercado incluyendo PYMEs—, un espacio que ningún competidor actual ocupa.
 
 ---
 
 ## 4.2 Matriz de comparación de características
 
-El Cuadro 4.1 recoge la comparación detallada de funcionalidades entre BargAIn y los cinco competidores directos identificados en la sección anterior. Para cada característica se emplea la siguiente escala:
+El Cuadro 4.1 recoge la comparación detallada de funcionalidades entre BarGAIN y los cinco competidores directos identificados en la sección anterior. Para cada característica se emplea la siguiente escala:
 
 - **✅ Completo:** Funcionalidad madura y bien ejecutada, diferenciadora o comparable al mejor de su clase.
 - **⚠️ Parcial:** La funcionalidad existe pero con limitaciones significativas (cobertura reducida, actualización infrecuente, UX deficiente).
 - **❌ Ausente:** La funcionalidad no está disponible.
 
-| **Área** | **Característica** | **BargAIn** | **Soysuper** | **Findit** | **OCU Market** | **PreciRadar** | **RadarPrice** |
+| **Área** | **Característica** | **BarGAIN** | **Soysuper** | **Findit** | **OCU Market** | **PreciRadar** | **RadarPrice** |
 |---|---|:---:|:---:|:---:|:---:|:---:|:---:|
 | **Datos de precios** | Cobertura grandes cadenas (≥5) | ✅ | ✅ | ✅ | ✅ | ⚠️ (2) | ✅ |
 | | Actualización diaria / en tiempo real | ✅ | ⚠️ | ⚠️ | ⚠️ | ✅ | ⚠️ |
@@ -104,19 +104,19 @@ El Cuadro 4.1 recoge la comparación detallada de funcionalidades entre BargAIn 
 | | Versión web | ✅ | ✅ | ⚠️ | ✅ | ✅ | ⚠️ |
 | | Modo offline parcial | ⚠️ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
-*Cuadro 4.1. Matriz de comparación de características entre BargAIn y sus competidores directos. Las celdas marcadas como ⚠️ (CP) en Soysuper indican que la geolocalización se realiza por código postal, no por GPS en tiempo real. Elaboración propia.*
+*Cuadro 4.1. Matriz de comparación de características entre BarGAIN y sus competidores directos. Las celdas marcadas como ⚠️ (CP) en Soysuper indican que la geolocalización se realiza por código postal, no por GPS en tiempo real. Elaboración propia.*
 
 Del análisis del Cuadro 4.1 se extraen las siguientes observaciones:
 
-La característica que más claramente diferencia a BargAIn del resto de competidores es la **optimización de ruta multi-parada** con ponderación multicriterio (precio + distancia + tiempo). Ningún competidor directo implementa esta funcionalidad.
+La característica que más claramente diferencia a BarGAIN del resto de competidores es la **optimización de ruta multi-parada** con ponderación multicriterio (precio + distancia + tiempo). Ningún competidor directo implementa esta funcionalidad.
 
-La **digitalización por OCR** de listas y tickets es igualmente exclusiva de BargAIn entre los competidores analizados.
+La **digitalización por OCR** de listas y tickets es igualmente exclusiva de BarGAIN entre los competidores analizados.
 
 El **asistente conversacional basado en LLM** no tiene equivalente en ninguna de las aplicaciones del mercado español.
 
-La **inclusión de PYMEs y comercios locales** como actores del sistema es una característica única de BargAIn que abre un espacio de mercado completamente inexplorado.
+La **inclusión de PYMEs y comercios locales** como actores del sistema es una característica única de BarGAIN que abre un espacio de mercado completamente inexplorado.
 
-Los competidores más fuertes (Soysuper y OCU Market) superan a BargAIn en cobertura de cadenas y en madurez del histórico de precios, dada su mayor antigüedad en el mercado. Estas son áreas donde BargAIn deberá crecer progresivamente.
+Los competidores más fuertes (Soysuper y OCU Market) superan a BarGAIN en cobertura de cadenas y en madurez del histórico de precios, dada su mayor antigüedad en el mercado. Estas son áreas donde BarGAIN deberá crecer progresivamente.
 
 ---
 
@@ -134,9 +134,9 @@ Cada competidor ha construido un posicionamiento diferenciado dentro del espacio
 
 **RadarPrice** se posiciona como la «navaja suiza del ahorro»: un ecosistema de descuentos que va más allá de los supermercados, integrando gasolineras, cupones físicos y programas de puntos.
 
-### 4.3.2 Posicionamiento de BargAIn
+### 4.3.2 Posicionamiento de BarGAIN
 
-BargAIn se posiciona en una categoría propia, que puede formularse como: **optimizador inteligente de la cesta de la compra**. A diferencia de los comparadores tradicionales, que presentan información de precios para que el usuario tome la decisión, BargAIn toma la decisión por el usuario calculando la combinación óptima de tiendas y ruta, ponderando las preferencias individuales del consumidor.
+BarGAIN se posiciona en una categoría propia, que puede formularse como: **optimizador inteligente de la cesta de la compra**. A diferencia de los comparadores tradicionales, que presentan información de precios para que el usuario tome la decisión, BarGAIN toma la decisión por el usuario calculando la combinación óptima de tiendas y ruta, ponderando las preferencias individuales del consumidor.
 
 La propuesta de valor se articula en torno a tres mensajes principales:
 
@@ -150,33 +150,33 @@ La propuesta de valor se articula en torno a tres mensajes principales:
 
 ### 4.4.1 Brechas identificadas en el mercado
 
-A partir del análisis de competidores y de las tendencias del mercado descritas en el Capítulo 3, se identifican las siguientes brechas estratégicas que BargAIn aborda:
+A partir del análisis de competidores y de las tendencias del mercado descritas en el Capítulo 3, se identifican las siguientes brechas estratégicas que BarGAIN aborda:
 
-**Brecha 1 — El gap precio-ruta.** Todos los competidores analizados finalizan su análisis en «esta tienda tiene mejor precio para tu lista». Ninguno responde a la pregunta completa del consumidor: «¿cuánto me voy a gastar en realidad, incluyendo ir a buscar los productos?». Esta brecha es la más significativa y la que fundamenta el algoritmo de optimización multicriterio de BargAIn.
+**Brecha 1 — El gap precio-ruta.** Todos los competidores analizados finalizan su análisis en «esta tienda tiene mejor precio para tu lista». Ninguno responde a la pregunta completa del consumidor: «¿cuánto me voy a gastar en realidad, incluyendo ir a buscar los productos?». Esta brecha es la más significativa y la que fundamenta el algoritmo de optimización multicriterio de BarGAIN.
 
-**Brecha 2 — El comercio local invisible.** El 100% de los competidores directos se centra en las grandes cadenas nacionales. Los mercados municipales, las tiendas de barrio y las empresas alimentarias locales —que pueden ser especialmente competitivos en productos frescos— no tienen representación en ninguna plataforma de comparación de precios. BargAIn incorpora un portal específico para PYMEs que les permite publicar sus precios y captar clientes que de otro modo no considerarían su establecimiento.
+**Brecha 2 — El comercio local invisible.** El 100% de los competidores directos se centra en las grandes cadenas nacionales. Los mercados municipales, las tiendas de barrio y las empresas alimentarias locales —que pueden ser especialmente competitivos en productos frescos— no tienen representación en ninguna plataforma de comparación de precios. BarGAIN incorpora un portal específico para PYMEs que les permite publicar sus precios y captar clientes que de otro modo no considerarían su establecimiento.
 
-**Brecha 3 — La fricción de la lista.** La creación manual de la lista de la compra es el principal punto de abandono en las aplicaciones de comparación. El OCR de BargAIn permite digitalizar automáticamente una lista escrita a mano o extraer los productos de un ticket anterior, reduciendo a cero el esfuerzo de creación de la lista para el caso de uso más frecuente (reutilizar una compra anterior).
+**Brecha 3 — La fricción de la lista.** La creación manual de la lista de la compra es el principal punto de abandono en las aplicaciones de comparación. El OCR de BarGAIN permite digitalizar automáticamente una lista escrita a mano o extraer los productos de un ticket anterior, reduciendo a cero el esfuerzo de creación de la lista para el caso de uso más frecuente (reutilizar una compra anterior).
 
-**Brecha 4 — La consulta en lenguaje natural.** El paradigma actual de interacción con comparadores de precios es el de búsqueda por producto (el usuario introduce el nombre de un artículo). Este paradigma no permite consultas complejas como «¿qué me conviene más, ir a Mercadona o a Lidl esta semana dado que tengo una lista de 20 artículos y no quiero alejarme más de 2 km?». El asistente conversacional de BargAIn, basado en la API de Gemini, responde precisamente a este tipo de consultas.
+**Brecha 4 — La consulta en lenguaje natural.** El paradigma actual de interacción con comparadores de precios es el de búsqueda por producto (el usuario introduce el nombre de un artículo). Este paradigma no permite consultas complejas como «¿qué me conviene más, ir a Mercadona o a Lidl esta semana dado que tengo una lista de 20 artículos y no quiero alejarme más de 2 km?». El asistente conversacional de BarGAIN, basado en la API de Gemini, responde precisamente a este tipo de consultas.
 
 ### 4.4.2 Riesgos competitivos
 
-El análisis de brechas debe equilibrarse con una valoración honesta de los riesgos competitivos que BargAIn enfrenta.
+El análisis de brechas debe equilibrarse con una valoración honesta de los riesgos competitivos que BarGAIN enfrenta.
 
 El primer riesgo es la **amenaza de extensión de Soysuper o aplicaciones similares**: dado que Soysuper ya dispone de los datos de precios y de la base de usuarios, podría añadir una capa de geolocalización y optimización de rutas con una inversión relativamente moderada. Sin embargo, la experiencia en desarrollo de software de optimización combinatoria (OR-Tools, PostGIS) y de sistemas de LLM representa una barrera técnica no trivial.
 
 El segundo riesgo es la **amenaza de las propias cadenas**: Mercadona o Carrefour podrían lanzar herramientas de comparación con competidores si la regulación o la presión del mercado lo favoreciera. Este escenario, aunque improbable a corto plazo, debe monitorizarse.
 
-El tercer riesgo es la **dificultad de obtención de datos**: el scraping de supermercados puede verse limitado por cambios en los términos de servicio de las cadenas o por mejoras en sus sistemas anti-bot. La diversificación de fuentes (scraping + crowdsourcing + APIs oficiales cuando existan) es la estrategia de mitigación adoptada por BargAIn.
+El tercer riesgo es la **dificultad de obtención de datos**: el scraping de supermercados puede verse limitado por cambios en los términos de servicio de las cadenas o por mejoras en sus sistemas anti-bot. La diversificación de fuentes (scraping + crowdsourcing + APIs oficiales cuando existan) es la estrategia de mitigación adoptada por BarGAIN.
 
 ---
 
-## 4.5 Resumen de ventajas competitivas de BargAIn
+## 4.5 Resumen de ventajas competitivas de BarGAIN
 
-El Cuadro 4.2 resume las ventajas competitivas de BargAIn en términos del marco de análisis de Porter [22]:
+El Cuadro 4.2 resume las ventajas competitivas de BarGAIN en términos del marco de análisis de Porter [22]:
 
-| **Dimensión competitiva** | **Posición de BargAIn** | **Fundamento** |
+| **Dimensión competitiva** | **Posición de BarGAIN** | **Fundamento** |
 |---|---|---|
 | Diferenciación de producto | Alta | Única app con optimización de ruta + precios en España |
 | Barreras técnicas de entrada | Medias-Altas | Complejidad de OR-Tools + PostGIS + LLM + Scraping |
@@ -185,9 +185,9 @@ El Cuadro 4.2 resume las ventajas competitivas de BargAIn en términos del marco
 | Experiencia de usuario (OCR) | Diferenciadora | Eliminación de fricción en creación de lista |
 | Asistencia por IA | Sin competencia directa | Único LLM assistant en el sector en España |
 
-*Cuadro 4.2. Resumen de posición competitiva de BargAIn. Elaboración propia.*
+*Cuadro 4.2. Resumen de posición competitiva de BarGAIN. Elaboración propia.*
 
-En conclusión, BargAIn no compite frontalmente con Soysuper u OCU Market en el espacio de la comparación pura de precios, donde éstos tienen ventajas de madurez y base de datos. En cambio, define una categoría nueva —el optimizador multicriterio de la cesta de la compra— donde ocupa una posición de pionero en el mercado español, con una propuesta de valor que integra de forma sinérgica cuatro capacidades tecnológicas (scraping, geolocalización, OCR y LLM) que los competidores actuales no combinan.
+En conclusión, BarGAIN no compite frontalmente con Soysuper u OCU Market en el espacio de la comparación pura de precios, donde éstos tienen ventajas de madurez y base de datos. En cambio, define una categoría nueva —el optimizador multicriterio de la cesta de la compra— donde ocupa una posición de pionero en el mercado español, con una propuesta de valor que integra de forma sinérgica cuatro capacidades tecnológicas (scraping, geolocalización, OCR y LLM) que los competidores actuales no combinan.
 
 ---
 

@@ -1,5 +1,5 @@
 """
-Excepciones personalizadas para la API de BargAIn.
+Excepciones personalizadas para la API de BarGAIN.
 
 Todas las respuestas de error siguen el formato estándar:
     {
@@ -21,7 +21,7 @@ def bargain_exception_handler(exc: Exception, context: dict) -> object:
     """
     Handler global de excepciones para DRF.
 
-    Envuelve todas las respuestas de error en el formato estándar de BargAIn.
+    Envuelve todas las respuestas de error en el formato estándar de BarGAIN.
     Registrar en settings: EXCEPTION_HANDLER = 'apps.core.exceptions.bargain_exception_handler'
     """
     response = exception_handler(exc, context)
@@ -54,7 +54,7 @@ def bargain_exception_handler(exc: Exception, context: dict) -> object:
 
 
 class BargainAPIException(APIException):
-    """Excepción base para todos los errores de BargAIn."""
+    """Excepción base para todos los errores de BarGAIN."""
 
     status_code = status.HTTP_400_BAD_REQUEST
     default_code = "bargain_error"

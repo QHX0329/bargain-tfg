@@ -274,13 +274,13 @@ class ShoppingListViewSet(viewsets.ModelViewSet):
             if user.email:
                 inviter = request.user
                 send_mail(
-                    subject=f"[BargAIn] Invitación a lista compartida: {shopping_list.name}",
+                    subject=f"[BarGAIN] Invitación a lista compartida: {shopping_list.name}",
                     message=(
                         f"Hola {user.get_full_name() or user.username},\n\n"
                         f"{inviter.get_full_name() or inviter.username} te ha invitado "
-                        f"a colaborar en la lista «{shopping_list.name}» en BargAIn.\n\n"
+                        f"a colaborar en la lista «{shopping_list.name}» en BarGAIN.\n\n"
                         "Abre la app para ver la lista compartida.\n\n"
-                        "— El equipo de BargAIn"
+                        "— El equipo de BarGAIN"
                     ),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[user.email],

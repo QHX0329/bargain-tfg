@@ -70,7 +70,7 @@ gh issue create --repo $REPO --milestone "F1 — Análisis y Diseño" \
   --title "📄 Especificación de actores del sistema" \
   --label "tipo:documentacion,prioridad:critica,fase:F1,semana:S1" \
   --body "## Descripción
-Definir los actores del sistema BargAIn: Consumidor, Comercio/PYME, Admin, Sistema (Scraper).
+Definir los actores del sistema BarGAIN: Consumidor, Comercio/PYME, Admin, Sistema (Scraper).
 
 ## Tareas
 - [ ] Definir permisos por actor

@@ -64,7 +64,7 @@ Plan: Not started
 - 07-02: Fixture JPEG mínimo (1x1 px) versionado en e2e/fixtures/ para independencia de archivos externos
 - 07-03: Descubrimiento dinamico de workspace/scheme con ls + xcodebuild -list para evitar nombres hardcoded tras expo prebuild
 - 07-03: method ad-hoc en ExportOptions.plist permite re-firma con Sideloadly y Apple ID gratuito
-- 07-04: Capítulos 8-11 convertidos a LaTeX (cap08-11.tex); proyect.tex con fuente Helvetica y metadatos BargAIn
+- 07-04: Capítulos 8-11 convertidos a LaTeX (cap08-11.tex); proyect.tex con fuente Helvetica y metadatos BarGAIN
 - 07-05: Slides Marp en docs/defensa/slides.md; outline 20 slides 7 bloques ETSII; demo script 5 escenas
 - 13-04: Desktop map panel 320px right-side via flexDirection row in MapScreen.web.tsx; mobile bottom-panel preserved
 - 13-04: StoreProfile two-column desktop split using flex:1 each side, spacing.xl gap; copy address + share URL web-only (Platform.OS=web guard)

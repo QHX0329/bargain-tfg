@@ -1,5 +1,5 @@
 /**
- * Definición de tipos para el sistema de navegación de BargAIn.
+ * Definición de tipos para el sistema de navegación de BarGAIN.
  *
  * Tipado fuerte para todas las rutas y sus parámetros.
  */

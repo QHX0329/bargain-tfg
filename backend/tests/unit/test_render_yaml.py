@@ -102,8 +102,12 @@ def test_render_yaml_web_cors_origins_include_github_pages(render_config):
     env_vars = web_service.get("envVars", [])
     assert isinstance(env_vars, list), "envVars del servicio web debe ser una lista"
 
-    cors_entry = next((entry for entry in env_vars if entry.get("key") == "CORS_ALLOWED_ORIGINS"), None)
-    assert cors_entry is not None, "No se encontró CORS_ALLOWED_ORIGINS en envVars del servicio web"
+    cors_entry = next(
+        (entry for entry in env_vars if entry.get("key") == "CORS_ALLOWED_ORIGINS"), None
+    )
+    assert cors_entry is not None, (
+        "No se encontró CORS_ALLOWED_ORIGINS en envVars del servicio web"
+    )
 
     raw_value = cors_entry.get("value")
     assert isinstance(raw_value, str) and raw_value.strip(), (

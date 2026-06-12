@@ -1,10 +1,10 @@
 ---
-description: "Sync a BargAIn task status across TASKS.md, local notes, and GitHub issue references with a concise status report."
-name: "Sync BargAIn Task"
+description: "Sync a BarGAIN task status across TASKS.md, local notes, and GitHub issue references with a concise status report."
+name: "Sync BarGAIN Task"
 argument-hint: "Task ID and target status, e.g. F2-09 -> in-progress"
 agent: "agent"
 ---
-Run a task synchronization workflow for BargAIn.
+Run a task synchronization workflow for BarGAIN.
 
 Input to use:
 - Task identifier and desired status: ${input:Task}

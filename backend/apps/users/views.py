@@ -97,7 +97,7 @@ class PasswordResetRequestView(APIView):
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             reset_link = f"http://localhost:8081/reset-password?uid={uid}&token={token}"
             send_mail(
-                subject="Restablecer contraseña — BargAIn",
+                subject="Restablecer contraseña — BarGAIN",
                 message=f"Usa este enlace para restablecer tu contraseña: {reset_link}",
                 from_email="noreply@bargain.app",
                 recipient_list=[email],

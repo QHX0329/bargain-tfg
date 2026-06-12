@@ -1,5 +1,5 @@
 """
-Tests de integración para el endpoint del asistente LLM de BargAIn.
+Tests de integración para el endpoint del asistente LLM de BarGAIN.
 
 Cubre: autenticación, validación, respuesta 200, 400, 401, 503.
 El servicio de backend (chat_with_assistant) siempre se mockea.

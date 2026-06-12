@@ -1,5 +1,5 @@
 """
-Tests unitarios para el servicio del asistente LLM de BargAIn.
+Tests unitarios para el servicio del asistente LLM de BarGAIN.
 
 Verifica truncado de historial, modelo, system prompt y manejo de errores
 sin llamar a la API real (google.genai siempre mockeado).

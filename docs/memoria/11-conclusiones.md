@@ -2,7 +2,7 @@
 
 ## 11.1 Grado de cumplimiento
 
-El proyecto BargAIn ha completado todos los bloques de desarrollo planificados:
+El proyecto BarGAIN ha completado todos los bloques de desarrollo planificados:
 
 - **F1:** análisis, requisitos y diseño de arquitectura.
 - **F2:** infraestructura base de desarrollo y CI/CD.
@@ -50,4 +50,4 @@ El sistema está desplegado en staging (Render.com) y los cuatro flujos E2E crí
 
 ## 11.6 Cierre
 
-BargAIn demuestra que es posible construir, en el marco de un TFG, un sistema full-stack de complejidad real que integra optimización combinatoria, geoespacial, procesamiento de imágenes, generación de lenguaje natural y scraping automatizado bajo una arquitectura coherente y verificada. El proyecto cumple todos los objetivos planteados en la fase de análisis y deja una base técnica sólida para su evolución como producto real.
+BarGAIN demuestra que es posible construir, en el marco de un TFG, un sistema full-stack de complejidad real que integra optimización combinatoria, geoespacial, procesamiento de imágenes, generación de lenguaje natural y scraping automatizado bajo una arquitectura coherente y verificada. El proyecto cumple todos los objetivos planteados en la fase de análisis y deja una base técnica sólida para su evolución como producto real.

@@ -1,4 +1,4 @@
-# Valoración de la memoria del TFG «BargAIn» — Segunda revisión (post-correcciones)
+# Valoración de la memoria del TFG «BarGAIN» — Segunda revisión (post-correcciones)
 
 > **Rol del revisor:** catedrático de Ingeniería del Software actuando como miembro de tribunal estricto.
 > **Documento evaluado:** `proyect-final.pdf` regenerado el 2026-06-12 (86 páginas, compilado con la cadena completa pdflatex → bibtex → pdflatex ×2, **cero errores**).

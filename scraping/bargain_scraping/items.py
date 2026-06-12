@@ -1,5 +1,5 @@
 """
-Items de Scrapy para el proyecto BargAIn.
+Items de Scrapy para el proyecto BarGAIN.
 
 Define los campos de datos extraidos por los spiders antes
 de pasar por el pipeline de persistencia.

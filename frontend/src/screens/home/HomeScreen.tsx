@@ -1,5 +1,5 @@
 /**
- * [P03-04] Home Dashboard — Pantalla principal de BargAIn.
+ * [P03-04] Home Dashboard — Pantalla principal de BarGAIN.
  *
  * Datos en vivo: authStore (saludo), listStore (listas recientes),
  * storeService (tiendas cercanas), notificationStore (notificaciones recientes),

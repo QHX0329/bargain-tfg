@@ -1,5 +1,5 @@
 /**
- * Tab Navigator principal de BargAIn (variante NATIVA — iOS/Android).
+ * Tab Navigator principal de BarGAIN (variante NATIVA — iOS/Android).
  *
  * 5 tabs: Inicio, Listas, Mapa, Asistente, Perfil.
  * Cada tab tiene su propio Stack Navigator anidado (ver mainTabsShared.tsx).

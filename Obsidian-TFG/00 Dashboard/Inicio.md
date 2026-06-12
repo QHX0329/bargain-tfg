@@ -7,13 +7,13 @@ tipo: dashboard
 area: dashboard
 estado: activo
 fuente:
-  - TFG/BargAIn — TFG.md
+  - TFG/BarGAIN — TFG.md
   - TASKS.md
   - docs/
   - .planning/
 actualizado: 2026-04-05
 relacionados:
-  - "[[BargAIn — TFG]]"
+  - "[[BarGAIN — TFG]]"
   - "[[00 Dashboard/Estado del Proyecto]]"
   - "[[00 Dashboard/Próximas Acciones]]"
 ---
@@ -41,7 +41,7 @@ relacionados:
 
 ## Contexto rápido
 
-- [[BargAIn — TFG]]
+- [[BarGAIN — TFG]]
 - [[Memoria TFG]]
 - [[Fases/F1 — Análisis y Diseño]]
 - [[Fases/F2 — Infraestructura Base]]

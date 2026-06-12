@@ -505,7 +505,7 @@ def send_business_approval_email(self, profile_id: int) -> None:
     from apps.business.models import BusinessProfile
     profile = BusinessProfile.objects.select_related("user").get(pk=profile_id)
     send_mail(
-        subject="Tu negocio ha sido verificado en BargAIn",
+        subject="Tu negocio ha sido verificado en BarGAIN",
         message=f"Hola {profile.user.get_full_name()}, tu negocio '{profile.business_name}' ha sido verificado.",
         from_email="no-reply@bargain.app",
         recipient_list=[profile.user.email],

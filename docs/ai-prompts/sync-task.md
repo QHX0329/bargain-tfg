@@ -1,6 +1,6 @@
 ﻿# SYNC TASK (Claude)
 
-Actua como asistente de seguimiento de proyecto para BargAIn.
+Actua como asistente de seguimiento de proyecto para BarGAIN.
 
 Contexto de entrada:
 - Tarea y transicion: <TASK_ID y estado destino>

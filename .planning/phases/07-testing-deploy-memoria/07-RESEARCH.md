@@ -283,17 +283,17 @@ pod install
 
 # Step 3: Build unsigned .app archive
 xcodebuild \
-  -workspace BargAIn.xcworkspace \
-  -scheme BargAIn \
+  -workspace BarGAIN.xcworkspace \
+  -scheme BarGAIN \
   -configuration Release \
-  -archivePath build/BargAIn.xcarchive \
+  -archivePath build/BarGAIN.xcarchive \
   CODE_SIGNING_ALLOWED=NO \
   archive
 
 # Step 4: Export unsigned .ipa
 xcodebuild \
   -exportArchive \
-  -archivePath build/BargAIn.xcarchive \
+  -archivePath build/BarGAIN.xcarchive \
   -exportPath build/output \
   -exportOptionsPlist ExportOptions.plist
 ```
@@ -370,10 +370,10 @@ jobs:
         run: |
           cd frontend/ios
           xcodebuild \
-            -workspace BargAIn.xcworkspace \
-            -scheme BargAIn \
+            -workspace BarGAIN.xcworkspace \
+            -scheme BarGAIN \
             -configuration Release \
-            -archivePath ../../build/BargAIn.xcarchive \
+            -archivePath ../../build/BarGAIN.xcarchive \
             CODE_SIGNING_ALLOWED=NO \
             archive
 
@@ -381,19 +381,19 @@ jobs:
         run: |
           xcodebuild \
             -exportArchive \
-            -archivePath build/BargAIn.xcarchive \
+            -archivePath build/BarGAIN.xcarchive \
             -exportPath build/output \
             -exportOptionsPlist frontend/ExportOptions.plist
 
       - name: Upload .ipa artifact
         uses: actions/upload-artifact@v4
         with:
-          name: BargAIn-unsigned
-          path: build/output/BargAIn.ipa
+          name: BarGAIN-unsigned
+          path: build/output/BarGAIN.ipa
           retention-days: 7
 ```
 
-**Key gap:** The workspace name `BargAIn.xcworkspace` and scheme `BargAIn` depend on what `expo prebuild` generates. The scheme name is derived from `app.json` `"name": "BargAIn"`. Verify after prebuild.
+**Key gap:** The workspace name `BarGAIN.xcworkspace` and scheme `BarGAIN` depend on what `expo prebuild` generates. The scheme name is derived from `app.json` `"name": "BarGAIN"`. Verify after prebuild.
 
 **`macos-latest` note [ASSUMED]:** GitHub-hosted `macos-latest` runners have Xcode preinstalled (typically Xcode 15.x or 16.x as of 2026). No Xcode install step needed. CocoaPods is also pre-installed.
 
@@ -577,7 +577,7 @@ Uses Vitest + `@testing-library/react`. No Playwright tests exist.
 **Recommendation:** Plan task to read `config/settings/base.py` and verify/add `DATABASE_URL` handling that converts `postgresql://` → `postgis://`.
 
 ### Q4: iOS workspace/scheme name after prebuild
-**What we know:** `expo prebuild` generates `ios/` directory. The scheme name derives from `app.json` `"name": "BargAIn"`.
+**What we know:** `expo prebuild` generates `ios/` directory. The scheme name derives from `app.json` `"name": "BarGAIN"`.
 **What's unclear:** Exact `.xcworkspace` filename and scheme name without running prebuild.
 **Recommendation:** The ios-build.yml workflow should include a step to list available schemes: `xcodebuild -list -workspace ios/*.xcworkspace` and fail fast if the scheme doesn't match.
 
@@ -622,7 +622,7 @@ Uses Vitest + `@testing-library/react`. No Playwright tests exist.
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
 | A1 | `macos-latest` runner has Xcode preinstalled, no install step needed | iOS Build Workflow | Minor delay if install needed; add `xcode-install` step |
-| A2 | `expo prebuild` generates workspace named `BargAIn.xcworkspace` with scheme `BargAIn` | iOS Build Workflow | Build command fails; workflow needs dynamic scheme discovery |
+| A2 | `expo prebuild` generates workspace named `BarGAIN.xcworkspace` with scheme `BarGAIN` | iOS Build Workflow | Build command fails; workflow needs dynamic scheme discovery |
 | A3 | ORS `units: "km"` returns distances already in km | ORS Integration | Distance values off by 1000x; remove `/1000` conversion |
 | A4 | Render outbound HTTP to `api.openrouteservice.org` is not blocked on free tier | Render Deploy | ORS calls fail silently; optimizer falls back to haversine |
 | A5 | `pandoc` markdown→latex conversion is viable for chapter content | LaTeX Template | Manual LaTeX authoring needed; more time required |

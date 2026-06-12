@@ -1,4 +1,4 @@
-﻿# Glosario - Proyecto BargAIn
+﻿# Glosario - Proyecto BarGAIN
 
 ## Estado
 

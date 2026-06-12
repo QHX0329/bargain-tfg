@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Utilidad de línea de comandos de Django para BargAIn."""
+"""Utilidad de línea de comandos de Django para BarGAIN."""
 
 import os
 import sys

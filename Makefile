@@ -130,7 +130,7 @@ ios-build: ## Disparar build iOS en GitHub Actions (requiere push al repo)
 	@echo "  Opcion 1: GitHub -> Actions -> 'iOS Build' -> Run workflow"
 	@echo "  Opcion 2: git tag ios-$(shell date +%Y%m%d-%H%M%S) && git push --tags"
 	@echo ""
-	@echo "  Artefacto: BargAIn-unsigned-*.ipa (disponible 7 dias)"
+	@echo "  Artefacto: BarGAIN-unsigned-*.ipa (disponible 7 dias)"
 	@echo "  Sideload: Sideloadly en Windows con Apple ID gratuito"
 	@echo "  IMPORTANTE: Re-sideload 1-2 dias antes de la defensa (cert caduca en 7 dias)"
 

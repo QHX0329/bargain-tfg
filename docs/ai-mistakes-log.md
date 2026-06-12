@@ -1,4 +1,4 @@
-﻿# AI Mistakes Log — BargAIn
+﻿# AI Mistakes Log — BarGAIN
 
 > Registro de errores cometidos por agentes IA trabajando en este proyecto,
 > con su causa raíz y solución. Actualizar este archivo cada vez que se detecte
@@ -44,7 +44,7 @@
 
 ### [2026-03-11] — ERR-002 — Claude (claude-sonnet-4-6)
 
-**Contexto:** Ejecución de la tarea F1-14 (Wireframes / Mockups de UI). El agente generó diseños de pantallas para la app BargAIn en una sesión previa.
+**Contexto:** Ejecución de la tarea F1-14 (Wireframes / Mockups de UI). El agente generó diseños de pantallas para la app BarGAIN en una sesión previa.
 
 **Error cometido:** Se entregaron wireframes de las pantallas principales de la app usando arte ASCII (caracteres `+`, `-`, `|`, `[`, `]`, `#`) en lugar de un formato visual renderizable.
 
@@ -111,7 +111,7 @@
 
 **REGLA-02 (de ERR-002):** Los wireframes, mockups y diagramas de interfaz de usuario **nunca** se entregan en formato ASCII. El formato obligatorio es HTML+CSS+JS autocontenido (renderizable en GitHub), PNG/SVG generado programáticamente, o PlantUML `@startsalt` solo para borradores de muy baja fidelidad. Ante ambigüedad en el formato pedido, preguntar antes de implementar.
 
-**REGLA-03 (de ERR-003):** En entornos Windows del proyecto BargAIn (modelo híbrido ADR-002), ejecutar backend tests en Docker por defecto (`make test-backend`). Evitar depurar GDAL/GEOS en host salvo petición explícita.
+**REGLA-03 (de ERR-003):** En entornos Windows del proyecto BarGAIN (modelo híbrido ADR-002), ejecutar backend tests en Docker por defecto (`make test-backend`). Evitar depurar GDAL/GEOS en host salvo petición explícita.
 
 **REGLA-04 (de ERR-004):** En settings compartidos entre host y Docker, no asumir que rutas de `.env` son portables entre sistemas. Aplicar rutas solo si existen en el runtime actual.
 

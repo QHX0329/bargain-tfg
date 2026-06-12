@@ -1,5 +1,5 @@
 /**
- * Design System de BargAIn — Barrel export de componentes UI.
+ * Design System de BarGAIN — Barrel export de componentes UI.
  *
  * Importa siempre desde '@/components/ui', nunca desde sub-archivos.
  */

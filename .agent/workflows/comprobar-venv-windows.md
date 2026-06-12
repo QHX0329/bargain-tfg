@@ -3,7 +3,7 @@ description: Comprobar que el backend de Django funciona correctamente en el ven
 ---
 # Verificación del proyecto en entorno virtual (Windows)
 
-Este workflow ejecuta los comandos necesarios para comprobar que el entorno local en Windows (`.venv`) está configurado correctamente para el backend de **BargAIn**.
+Este workflow ejecuta los comandos necesarios para comprobar que el entorno local en Windows (`.venv`) está configurado correctamente para el backend de **BarGAIN**.
 
 // turbo
 1. Validar la versión de Python en el entorno virtual activo:

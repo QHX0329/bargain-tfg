@@ -1,10 +1,10 @@
 ---
-description: "Review a BargAIn task implementation with a strict bug-first checklist: regressions, risks, tests, docs, and release readiness."
-name: "Review BargAIn Task"
+description: "Review a BarGAIN task implementation with a strict bug-first checklist: regressions, risks, tests, docs, and release readiness."
+name: "Review BarGAIN Task"
 argument-hint: "Task ID and scope, e.g. F3-10 API tiendas geoespacial"
 agent: "agent"
 ---
-Run a strict code review workflow for BargAIn.
+Run a strict code review workflow for BarGAIN.
 
 Input to use:
 - Task identifier and review scope: ${input:Task}

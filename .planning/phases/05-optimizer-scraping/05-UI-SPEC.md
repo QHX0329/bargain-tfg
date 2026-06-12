@@ -81,7 +81,7 @@ Maximum distinct type sizes in a single screen: 4.
 
 ## Color
 
-Source: `frontend/src/theme/colors.ts`. The BargAIn palette is "Mercado Mediterráneo Digital" — warm white, cream surface, Triana orange primary.
+Source: `frontend/src/theme/colors.ts`. The BarGAIN palette is "Mercado Mediterráneo Digital" — warm white, cream surface, Triana orange primary.
 
 | Role | Value | Usage |
 |------|-------|-------|
@@ -190,7 +190,7 @@ New component patterns needed in this phase (implement inline, do not create sta
 
 ## Copywriting Contract
 
-All copy in Spanish. Tone: warm, direct, functional — matches BargAIn "Mercado Mediterráneo Digital" brand voice.
+All copy in Spanish. Tone: warm, direct, functional — matches BarGAIN "Mercado Mediterráneo Digital" brand voice.
 
 | Element | Copy |
 |---------|------|

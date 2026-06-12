@@ -320,7 +320,7 @@ def match_products(raw_lines: list[str], threshold: int = 80) -> list[dict]:
 import anthropic
 from django.conf import settings
 
-SYSTEM_PROMPT = """Eres BargAIn, un asistente de compra inteligente para España.
+SYSTEM_PROMPT = """Eres BarGAIN, un asistente de compra inteligente para España.
 Tu única función es ayudar a los usuarios con: comparación de precios de productos,
 sugerencias para su lista de la compra y recetas económicas.
 Si el usuario pregunta algo fuera de estos temas, responde amablemente:

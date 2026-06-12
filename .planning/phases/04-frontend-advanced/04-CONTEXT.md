@@ -72,7 +72,7 @@ Complete the remaining F4 task: integrate Google Places API into the store/map f
 ## Specific Ideas
 
 - The autocomplete bar goes at the top of MapScreen — same position as the search bars in Home and Catalog screens (consistent with F4-24 pattern)
-- The "distinct visual style" for Places discovery markers should make it instantly clear these are not BargAIn stores (grey, smaller, or a generic map pin vs. chain-branded markers)
+- The "distinct visual style" for Places discovery markers should make it instantly clear these are not BarGAIN stores (grey, smaller, or a generic map pin vs. chain-branded markers)
 - The disabled state for the autocomplete bar when the key is missing mirrors how "Optimizar ruta" was shown as "Próximamente" in F4 — visible but inactive, not hidden
 
 </specifics>
@@ -106,7 +106,7 @@ Complete the remaining F4 task: integrate Google Places API into the store/map f
 <deferred>
 ## Deferred Ideas
 
-- Crowdsource store suggestion flow (user suggests a Places result as a new BargAIn store → admin moderation queue) — F5 or backlog
+- Crowdsource store suggestion flow (user suggests a Places result as a new BarGAIN store → admin moderation queue) — F5 or backlog
 - "Buscar en Google Maps" for the web version of MapScreen — web map is DB-only by decision
 - Favorites for Places-only stores with auto-creation of Store DB records — explicitly out of scope
 

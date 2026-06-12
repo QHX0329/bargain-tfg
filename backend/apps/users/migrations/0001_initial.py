@@ -1,4 +1,4 @@
-"""Migración inicial del modelo User personalizado de BargAIn."""
+"""Migración inicial del modelo User personalizado de BarGAIN."""
 
 import django.contrib.auth.models
 import django.contrib.auth.validators
@@ -88,7 +88,7 @@ class Migration(migrations.Migration):
                         default=django.utils.timezone.now, verbose_name="date joined"
                     ),
                 ),
-                # ── Campos personalizados BargAIn ──────────────────
+                # ── Campos personalizados BarGAIN ──────────────────
                 (
                     "role",
                     models.CharField(

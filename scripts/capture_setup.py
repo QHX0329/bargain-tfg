@@ -82,7 +82,7 @@ admin = ensure_user(
     "bargain_admin@bargain.local",
     role="consumer",
     first_name="Admin",
-    last_name="BargAIn",
+    last_name="BarGAIN",
     is_staff=True,
     is_superuser=True,
 )

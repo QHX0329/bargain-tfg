@@ -1,4 +1,4 @@
-# Roadmap: BargAIn
+# Roadmap: BarGAIN
 
 ## Overview
 

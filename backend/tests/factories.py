@@ -1,5 +1,5 @@
 """
-Factory-boy factories compartidas para los tests del backend de BargAIn.
+Factory-boy factories compartidas para los tests del backend de BarGAIN.
 
 Las factories de modelos que aún no existen (products, stores, prices,
 shopping_lists) usan una clase LazyModelFactory que difiere la resolución

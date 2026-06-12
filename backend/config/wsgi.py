@@ -1,4 +1,4 @@
-"""WSGI config para el proyecto BargAIn."""
+"""WSGI config para el proyecto BarGAIN."""
 
 import os
 

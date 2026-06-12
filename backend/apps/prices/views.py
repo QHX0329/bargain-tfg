@@ -1,4 +1,4 @@
-"""Vistas para el módulo de precios de BargAIn."""
+"""Vistas para el módulo de precios de BarGAIN."""
 
 from decimal import Decimal
 

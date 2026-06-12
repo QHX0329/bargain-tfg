@@ -1,9 +1,9 @@
 ---
-description: "Use when working on BargAIn tasks, updating TASKS.md, writing TFG documentation, implementing Django backend or Expo/React frontend code, and preparing commits/PRs with task IDs."
-name: "BargAIn Workflow Rules"
+description: "Use when working on BarGAIN tasks, updating TASKS.md, writing TFG documentation, implementing Django backend or Expo/React frontend code, and preparing commits/PRs with task IDs."
+name: "BarGAIN Workflow Rules"
 ---
 
-# BargAIn Workflow Rules
+# BarGAIN Workflow Rules
 
 - Before starting implementation, read `TASKS.md` and `docs/ai-mistakes-log.md`.
 - For milestone or feature tasks, mark the target task as `🔄` in `TASKS.md` when work begins.

@@ -8,7 +8,7 @@ from .models import User
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    """Admin para el modelo User extendido con campos adicionales de BargAIn."""
+    """Admin para el modelo User extendido con campos adicionales de BarGAIN."""
 
     list_display = [
         "username",
@@ -27,7 +27,7 @@ class UserAdmin(BaseUserAdmin):
 
     fieldsets = BaseUserAdmin.fieldsets + (
         (
-            "Perfil BargAIn",
+            "Perfil BarGAIN",
             {
                 "fields": (
                     "role",

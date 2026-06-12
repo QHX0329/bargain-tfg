@@ -1,5 +1,5 @@
 """
-Motor de optimizacion de rutas multicriterio para BargAIn.
+Motor de optimizacion de rutas multicriterio para BarGAIN.
 
 La seleccion de productos se hace sobre texto libre de la lista:
 1. Para cada string se buscan candidatos fuzzy por similitud.

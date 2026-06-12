@@ -20,7 +20,7 @@ La literatura económica sobre el comportamiento del consumidor identifica el ti
 
 Esta dinámica explica por qué, a pesar de la alta conciencia de los consumidores españoles sobre las diferencias de precio entre cadenas, la mayoría no dispersa sus compras entre múltiples establecimientos de forma sistemática. El informe de PwC sobre el comportamiento de compra del consumidor español [7] cifra en 47 minutos el tiempo medio semanal dedicado a la planificación de la compra (búsqueda de ofertas, elaboración de listas, selección de establecimiento), tiempo que podría reducirse significativamente mediante herramientas de automatización.
 
-La hipótesis de partida de BargAIn es que existe una brecha de eficiencia entre el conocimiento disponible sobre diferencias de precio y la capacidad del consumidor de convertirlo en ahorro real, brecha que puede cerrarse mediante la automatización del proceso de optimización multicriterio.
+La hipótesis de partida de BarGAIN es que existe una brecha de eficiencia entre el conocimiento disponible sobre diferencias de precio y la capacidad del consumidor de convertirlo en ahorro real, brecha que puede cerrarse mediante la automatización del proceso de optimización multicriterio.
 
 ---
 
@@ -50,23 +50,23 @@ A partir de 2015 surge una segunda generación de aplicaciones, caracterizada po
 
 La tercera generación de aplicaciones, aún emergente, incorpora tecnologías de inteligencia artificial para personalizar recomendaciones, predecir necesidades de compra y asistir al usuario mediante interfaces conversacionales. A nivel global, aplicaciones como **Flipp** (Canadá/EEUU) han integrado algoritmos de machine learning para personalizar la presentación de ofertas según historial de compras, mientras que plataformas europeas como **Idealo** (Alemania) y **Geizhals** (Austria) han escalado a catálogos de más de 330 y 100 millones de ofertas respectivamente, con motor de recomendaciones basado en comportamiento.
 
-En el contexto español, esta tercera generación no está aún representada por ningún actor consolidado. BargAIn se posiciona precisamente en este espacio: una aplicación que combina la comparación de precios en tiempo real con optimización de rutas geoespaciales y asistencia conversacional por IA.
+En el contexto español, esta tercera generación no está aún representada por ningún actor consolidado. BarGAIN se posiciona precisamente en este espacio: una aplicación que combina la comparación de precios en tiempo real con optimización de rutas geoespaciales y asistencia conversacional por IA.
 
 ---
 
 ## 3.3 Tecnologías geoespaciales aplicadas al comercio minorista
 
-El tratamiento de información geoespacial es uno de los pilares tecnológicos de BargAIn. A continuación se revisa el estado del arte en las tecnologías relevantes.
+El tratamiento de información geoespacial es uno de los pilares tecnológicos de BarGAIN. A continuación se revisa el estado del arte en las tecnologías relevantes.
 
 ### 3.3.1 Bases de datos geoespaciales
 
 Las bases de datos relacionales con extensiones geoespaciales han madurado considerablemente en los últimos años. **PostGIS** [9], extensión de PostgreSQL mantenida por OSGeo, es el estándar de facto para aplicaciones web que requieren consultas geoespaciales complejas. Permite expresar consultas como «tiendas en radio de X kilómetros» o «tiendas que se encuentran a lo largo de una ruta» en SQL nativo, con soporte para los estándares OGC/ISO (Simple Features Access, WKT/WKB). Su adopción en producción por parte de organizaciones como OpenStreetMap, el gobierno de los Estados Unidos (USGS) y plataformas de *ride-hailing* como Lyft [10] valida su escalabilidad para entornos de alta demanda.
 
-El sistema de referencia de coordenadas SRID 4326 (WGS84), adoptado por BargAIn, es el estándar universal empleado por los principales proveedores de mapas (Google Maps, Apple Maps, OpenStreetMap) y por los receptores GPS de los dispositivos móviles, garantizando compatibilidad sin conversiones adicionales.
+El sistema de referencia de coordenadas SRID 4326 (WGS84), adoptado por BarGAIN, es el estándar universal empleado por los principales proveedores de mapas (Google Maps, Apple Maps, OpenStreetMap) y por los receptores GPS de los dispositivos móviles, garantizando compatibilidad sin conversiones adicionales.
 
 ### 3.3.2 Enrutamiento y optimización de rutas
 
-El problema de construir rutas óptimas entre múltiples paradas en un contexto urbano es una variante del clásico Problema del Viajante (TSP, *Travelling Salesman Problem*) [11]. Para instancias de tamaño reducido (hasta 10 paradas), como es el caso de BargAIn (máximo 4 paradas), los algoritmos exactos basados en programación dinámica o *branch-and-bound* son computacionalmente viables en tiempo real.
+El problema de construir rutas óptimas entre múltiples paradas en un contexto urbano es una variante del clásico Problema del Viajante (TSP, *Travelling Salesman Problem*) [11]. Para instancias de tamaño reducido (hasta 10 paradas), como es el caso de BarGAIN (máximo 4 paradas), los algoritmos exactos basados en programación dinámica o *branch-and-bound* son computacionalmente viables en tiempo real.
 
 **OR-Tools** [12], la biblioteca de optimización combinatoria de Google, proporciona solucionadores de alta eficiencia para el VRP (*Vehicle Routing Problem*) y sus variantes. Ha sido utilizada en producción por Google Flights, Renault y operadores logísticos de primer nivel. En el contexto de una app de compras, OR-Tools permite resolver el sub-problema de ordenación óptima de paradas en tiempos de respuesta inferiores a 100 ms para instancias de hasta 10 nodos.
 
@@ -86,13 +86,13 @@ Los grandes modelos de lenguaje (*Large Language Models*, LLMs) han transformado
 
 Los LLMs de última generación, como **Claude** (Anthropic) [16], **GPT-4o** (OpenAI) o **Gemini** (Google DeepMind), ofrecen interfaces de programación (APIs) que permiten a los desarrolladores integrar capacidades de razonamiento en lenguaje natural en sus aplicaciones mediante pocas líneas de código. En el contexto de una app de compras, esta tecnología permite que el usuario formule consultas complejas en lenguaje natural («¿qué tienda tiene la cesta de esta semana más barata si no me alejo más de 3 km de casa?») y reciba respuestas elaboradas, personalizadas y justificadas.
 
-La arquitectura de *Retrieval-Augmented Generation* (RAG) [17], que combina la recuperación de información estructurada de bases de datos externas con la generación de respuestas por el LLM, es el patrón arquitectónico adoptado por BargAIn: el asistente tiene acceso a los datos de precios y tiendas actualizados, que el LLM utiliza como contexto para fundamentar sus respuestas en datos reales.
+La arquitectura de *Retrieval-Augmented Generation* (RAG) [17], que combina la recuperación de información estructurada de bases de datos externas con la generación de respuestas por el LLM, es el patrón arquitectónico adoptado por BarGAIN: el asistente tiene acceso a los datos de precios y tiendas actualizados, que el LLM utiliza como contexto para fundamentar sus respuestas en datos reales.
 
 ### 3.4.2 Visión artificial y OCR en aplicaciones de consumo
 
 El reconocimiento óptico de caracteres (*Optical Character Recognition*, OCR) ha experimentado avances significativos gracias a la adopción de redes neuronales convolucionales (CNN), arquitecturas de transformers y servicios cloud especializados en análisis visual. Plataformas como **Google Cloud Vision API** [18] ofrecen reconocimiento de texto sobre imágenes complejas y escenarios móviles con mayor robustez práctica frente a sombras, ruido, inclinación y degradación del soporte físico.
 
-En el contexto de aplicaciones de compras, la visión artificial se aplica principalmente en dos casos de uso: el escaneo de códigos de barras para la identificación de productos (presente en la mayoría de competidores analizados) y la digitalización de listas de la compra escritas a mano o tickets de compra anteriores (caso de uso diferencial de BargAIn). Este segundo uso presenta mayores desafíos técnicos debido a la variabilidad de la escritura manual y al ruido típico de los tickets (tipografías de impresoras térmicas degradadas, papel arrugado).
+En el contexto de aplicaciones de compras, la visión artificial se aplica principalmente en dos casos de uso: el escaneo de códigos de barras para la identificación de productos (presente en la mayoría de competidores analizados) y la digitalización de listas de la compra escritas a mano o tickets de compra anteriores (caso de uso diferencial de BarGAIN). Este segundo uso presenta mayores desafíos técnicos debido a la variabilidad de la escritura manual y al ruido típico de los tickets (tipografías de impresoras térmicas degradadas, papel arrugado).
 
 La combinación de OCR con *fuzzy matching* de cadenas [19] (algoritmos como Levenshtein, Jaro-Winkler o TF-IDF para búsqueda de productos similares) es el enfoque estándar para resolver la ambigüedad en la identificación de productos a partir de texto imperfecto.
 
@@ -108,9 +108,9 @@ Los desafíos técnicos del scraping de supermercados incluyen la detección y e
 
 ## 3.5 Tendencias del mercado y oportunidades de innovación
 
-El análisis del estado del arte permite identificar un conjunto de tendencias que contextualizan y justifican la propuesta de BargAIn:
+El análisis del estado del arte permite identificar un conjunto de tendencias que contextualizan y justifican la propuesta de BarGAIN:
 
-**Tendencia 1 — Convergencia precio-localización.** Los consumidores europeos demandan cada vez más herramientas que integren la comparación de precios con información geoespacial relevante (tiendas cercanas, tiempo de desplazamiento). La separación entre comparadores de precios y aplicaciones de mapas es una limitación estructural de las soluciones actuales que BargAIn propone eliminar.
+**Tendencia 1 — Convergencia precio-localización.** Los consumidores europeos demandan cada vez más herramientas que integren la comparación de precios con información geoespacial relevante (tiendas cercanas, tiempo de desplazamiento). La separación entre comparadores de precios y aplicaciones de mapas es una limitación estructural de las soluciones actuales que BarGAIN propone eliminar.
 
 **Tendencia 2 — Interacción conversacional.** La adopción masiva de asistentes de voz (Alexa, Google Assistant, Siri) y chatbots ha normalizado la interacción en lenguaje natural con aplicaciones de consumo. En el sector alimentario, esta tendencia se traduce en la demanda de asistentes que respondan preguntas complejas sobre ahorro, no simplemente ejecuten búsquedas.
 
@@ -118,7 +118,7 @@ El análisis del estado del arte permite identificar un conjunto de tendencias q
 
 **Tendencia 4 — Crowdsourcing de precios.** Las fuentes oficiales de precios (APIs de cadenas, scraping de catálogos) presentan limitaciones de cobertura y latencia. El crowdsourcing de precios (usuarios que reportan precios en tienda) es un mecanismo complementario que permite cubrir establecimientos no escaneados automáticamente. Aplicaciones como **Barcodelookup** o **Open Food Facts** [21] demuestran la viabilidad del modelo crowdsourcing para la construcción de bases de datos de productos.
 
-**Tendencia 5 — Sostenibilidad y consumo responsable.** La creciente preocupación por la huella de carbono de los desplazamientos de compra abre un vector de diferenciación basado en la optimización de rutas no solo por coste monetario y tiempo, sino también por impacto ambiental. Este es un eje que BargAIn podría incorporar en versiones futuras del algoritmo de optimización.
+**Tendencia 5 — Sostenibilidad y consumo responsable.** La creciente preocupación por la huella de carbono de los desplazamientos de compra abre un vector de diferenciación basado en la optimización de rutas no solo por coste monetario y tiempo, sino también por impacto ambiental. Este es un eje que BarGAIN podría incorporar en versiones futuras del algoritmo de optimización.
 
 ---
 
@@ -134,7 +134,7 @@ En tercer lugar, la experiencia de usuario en la creación de listas de la compr
 
 Finalmente, la asistencia conversacional por IA para consultas sobre compras, ahorro y comparación de precios es inexistente en el ecosistema español. El usuario debe formular consultas estructuradas (búsquedas, filtros) en lugar de preguntas en lenguaje natural.
 
-Estas cuatro brechas constituyen el espacio de oportunidad que BargAIn aborda con su propuesta de valor, tal y como se analiza en detalle en el Capítulo 4.
+Estas cuatro brechas constituyen el espacio de oportunidad que BarGAIN aborda con su propuesta de valor, tal y como se analiza en detalle en el Capítulo 4.
 
 ---
 

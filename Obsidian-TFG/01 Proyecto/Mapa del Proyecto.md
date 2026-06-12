@@ -13,7 +13,7 @@ fuente:
 actualizado: 2026-04-05
 relacionados:
   - "[[00 Dashboard/Inicio]]"
-  - "[[BargAIn — TFG]]"
+  - "[[BarGAIN — TFG]]"
 ---
 
 # Mapa del Proyecto

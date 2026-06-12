@@ -1,4 +1,4 @@
-# Valoración de la memoria del TFG «BargAIn» — Informe de revisión académica
+# Valoración de la memoria del TFG «BarGAIN» — Informe de revisión académica
 
 > **Rol del revisor:** catedrático de Ingeniería del Software actuando como miembro de tribunal estricto.
 > **Documento evaluado:** `proyect-final.pdf` (73 páginas, compilado 2026-06-10).

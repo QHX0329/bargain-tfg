@@ -1,4 +1,4 @@
-# Ruff — configuración de linting y formateo para BargAIn backend
+# Ruff — configuración de linting y formateo para BarGAIN backend
 # Documentación: https://docs.astral.sh/ruff/
 
 line-length = 99

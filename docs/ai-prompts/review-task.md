@@ -1,6 +1,6 @@
 # REVIEW TASK (Claude)
 
-Actua como revisor tecnico senior para BargAIn.
+Actua como revisor tecnico senior para BarGAIN.
 
 Contexto de entrada:
 - Tarea: <TASK_ID y alcance de revision>

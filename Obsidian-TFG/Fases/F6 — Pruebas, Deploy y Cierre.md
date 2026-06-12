@@ -22,7 +22,7 @@ relacionados:
 
 # F6 — Pruebas, Deploy y Cierre
 
-[[BargAIn — TFG|← Volver al proyecto]]
+[[BarGAIN — TFG|← Volver al proyecto]]
 [[02 Gestión/Roadmap y Fases|Mapa de fases]]
 
 ## Resumen

@@ -1,4 +1,4 @@
-# BargAIn — Outline de Slides para la Defensa TFG
+# BarGAIN — Outline de Slides para la Defensa TFG
 
 **Autor:** Nicolás Parrilla Geniz
 **Tutor:** Juan Vicente Gutiérrez Santacreu
@@ -19,7 +19,7 @@ Slides estimadas: ~20 diapositivas
 
 **Slide 1 — Portada**
 - Logo ETSII + Universidad de Sevilla
-- Título: "BargAIn: Sistema de Optimización de Cesta de la Compra"
+- Título: "BarGAIN: Sistema de Optimización de Cesta de la Compra"
 - Subtítulo: "Trabajo Fin de Grado — Ingeniería del Software"
 - Autor, Tutor, Departamento, Fecha
 - Imagen: captura del mapa de ruta optimizada en el móvil
@@ -37,7 +37,7 @@ Slides estimadas: ~20 diapositivas
 **Slide 3 — La oportunidad del comercio local**
 - Las PYMEs de alimentación pierden clientes vs grandes cadenas
 - Falta de herramientas para competir en visibilidad digital
-- BargAIn equilibra el campo: visibilidad para PYMEs, ahorro para consumidores
+- BarGAIN equilibra el campo: visibilidad para PYMEs, ahorro para consumidores
 
 ---
 
@@ -57,8 +57,8 @@ Slides estimadas: ~20 diapositivas
 - OBJ-05: App móvil con asistente LLM de compra
 
 **Slide 6 — Requisitos clave y comparativa**
-- Tabla comparativa: BargAIn vs Idealo vs Too Good to Go vs Mercadona App
-- BargAIn es el único que combina: multi-tienda + optimización ruta + OCR + PYME portal
+- Tabla comparativa: BarGAIN vs Idealo vs Too Good to Go vs Mercadona App
+- BarGAIN es el único que combina: multi-tienda + optimización ruta + OCR + PYME portal
 - 3 requisitos no funcionales verificados: disponibilidad, usabilidad, escalabilidad
 
 ---
@@ -137,7 +137,7 @@ Slides estimadas: ~20 diapositivas
 **Slide 18 — Conclusión personal**
 - Competencias desarrolladas: arquitectura de microservicios, geoespacial, ML/IA integrada
 - Aprendizaje más valioso: integrar sistemas heterogéneos (LLM + scraping + geoespacial + OCR)
-- Frase de cierre: "BargAIn demuestra que la tecnología puede democratizar el acceso a información
+- Frase de cierre: "BarGAIN demuestra que la tecnología puede democratizar el acceso a información
   de precios para que tanto consumidores como pequeños comercios puedan tomar mejores decisiones."
 
 ---

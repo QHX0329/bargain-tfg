@@ -1,4 +1,4 @@
-"""Configuración de URLs principal del proyecto BargAIn."""
+"""Configuración de URLs principal del proyecto BarGAIN."""
 
 from django.conf import settings
 from django.conf.urls.static import static

@@ -17,7 +17,7 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 60
     env:
-      ARCHIVE_PATH: ${{ github.workspace }}/build/BargAIn.xcarchive
+      ARCHIVE_PATH: ${{ github.workspace }}/build/BarGAIN.xcarchive
       EXPORT_PATH: ${{ github.workspace }}/build/output
       # La IPA se construye apuntando al backend desplegado en Render.
       # EXPO_PUBLIC_* se inlinea en el bundle JS durante el archivado.

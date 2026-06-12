@@ -1,5 +1,5 @@
 ﻿---
-title: Memoria TFG — BargAIn
+title: Memoria TFG — BarGAIN
 tags:
   - tfg/memoria
   - tfg/documentacion
@@ -18,9 +18,9 @@ relacionados:
   - "[[Fases/F6 — Pruebas, Deploy y Cierre]]"
 ---
 
-# Memoria TFG — BargAIn
+# Memoria TFG — BarGAIN
 
-[[BargAIn — TFG|← Volver al proyecto]]
+[[BarGAIN — TFG|← Volver al proyecto]]
 [[06 Memoria/Mapa de Memoria|Mapa de Memoria]]
 
 ## Estado de las secciones

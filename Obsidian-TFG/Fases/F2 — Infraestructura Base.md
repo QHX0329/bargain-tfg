@@ -23,7 +23,7 @@ relacionados:
 
 # F2 — Infraestructura Base
 
-[[BargAIn — TFG|← Volver al proyecto]]
+[[BarGAIN — TFG|← Volver al proyecto]]
 [[02 Gestión/Roadmap y Fases|Mapa de fases]]
 
 ## Resumen

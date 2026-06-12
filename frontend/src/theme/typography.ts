@@ -1,5 +1,5 @@
 /**
- * Sistema tipográfico de BargAIn - "Mercado Mediterráneo Digital"
+ * Sistema tipográfico de BarGAIN - "Mercado Mediterráneo Digital"
  *
  * En iOS se utiliza la fuente del sistema (SF Pro) para integrarse
  * de forma nativa con la plataforma. En Android y web se mantienen
@@ -119,7 +119,7 @@ export const letterSpacing = {
  *
  * @example
  * <Text style={[textStyles.heading1, { color: colors.text }]}>
- *   BargAIn
+ *   BarGAIN
  * </Text>
  */
 export const textStyles = {

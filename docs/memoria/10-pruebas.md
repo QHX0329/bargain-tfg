@@ -2,7 +2,7 @@
 
 ## 10.1 Objetivo
 
-Validar que BargAIn cumple los requisitos funcionales y no funcionales definidos en la Fase de
+Validar que BarGAIN cumple los requisitos funcionales y no funcionales definidos en la Fase de
 Análisis, con cobertura automática de los flujos críticos y verificación documentada de los
 requisitos no funcionales clave (NFR-02, NFR-04, NFR-05).
 
@@ -151,7 +151,7 @@ Los flujos principales se completan en ≤ 3 interacciones en la app móvil:
 
 ### 10.7.3 NFR-05: Escalabilidad para 10.000 usuarios (RNF-005)
 
-La arquitectura de BargAIn soporta el crecimiento a 10.000 usuarios concurrentes mediante
+La arquitectura de BarGAIN soporta el crecimiento a 10.000 usuarios concurrentes mediante
 cuatro decisiones de diseño complementarias:
 
 1. **Workers Celery independientes:** el scraping, el OCR y la optimización se ejecutan en

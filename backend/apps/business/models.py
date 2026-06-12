@@ -1,5 +1,5 @@
 """
-Modelos del portal business de BargAIn.
+Modelos del portal business de BarGAIN.
 
 Incluye:
 - BusinessProfile: perfil verificable de un negocio PYME

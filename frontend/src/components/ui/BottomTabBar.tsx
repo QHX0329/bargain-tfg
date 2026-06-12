@@ -1,5 +1,5 @@
 /**
- * [C07] BottomTabBar — Barra de navegación inferior de BargAIn.
+ * [C07] BottomTabBar — Barra de navegación inferior de BarGAIN.
  *
  * Diseño iOS HIG nativo:
  *   - Icono + label siempre visibles (Apple HIG §Tab Bars).

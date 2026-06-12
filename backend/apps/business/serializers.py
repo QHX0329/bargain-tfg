@@ -1,4 +1,4 @@
-"""Serializers para el portal business de BargAIn."""
+"""Serializers para el portal business de BarGAIN."""
 
 from rest_framework import serializers
 

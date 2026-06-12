@@ -127,7 +127,7 @@ class Command(BaseCommand):
             "bargain_admin@bargain.local",
             "consumer",
             "Admin",
-            "BargAIn",
+            "BarGAIN",
             is_staff=True,
             is_superuser=True,
         )
@@ -163,9 +163,7 @@ class Command(BaseCommand):
             candidate = username
             suffix = 0
             while (
-                user_model.objects.filter(username=candidate)
-                .exclude(email__iexact=email)
-                .exists()
+                user_model.objects.filter(username=candidate).exclude(email__iexact=email).exists()
             ):
                 suffix += 1
                 candidate = f"{username}_demo{suffix if suffix > 1 else ''}"
@@ -261,9 +259,7 @@ class Command(BaseCommand):
         for store in chain_stores[:2]:
             if Price.objects.filter(product=leche, store=store).count() >= 4:
                 continue
-            base_price = Price.objects.filter(
-                product=leche, store=store, is_stale=False
-            ).first()
+            base_price = Price.objects.filter(product=leche, store=store, is_stale=False).first()
             if base_price is None:
                 continue
             for weeks, delta in [(8, "0.10"), (6, "0.06"), (4, "0.03"), (2, "-0.02")]:
@@ -276,9 +272,7 @@ class Command(BaseCommand):
                     verified_at=now - timedelta(weeks=weeks),
                     is_stale=True,
                 )
-                Price.objects.filter(pk=hist.pk).update(
-                    created_at=now - timedelta(weeks=weeks)
-                )
+                Price.objects.filter(pk=hist.pk).update(created_at=now - timedelta(weeks=weeks))
         self.stdout.write("  histórico de precios OK")
 
     # ----------------------------------------------------------------- PYME --
@@ -367,9 +361,7 @@ class Command(BaseCommand):
                     is_checked=checked,
                     added_by=demo,
                 )
-        template, t_created = ListTemplate.objects.get_or_create(
-            owner=demo, name="Compra básica"
-        )
+        template, t_created = ListTemplate.objects.get_or_create(owner=demo, name="Compra básica")
         if t_created or not template.items.exists():
             basicos = [
                 "Leche entera 1L",
@@ -384,9 +376,7 @@ class Command(BaseCommand):
                     defaults={"normalized_name": name.lower(), "ordering": i},
                 )
         leche = products["Leche entera 1L"]
-        min_price = (
-            Price.objects.filter(product=leche, is_stale=False).order_by("price").first()
-        )
+        min_price = Price.objects.filter(product=leche, is_stale=False).order_by("price").first()
         if min_price and not PriceAlert.objects.filter(user=demo, product=leche).exists():
             PriceAlert.objects.create(
                 user=demo,
@@ -420,9 +410,7 @@ class Command(BaseCommand):
                 is_read=True,
                 action_url="/app/lists",
             )
-            Notification.objects.filter(pk=old.pk).update(
-                created_at=now - timedelta(days=1)
-            )
+            Notification.objects.filter(pk=old.pk).update(created_at=now - timedelta(days=1))
         for store in chain_stores[:1] + [fstore]:
             UserFavoriteStore.objects.get_or_create(user=demo, store=store)
         self.stdout.write("  datos de consumidor demo OK")

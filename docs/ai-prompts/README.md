@@ -1,6 +1,6 @@
 ﻿# Prompts reutilizables para Claude
 
-Este directorio contiene plantillas listas para pegar en Claude (web, API o CLI), alineadas con el flujo de trabajo de BargAIn.
+Este directorio contiene plantillas listas para pegar en Claude (web, API o CLI), alineadas con el flujo de trabajo de BarGAIN.
 
 ## Archivos
 

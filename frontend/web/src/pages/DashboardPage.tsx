@@ -62,46 +62,73 @@ const DashboardPage: React.FC = () => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
+
+      // El perfil es imprescindible; promociones, precios y estadísticas son datos
+      // complementarios que solo están disponibles para perfiles verificados. Se
+      // cargan de forma independiente (allSettled) para que un 403 por perfil no
+      // verificado no derive en un error genérico de conexión.
+      let profileRes;
       try {
-        const [profileRes, promotionsRes, pricesRes, statsRes] = await Promise.all([
-          apiClient.get<BusinessProfile[]>('/business/profiles/'),
-          apiClient.get<Promotion[] | { results?: Promotion[] }>('/business/promotions/'),
-          apiClient.get<{ results?: PriceRecord[] } | PriceRecord[]>(
-            '/business/prices/?limit=8&ordering=-updated_at',
-          ),
-          apiClient.get<BusinessStats>('/business/profiles/stats/').catch(() => ({ data: null })),
-        ]);
+        profileRes = await apiClient.get<BusinessProfile[]>('/business/profiles/');
+      } catch {
+        setError(
+          'No se pudo cargar tu perfil de negocio. Comprueba tu conexión e inténtalo de nuevo.',
+        );
+        setLoading(false);
+        return;
+      }
 
-        const profiles = extractBusinessProfiles(profileRes.data);
-        if (profiles.length > 0) {
-          setProfile(profiles[0]);
-          setCurrentProfile(profiles[0]);
-        }
+      const profiles = extractBusinessProfiles(profileRes.data);
+      const profile = profiles.length > 0 ? profiles[0] : null;
+      if (profile) {
+        setProfile(profile);
+        setCurrentProfile(profile);
+      }
 
-        const promotionsData = promotionsRes.data;
+      // Si el perfil aún no está verificado, no se intentan cargar los datos
+      // restringidos: el panel muestra el aviso de verificación pendiente.
+      if (!profile || !profile.is_verified) {
+        setLoading(false);
+        return;
+      }
+
+      const [promotionsResult, pricesResult, statsResult] = await Promise.allSettled([
+        apiClient.get<Promotion[] | { results?: Promotion[] }>('/business/promotions/'),
+        apiClient.get<{ results?: PriceRecord[] } | PriceRecord[]>(
+          '/business/prices/?limit=8&ordering=-updated_at',
+        ),
+        apiClient.get<BusinessStats>('/business/profiles/stats/'),
+      ]);
+
+      if (promotionsResult.status === 'fulfilled') {
+        const promotionsData = promotionsResult.value.data;
         if (Array.isArray(promotionsData)) {
           setPromotions(promotionsData);
-        } else if (promotionsData && 'results' in promotionsData && Array.isArray(promotionsData.results)) {
+        } else if (
+          promotionsData &&
+          'results' in promotionsData &&
+          Array.isArray(promotionsData.results)
+        ) {
           setPromotions(promotionsData.results);
         } else {
           setPromotions([]);
         }
+      }
 
-        const pricesData = pricesRes.data;
+      if (pricesResult.status === 'fulfilled') {
+        const pricesData = pricesResult.value.data;
         if (Array.isArray(pricesData)) {
           setRecentPrices(pricesData);
         } else if (pricesData && 'results' in pricesData && Array.isArray(pricesData.results)) {
           setRecentPrices(pricesData.results);
         }
-
-        if (statsRes.data) {
-          setStats(statsRes.data);
-        }
-      } catch {
-        setError('Error al cargar los datos del dashboard. Comprueba la conexión con el servidor.');
-      } finally {
-        setLoading(false);
       }
+
+      if (statsResult.status === 'fulfilled') {
+        setStats(statsResult.value.data);
+      }
+
+      setLoading(false);
     };
 
     void fetchData();

@@ -136,3 +136,7 @@ ios-build: ## Disparar build iOS en GitHub Actions (requiere push al repo)
 
 clean: ## Limpiar archivos temporales y caché
 	@python -c "from pathlib import Path; import shutil; root=Path('.'); [shutil.rmtree(p, ignore_errors=True) for p in root.rglob('__pycache__') if p.is_dir()]; [shutil.rmtree(p, ignore_errors=True) for p in root.rglob('.pytest_cache') if p.is_dir()]; [p.unlink(missing_ok=True) for p in root.rglob('*.pyc') if p.is_file()]; shutil.rmtree(root / 'frontend' / 'node_modules' / '.cache', ignore_errors=True)"
+
+.PHONY: frontend-web-docker
+frontend-web-docker: ## Levantar la app de usuario (Expo web) en Docker, conectada al backend desplegado
+	docker compose -f docker-compose.web.yml up --build

@@ -20,10 +20,11 @@ Se aplica una estrategia por capas, siguiendo el modelo de pir\'amide de tests:
     en conjunto.
   \item \textbf{Tests de componentes frontend:} Jest + React Native Testing Library
     (111 tests en 15 suites), incluyendo los componentes y utilidades de la adaptaci\'on web.
-  \item \textbf{Tests E2E con Playwright:} 4 flujos cr\'iticos del sistema integrado
-    (backend + frontend web).
-  \item \textbf{UAT manual en dispositivo m\'ovil:} flujos nativos con GPS y c\'amara que no son
-    automatizables mediante Playwright (verificados en iPhone con la app compilada).
+  \item \textbf{Tests de extremo a extremo (E2E) con Playwright:} 4 flujos cr\'iticos del sistema
+    integrado (backend + frontend web).
+  \item \textbf{Pruebas de aceptaci\'on de usuario (UAT) en dispositivo m\'ovil:} flujos nativos
+    con GPS y c\'amara que no son automatizables mediante Playwright (verificados en iPhone con la
+    app compilada).
 \end{itemize}
 
 \section{Entorno de ejecuci\'on}\label{sec:entorno-pruebas}
@@ -99,7 +100,8 @@ por m\'odulo refleja d\'onde se concentra la l\'ogica de negocio: \texttt{shoppi
 \texttt{products} (17), \texttt{prices} (15), \texttt{scraping} (22 entre spiders y pipeline),
 \texttt{stores} (11), \texttt{business} (11), \texttt{notifications} (11), \texttt{ocr} (9),
 \texttt{users} (8), \texttt{assistant} (8) y \texttt{optimizer} (15 entre solver, sem\'antica y
-cliente ORS), adem\'as de tests de configuraci\'on (despliegue Render y comandos de seed).
+cliente de OpenRouteService, ORS), adem\'as de tests de configuraci\'on (despliegue Render y
+comandos de seed).
 
 \section{Tests E2E con Playwright}\label{sec:playwright}
 
@@ -124,7 +126,7 @@ Business portal & \texttt{business.spec.ts} & UI & Registro PYME $\to$ aprobaci\
 \end{table}
 
 Los flujos de optimizador y OCR se implementan como tests API-level (usando el fixture
-\texttt{request} de Playwright, sin interfaz de usuario) porque estas funcionalidades son exclusivas
+\texttt{request} de Playwright, sin interfaz de usuario o UI) porque estas funcionalidades son exclusivas
 de la app m\'ovil --- el web companion es un portal business y no dispone de pantallas de
 consumidor. Este enfoque verifica la integraci\'on backend end-to-end de los features principales
 del TFG sin requerir una interfaz web que no existe.

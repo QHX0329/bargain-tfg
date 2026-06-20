@@ -14,45 +14,62 @@ reside en m\'odulos de servicio independientes. Esta separaci\'on desacopla la l
 negocio de los detalles de infraestructura --- bases de datos, APIs externas, brokers de
 mensajer\'ia --- y facilita el testing independiente de cada componente.
 
+Antes de describir la arquitectura conviene fijar la terminolog\'ia que se emplea en todo el
+cap\'itulo, pues BarGAIN da servicio a dos perfiles bien diferenciados. Por un lado est\'a el
+\textbf{cliente} o \textbf{usuario} ---ambos t\'erminos se usan indistintamente para referirse al
+consumidor final---: la persona que hace la compra, crea sus listas, compara precios y obtiene la
+ruta optimizada. Por otro lado est\'a la \textbf{PYME} o comercio: el peque\~no o mediano negocio
+que se da de alta para gestionar sus propios precios y promociones. A cada perfil le corresponde una
+superficie de acceso distinta:
+
+\begin{itemize}
+  \item La \textbf{aplicaci\'on m\'ovil para clientes}, construida con React Native (Expo) y
+    orientada al consumidor final, es donde ocurre toda la experiencia de compra (listas, mapa,
+    comparativa, optimizaci\'on de ruta, OCR y asistente). La misma base de c\'odigo se ejecuta
+    tambi\'en en navegador de escritorio para comodidad del usuario, sin cambiar su naturaleza de
+    aplicaci\'on de consumo.
+  \item El \textbf{portal web para PYMEs} (Portal Business), una aplicaci\'on web independiente en
+    React, es donde el comercio gestiona su negocio. Es una herramienta de gesti\'on, no de compra,
+    y por tanto distinta en p\'ublico, prop\'osito e interfaz de la aplicaci\'on de cliente.
+\end{itemize}
+
+A lo largo del cap\'itulo, cuando se hable de ``la aplicaci\'on'' sin m\'as matiz se entender\'a la
+aplicaci\'on de cliente; el portal de comercios se nombrar\'a siempre de forma expl\'icita.
+
 La arquitectura global se divide en cinco bloques principales:
 
 \begin{enumerate}
   \item \textbf{Aplicaci\'on cliente:} React Native (Expo) para iOS, con una aplicaci\'on
     web React para el Portal Business de PYMEs.
-  \item \textbf{API Backend:} Django REST Framework como n\'ucleo de la l\'ogica de negocio,
+  \item \textbf{API Backend:} Django REST Framework ---marco que sigue el estilo arquitect\'onico
+    de transferencia de estado representacional (REST)--- como n\'ucleo de la l\'ogica de negocio,
     expuesto bajo HTTPS mediante Gunicorn + Nginx.
   \item \textbf{Capa de datos:} PostgreSQL 16 con extensi\'on PostGIS 3.4 para consultas
     geoespaciales.
   \item \textbf{Capa de tareas as\'incronas:} Celery con Redis como broker, para scraping
     peri\'odico, env\'io de notificaciones, procesamiento OCR y c\'alculos del optimizador.
-  \item \textbf{Integraciones y servicios auxiliares:} Google Gemini API (asistente LLM),
-    OpenRouteService (c\'alculo de distancias reales), Google Cloud Vision API (OCR) y Sentry
-    (monitorizaci\'on de errores).
+  \item \textbf{Integraciones y servicios auxiliares:} Google Gemini API (asistente basado en un
+    modelo de lenguaje de gran tama\~no, LLM), OpenRouteService (c\'alculo de distancias reales),
+    Google Cloud Vision API (OCR) y Sentry (monitorizaci\'on de errores).
 \end{enumerate}
 
 \subsection{Patr\'on de organizaci\'on interna del backend}\label{subsec:patron-backend}
 
-Cada aplicaci\'on Django del backend sigue una estructura modular consistente:
+Cada \'area funcional del backend se organiza como un m\'odulo independiente que sigue siempre la
+misma estructura interna: la definici\'on de las entidades de datos, la transformaci\'on de la
+informaci\'on que entra y sale, la capa que atiende las peticiones web, las rutas que la exponen,
+la l\'ogica de negocio propiamente dicha, las tareas que se ejecutan en segundo plano, las reglas
+de autorizaci\'on y su correspondiente bater\'ia de pruebas. Esta uniformidad facilita orientarse
+en cualquier m\'odulo conociendo uno solo de ellos.
 
-\begin{verbatim}
-apps/<modulo>/
-|-- models.py          # Entidades de dominio (ORM)
-|-- serializers.py     # Transformacion de datos (entrada/salida)
-|-- views.py           # ViewSets y vistas (controladores)
-|-- urls.py            # Rutas del modulo
-|-- services.py        # Logica de negocio
-|-- tasks.py           # Tareas Celery asincronas
-|-- permissions.py     # Logica de autorizacion
-`-- tests/
-\end{verbatim}
-
-La separaci\'on entre \texttt{views.py} y \texttt{services.py} es deliberada: los ViewSets se
-limitan a la gesti\'on HTTP (autenticaci\'on, serializaci\'on, c\'odigos de respuesta), mientras
-que la l\'ogica de negocio reside exclusivamente en los servicios, lo que permite invocarla desde
-tareas Celery o tests sin simular peticiones HTTP. En los m\'odulos de mayor complejidad
-(\texttt{optimizer}, por ejemplo) \texttt{services.py} se sustituye por un paquete
-\texttt{services/} con varios m\'odulos especializados (\texttt{matching}, \texttt{semantic},
-\texttt{distance}, \texttt{solver}).
+La separaci\'on entre la capa que atiende las peticiones web y la que contiene la l\'ogica de
+negocio es deliberada: la primera se limita a los aspectos propios de la comunicaci\'on
+---autenticaci\'on, validaci\'on de datos y c\'odigos de respuesta---, mientras que las reglas del
+negocio residen exclusivamente en la segunda. As\'i, esa l\'ogica puede invocarse igualmente desde
+las tareas en segundo plano o desde las pruebas, sin necesidad de simular una petici\'on real. En
+los m\'odulos m\'as complejos, como el optimizador, esa l\'ogica se reparte adem\'as en varias
+piezas especializadas (correspondencia de productos, interpretaci\'on sem\'antica, c\'alculo de
+distancias y resoluci\'on de la ruta).
 
 La Figura~\ref{fig:arquitectura-capas} resume la distribuci\'on por capas de la soluci\'on.
 
@@ -66,109 +83,89 @@ La Figura~\ref{fig:arquitectura-capas} resume la distribuci\'on por capas de la 
 \subsection{Comunicaci\'on entre componentes}\label{subsec:comunicacion}
 
 \begin{itemize}
-  \item \textbf{Frontend \textrightarrow{} Backend:} API REST con autenticaci\'on JWT. Axios
-    gestiona la renovaci\'on autom\'atica del token de acceso ante un \texttt{401 Unauthorized}.
-  \item \textbf{Backend \textrightarrow{} Celery:} Encolar tareas mediante \texttt{.delay()} o
-    \texttt{.apply\_async()} sobre el broker Redis.
-  \item \textbf{Backend \textrightarrow{} PostgreSQL:} Django ORM con consultas geoespaciales
-    mediante \texttt{django.contrib.gis}.
-  \item \textbf{Backend \textrightarrow{} APIs externas:} Clientes HTTP aislados en la capa de
-    servicios de cada m\'odulo (p.\,ej.\ \texttt{apps/optimizer/services/distance.py}) para
-    Google Places, Gemini API y OpenRouteService.
+  \item \textbf{De la aplicaci\'on al backend:} a trav\'es de la API REST con sesi\'on
+    autenticada; el cliente renueva de forma transparente el token de acceso cuando este caduca,
+    sin que el usuario perciba la operaci\'on.
+  \item \textbf{Del backend a las tareas en segundo plano:} los trabajos pesados se encolan para
+    que se procesen de forma as\'incrona sin bloquear la respuesta al usuario.
+  \item \textbf{Del backend a la base de datos:} mediante una capa de acceso que incorpora las
+    consultas geoespaciales necesarias para las b\'usquedas por proximidad.
+  \item \textbf{Del backend a los servicios externos:} a trav\'es de clientes aislados en la capa
+    de servicios de cada m\'odulo, que encapsulan la comunicaci\'on con los servicios de mapas,
+    rutas y el modelo de lenguaje.
 \end{itemize}
 
 \section{Modelo de Datos}\label{sec:modelo-datos}
 
 \subsection{M\'odulo de usuarios}\label{subsec:modelo-usuarios}
 
-El modelo \texttt{User} extiende \texttt{AbstractUser} de Django, conservando el nombre de
-usuario como identificador de inicio de sesi\'on; el correo electr\'onico se valida como
-\'unico en el registro y se emplea para las comunicaciones y la recuperaci\'on de contrase\~na.
-Se definen tres roles: \texttt{consumer}, \texttt{business} y \texttt{admin}. El campo
-\texttt{default\_location} utiliza \texttt{PointField(SRID=4326)}.
+El modelo de usuario se apoya en el sistema de autenticaci\'on de Django, conservando el nombre de
+usuario como identificador de inicio de sesi\'on; el correo electr\'onico se valida como \'unico en
+el registro y se emplea para las comunicaciones y la recuperaci\'on de contrase\~na. Se distinguen
+tres roles ---consumidor, comercio y administrador--- y se almacena la ubicaci\'on por defecto del
+usuario como una coordenada geogr\'afica.
 
-Las preferencias de optimizaci\'on se almacenan en el perfil como enteros porcentuales
-(\texttt{weight\_price}, \texttt{weight\_distance}, \texttt{weight\_time}, con valores por
-defecto 34/33/33):
-
-\begin{verbatim}
-weight_price = models.PositiveSmallIntegerField(
-    default=34,
-    verbose_name="Peso precio (%)",
-    help_text="Importancia del precio en la optimizacion (0-100). "
-              "Junto a weight_distance y weight_time deben sumar ~100.",
-)
-\end{verbatim}
-
-La interfaz ajusta los tres deslizadores de forma conjunta y, en cada petici\'on de
-optimizaci\'on, el serializer del optimizador renormaliza los pesos recibidos dividi\'endolos
-por su suma, de modo que el algoritmo siempre trabaja con pesos relativos que suman~1
-con independencia del formato de entrada.
+Las preferencias de optimizaci\'on se guardan en el perfil como tres porcentajes ---la importancia
+relativa que el usuario concede al precio, a la distancia y al tiempo--- con un reparto inicial
+equilibrado de aproximadamente un tercio cada uno. La interfaz ajusta los tres deslizadores de
+forma conjunta y, en cada petici\'on de optimizaci\'on, el sistema reescala internamente esos
+valores para que sumen la unidad, de modo que el algoritmo siempre trabaja con pesos relativos con
+independencia de c\'omo se hayan introducido.
 
 \subsection{M\'odulo de productos}\label{subsec:modelo-productos}
 
-La b\'usqueda de productos por nombre utiliza \textbf{matching fuzzy} mediante la extensi\'on
-PostgreSQL \texttt{pg\_trgm} (trigramas). El campo \texttt{normalized\_name} almacena el nombre
-normalizado (min\'usculas, sin tildes, sin caracteres especiales) con \'indices GIN de trigramas:
-
-\begin{verbatim}
-queryset.annotate(
-    similarity=TrigramSimilarity("normalized_name", value)
-).filter(similarity__gte=0.3).order_by("-similarity")
-\end{verbatim}
+La b\'usqueda de productos por nombre tolera erratas y variantes de redacci\'on mediante una
+t\'ecnica de \emph{coincidencia aproximada}: cada producto guarda una versi\'on normalizada de su
+nombre (en min\'usculas, sin tildes ni caracteres especiales) y las b\'usquedas se comparan
+fragmentando las palabras en grupos de tres letras, de modo que ``leche entra'' encuentra ``leche
+entera''. La base de datos resuelve esta comparaci\'on con un \'indice especializado que ordena los
+resultados de mayor a menor parecido, descartando los que no superan un umbral m\'inimo de
+similitud.
 
 \subsection{M\'odulo de tiendas}\label{subsec:modelo-tiendas}
 
-El campo \texttt{location} de \texttt{Store} es un \texttt{PointField} con \'indice espacial
-GiST \cite{postgis_docs}. La b\'usqueda por radio se implementa con el \emph{lookup}
-\texttt{distance\_lte} de GeoDjango y la anotaci\'on \texttt{Distance} para ordenar por
-cercan\'ia:
+Cada tienda almacena su posici\'on como una coordenada geogr\'afica indexada espacialmente, lo que
+permite a la base de datos resolver con eficiencia preguntas del tipo ``qu\'e tiendas hay a menos de
+tantos kil\'ometros de este punto''. La consulta filtra los establecimientos activos situados dentro
+del radio indicado y los ordena por cercan\'ia a la ubicaci\'on del usuario, apoy\'andose en las
+capacidades geoespaciales de PostGIS \cite{postgis_docs}.
 
-\begin{verbatim}
-user_location = Point(lng, lat, srid=4326)
-stores = (
-    Store.objects
-    .filter(
-        location__distance_lte=(user_location, D(km=radius_km)),
-        is_active=True,
-    )
-    .annotate(distance=Distance("location", user_location))
-    .order_by("distance")
-)
-\end{verbatim}
-
-Para los vol\'umenes de tiendas manejados en el TFG (decenas por radio) esta consulta es
-suficiente. Como optimizaci\'on identificada para escenarios con cientos de miles de tiendas,
-el \emph{lookup} \texttt{dwithin} (que se traduce en \texttt{ST\_DWithin} y explota de forma
-m\'as directa el \'indice GiST \cite{postgis_in_action}) sustituir\'ia a
-\texttt{distance\_lte} en el filtro, manteniendo \texttt{Distance} solo para la ordenaci\'on.
+Para los vol\'umenes manejados en el TFG ---del orden de decenas de tiendas por radio--- esta
+consulta es m\'as que suficiente. Para escenarios con cientos de miles de establecimientos se ha
+identificado una variante de la consulta que aprovecha de forma a\'un m\'as directa el \'indice
+espacial \cite{postgis_in_action}, sin necesidad de cambios en el resto del dise\~no.
 
 \subsection{M\'odulo de precios}\label{subsec:modelo-precios}
 
-El hist\'orico de precios se materializa autom\'aticamente: cada precio es inmutable una vez
-creado. La actualizaci\'on de un precio supone la inserci\'on de un nuevo registro. Una tarea
-Celery peri\'odica (\texttt{expire\_stale\_prices}, ejecutada cada hora) marca como caducados
----bandera \texttt{is\_stale}--- los precios de scraping con m\'as de 48 horas de antig\"uedad
-y los de crowdsourcing con m\'as de 24 horas, conforme a la regla de negocio RN-003.
+El hist\'orico de precios se conserva de forma autom\'atica: cada precio es inmutable una vez
+registrado, de modo que actualizar un precio equivale a a\~nadir un nuevo registro y mantener los
+anteriores como historia. Una tarea autom\'atica que se ejecuta cada hora marca como caducados los
+precios obtenidos por recogida autom\'atica que superan las 48 horas de antig\"uedad, conforme a la
+pol\'itica de caducidad de precios del sistema; los precios introducidos directamente por los
+comercios verificados no caducan, al tratarse de informaci\'on de primera mano.
 
 \subsection{M\'odulo del optimizador}\label{subsec:modelo-optimizador}
 
-El m\'odulo del optimizador incluye tres entidades relacionales para almacenar el resultado de la
-optimizaci\'on de forma trazable:
+El resultado de cada optimizaci\'on se almacena de forma estructurada y trazable en tres niveles
+anidados:
 
 \begin{itemize}
-  \item \textbf{\texttt{OptimizationResult}:} resultado global con pesos, modo y m\'etricas
-    totales. Incluye \texttt{route\_data} JSONB para compatibilidad de lectura r\'apida.
-  \item \textbf{\texttt{OptimizationRouteStop}:} cada parada de la ruta con tienda, orden,
-    distancia, tiempo y subtotal.
-  \item \textbf{\texttt{OptimizationRouteStopItem}:} \'item concreto por parada, con producto
-    resuelto, precio elegido, texto original y puntuaci\'on de similitud.
+  \item \textbf{El resultado global:} recoge los pesos empleados, el modo de optimizaci\'on y las
+    m\'etricas totales de la ruta (precio, distancia y tiempo).
+  \item \textbf{Cada parada de la ruta:} la tienda visitada, su orden en el recorrido y la
+    distancia, el tiempo y el subtotal correspondientes.
+  \item \textbf{Cada producto dentro de una parada:} el producto finalmente asignado, el precio
+    elegido, el texto original que escribi\'o el usuario y el grado de parecido con el que se
+    resolvi\'o la correspondencia.
 \end{itemize}
 
 \subsection{\'Indices clave}\label{subsec:indices}
 
 El Cuadro~\ref{tab:indices} recoge los \'indices definidos expl\'icitamente en los modelos,
-adem\'as de los \'indices autom\'aticos de claves primarias y for\'aneas.
+adem\'as de los \'indices autom\'aticos de claves primarias y for\'aneas. Se emplean dos tipos de
+\'indice de PostgreSQL: el \'arbol de b\'usqueda generalizado (GiST), id\'oneo para las consultas
+geogr\'aficas, y el \'indice invertido generalizado (GIN), empleado en las b\'usquedas de texto
+aproximadas.
 
 \begin{table}[htbp]
 \centering
@@ -212,12 +209,13 @@ La Figura~\ref{fig:modelo-clases} detalla las clases principales del dominio y s
 
 \subsection{Estructura general}\label{subsec:api-estructura}
 
-La API sigue las convenciones REST y est\'a versionada bajo el prefijo \texttt{/api/v1/}. Todos
-los endpoints requieren autenticaci\'on JWT salvo los de registro, obtenci\'on de token, salud y
-recuperaci\'on de contrase\~na. Las vistas devuelven el \emph{envelope} de \'exito
-\texttt{\{success, data\}} (helpers de \texttt{apps/core/responses.py}) y los errores se
-normalizan globalmente mediante un \emph{exception handler} propio
-(\texttt{apps/core/exceptions.py}):
+La API sigue las convenciones REST y agrupa todas sus rutas bajo una misma versi\'on. Salvo el
+registro, el inicio de sesi\'on, la comprobaci\'on de estado del servicio y la recuperaci\'on de
+contrase\~na, todas las peticiones requieren que el usuario est\'e autenticado. Para que el cliente
+trate siempre las respuestas de la misma forma, todas comparten un formato com\'un: un sobre que
+indica si la operaci\'on tuvo \'exito y, en ese caso, transporta los datos solicitados; cuando algo
+falla, ese mismo sobre incorpora en su lugar un bloque de error con un c\'odigo identificable, un
+mensaje legible y los detalles oportunos.
 
 \begin{verbatim}
 // Respuesta exitosa
@@ -237,9 +235,8 @@ normalizan globalmente mediante un \emph{exception handler} propio
 }
 \end{verbatim}
 
-Los listados emplean la paginaci\'on est\'andar de DRF (\texttt{PageNumberPagination}), cuyo
-bloque \texttt{count}/\texttt{next}/\texttt{previous}/\texttt{results} viaja dentro del campo
-\texttt{data}.
+Los listados extensos se entregan paginados, incluyendo junto a los resultados el total de
+elementos y los enlaces a las p\'aginas anterior y siguiente.
 
 \subsection{Endpoints principales}\label{subsec:api-endpoints}
 
@@ -286,108 +283,182 @@ POST & \texttt{/api/v1/assistant/chat/} & Enviar mensaje al asistente \\
 
 \subsection{Autenticaci\'on y autorizaci\'on}\label{subsec:api-auth}
 
-Se implementa un sistema de permisos a tres niveles:
+El control de acceso se articula en varios niveles que determinan qui\'en puede hacer qu\'e: la
+exigencia general de estar autenticado para las operaciones privadas; la restricci\'on que limita a
+cada comerciante a gestionar \'unicamente su propio negocio; los permisos reservados a los
+administradores del sistema; y la regla que permite acceder a una lista de la compra tanto a su
+propietario como a los colaboradores a los que este la haya compartido.
 
-\begin{itemize}
-  \item \textbf{\texttt{IsAuthenticated}:} Aplicado por defecto a todos los endpoints privados.
-  \item \textbf{\texttt{IsBusinessOwner}:} Permite operar solo sobre el perfil de negocio propio.
-  \item \textbf{\texttt{IsAdminUser}:} Para endpoints de administraci\'on del sistema.
-  \item \textbf{\texttt{IsShoppingListOwnerOrShared}:} Permite acceso al propietario y
-    colaboradores invitados.
-\end{itemize}
-
-Los tokens JWT se generan con \texttt{djangorestframework-simplejwt} \cite{simplejwt_docs},
-con rotaci\'on autom\'atica del token de refresco y lista negra del token rotado
-(\texttt{ROTATE\_REFRESH\_TOKENS} y \texttt{BLACKLIST\_AFTER\_ROTATION}). Los tiempos de vida
-son configurables por variables de entorno: la configuraci\'on de referencia del proyecto
-(\texttt{.env.example}) fija 60 minutos para el token de acceso y 7 d\'ias para el de refresco,
-mientras que los valores por defecto del c\'odigo, m\'as restrictivos, son de 5 minutos y
-30 d\'ias respectivamente.
+La sesi\'on se sustenta en tokens de autenticaci\'on firmados \cite{simplejwt_docs}: uno de acceso,
+de vida corta, y otro de refresco que permite renovarlo sin volver a introducir credenciales. El
+token de refresco se rota autom\'aticamente y el anterior se invalida en cuanto se usa, de modo que
+un token robado deja de servir tras la primera renovaci\'on. Los tiempos de validez son
+configurables; la configuraci\'on de referencia del proyecto fija 60 minutos para el token de
+acceso y 7 d\'ias para el de refresco.
 
 \section{Implementaci\'on del Backend}\label{sec:implementacion-backend}
 
 \subsection{M\'odulo de notificaciones}\label{subsec:impl-notificaciones}
 
-El m\'odulo gestiona el buz\'on de notificaciones del usuario (inbox) y el env\'io de
-notificaciones push mediante \textbf{Expo Push Notifications}. Las entregas se procesan
-as\'incronamente con tareas Celery.
+El m\'odulo gestiona el buz\'on de notificaciones del usuario y el env\'io de avisos al dispositivo
+m\'ovil, cuyo reparto se realiza en segundo plano para no penalizar la respuesta de la aplicaci\'on.
 
 \begin{itemize}
-  \item \textbf{\texttt{Notification}:} Registro persistente con \texttt{notification\_type}
-    (\texttt{price\_alert}, \texttt{new\_promo}, \texttt{shared\_list\_changed},
-    \texttt{business\_approved}, \texttt{business\_rejected}), campos \texttt{title}/\texttt{body},
-    bandera \texttt{is\_read}, \texttt{data} JSONB para payload variable, \texttt{action\_url}
-    para deep links y \texttt{deleted\_at} para soft-delete.
-  \item \textbf{\texttt{UserPushToken}:} Token Expo registrado por dispositivo. La clave \'unica
-    \texttt{(user, device\_id)} evita duplicados al reinstalar la app.
+  \item \textbf{Notificaciones:} cada aviso se guarda de forma persistente con su tipo ---bajada de
+    precio, nueva promoci\'on, cambio en una lista compartida, o aprobaci\'on y rechazo de un
+    comercio---, su t\'itulo y texto, el estado de le\'ido o no le\'ido, un enlace directo a la
+    pantalla afectada y un borrado l\'ogico que permite descartarlo sin perder la traza.
+  \item \textbf{Dispositivos registrados:} se asocia a cada usuario el identificador de sus
+    dispositivos para poder enviarles las notificaciones, evitando duplicados cuando se reinstala
+    la aplicaci\'on.
 \end{itemize}
 
 \subsection{M\'odulo de portal business}\label{subsec:impl-business}
 
 \begin{itemize}
-  \item \textbf{\texttt{BusinessProfile}:} Perfil verificable con \texttt{tax\_id} (CIF/NIF
-    \'unico), estado de verificaci\'on y umbral de alerta de competidor
-    (\texttt{price\_alert\_threshold\_pct}).
-  \item \textbf{\texttt{Promotion}:} Promoci\'on temporal de un producto en una tienda. Restricci\'on
-    parcial \'unica \texttt{(product, store) WHERE is\_active} garantiza que no existan dos
-    promociones activas para el mismo par.
+  \item \textbf{Perfil de negocio:} datos del comercio sujetos a verificaci\'on ---con su
+    identificaci\'on fiscal \'unica--- junto con el umbral a partir del cual se le avisa de que un
+    competidor cercano ofrece un precio m\'as bajo.
+  \item \textbf{Promociones:} ofertas temporales de un producto en una tienda, con la garant\'ia de
+    que no pueden coexistir dos promociones activas para el mismo producto en el mismo
+    establecimiento.
 \end{itemize}
 
-La tarea Celery \texttt{check\_competitor\_prices} se ejecuta una vez al d\'ia (a las 08:00,
-seg\'un el \emph{beat schedule}) y alerta al propietario cuando detecta diferencias superiores
-al umbral configurado.
+Una tarea autom\'atica diaria revisa los precios de la competencia y avisa al comerciante cuando
+detecta diferencias superiores al umbral que haya configurado.
 
 \section{El Algoritmo de Optimizaci\'on de Rutas}\label{sec:algoritmo}
 
 \subsection{Formulaci\'on del problema}\label{subsec:formulacion}
 
-El algoritmo de optimizaci\'on es la aportaci\'on t\'ecnica central del TFG. El problema
-combina dos subproblemas acoplados: (1) la \emph{asignaci\'on} de cada \'item textual de la
-lista a un producto concreto del cat\'alogo y a la tienda donde comprarlo, y (2) la
-\emph{ordenaci\'on} de las tiendas seleccionadas como una variante del problema del viajante
-(TSP) \cite{tsp_study} con un t\'ermino de premio por ahorro en cada parada.
+El algoritmo de optimizaci\'on es la aportaci\'on t\'ecnica central del TFG. El problema combina
+dos subproblemas acoplados: (1) la \emph{asignaci\'on} de cada \'item de la lista a un producto
+concreto del cat\'alogo y a la tienda donde comprarlo, y (2) la \emph{ordenaci\'on} de las tiendas
+seleccionadas para construir el recorrido m\'as conveniente.
+
+Este segundo subproblema se enmarca de forma natural en la \textbf{teor\'ia de grafos}. El entorno
+de compra puede representarse como un grafo ponderado en el que los \emph{v\'ertices} (o nodos) son
+la ubicaci\'on de partida del usuario y las tiendas candidatas dentro del radio de b\'usqueda, y
+las \emph{aristas} que unen cada par de v\'ertices llevan asociado un peso doble: la distancia y el
+tiempo reales de desplazamiento entre esos dos puntos. Sobre ese grafo, encontrar el orden de
+visita que minimiza el coste total de recorrer las tiendas elegidas y regresar es precisamente el
+\textbf{problema del viajante de comercio} (TSP) \cite{tsp_study}, uno de los problemas cl\'asicos
+de optimizaci\'on combinatoria sobre grafos. BarGAIN trabaja con una variante enriquecida: cada
+v\'ertice-tienda aporta adem\'as un \emph{premio} proporcional al ahorro que se consigue comprando
+en \'el, de modo que el recorrido \'optimo no es solo el m\'as corto, sino el que mejor equilibra
+desplazamiento, tiempo y ahorro seg\'un las preferencias del usuario. Al limitarse el n\'umero de
+paradas a un valor peque\~no (entre una y cuatro), el grafo resultante es de tama\~no reducido, lo
+que hace abordable su resoluci\'on en tiempo real.
 
 \textbf{Entrada:}
 \begin{itemize}
-  \item Lista de la compra $L = \{i_1, i_2, \ldots, i_m\}$ ($m$ \'items textuales)
+  \item Lista de la compra $L = \{i_1, i_2, \ldots, i_m\}$ con $m$ art\'iculos
   \item Ubicaci\'on del usuario $u = (lat, lng)$
-  \item Radio m\'aximo $r$ (km), n\'umero m\'aximo de paradas $k$ (1--4)
-  \item Pesos de preferencia $w_{precio}$, $w_{distancia}$, $w_{tiempo}$ (renormalizados
-    en el serializer para que sumen 1)
+  \item Radio m\'aximo de b\'usqueda $r$ (km) y n\'umero m\'aximo de paradas $k$ (de 1 a 4)
+  \item Pesos de preferencia $w_{precio}$, $w_{distancia}$, $w_{tiempo}$ (normalizados de forma
+    que sumen 1)
 \end{itemize}
 
-\textbf{Salida:} una asignaci\'on \'item $\rightarrow$ (producto, precio, tienda), la ruta
-recomendada con las paradas ordenadas y su desglose (precio total, distancia, tiempo y
-productos por parada), junto con las ambig\"uedades sem\'anticas detectadas, que el usuario
-puede resolver para recalcular.
+\textbf{Salida:} la asignaci\'on de cada art\'iculo a un producto, un precio y una tienda; la ruta
+recomendada con las paradas ya ordenadas y su desglose (precio total, distancia, tiempo y productos
+por parada); y, en su caso, los art\'iculos ambiguos detectados, que el usuario puede precisar para
+recalcular la ruta.
 
-\subsection{Fase 1 --- Resoluci\'on sem\'antico-difusa de \'items}\label{subsec:resolucion}
+\subsubsection*{Formulaci\'on matem\'atica del problema de minimizaci\'on}
 
-Cada \'item textual se resuelve en \texttt{services/matching.py} mediante una cascada de
-filtros:
+Formalicemos el problema completo. Para cada art\'iculo $i \in L$ se dispone de un conjunto de
+\emph{opciones candidatas} $O_i$; cada opci\'on $o \in O_i$ representa una terna
+(producto, tienda, precio) que satisface ese art\'iculo, con un precio efectivo $\pi_o \ge 0$ y una
+tienda asociada $s(o) \in S$, siendo $S$ el conjunto de tiendas dentro del radio $r$. Se introducen
+dos familias de variables de decisi\'on binarias:
+\[
+  y_{io} =
+  \begin{cases}
+    1 & \text{si el art\'iculo } i \text{ se satisface con la opci\'on } o,\\
+    0 & \text{en caso contrario,}
+  \end{cases}
+  \qquad
+  z_{s} =
+  \begin{cases}
+    1 & \text{si la tienda } s \text{ se incluye en la ruta,}\\
+    0 & \text{en caso contrario.}
+  \end{cases}
+\]
+
+El coste de una soluci\'on combina dos t\'erminos: el \emph{coste econ\'omico} de la cesta y el
+\emph{coste log\'istico} del recorrido. El segundo depende del conjunto de tiendas visitadas
+$V(z) = \{\, s \in S : z_s = 1 \,\}$ a trav\'es de la longitud de la ruta \'optima que parte de la
+ubicaci\'on del usuario $u$, recorre $V(z)$ y regresa a $u$; denotamos su distancia y su tiempo por
+$D\!\left(V(z)\right)$ y $T\!\left(V(z)\right)$, magnitudes que se determinan resolviendo el
+subproblema de ordenaci\'on de la Secci\'on~\ref{subsec:ortools}. El problema se enuncia entonces
+como la minimizaci\'on
+
+\begin{equation}\label{eq:objetivo-global}
+  \min_{y,\,z}\quad
+  w_{precio} \sum_{i \in L} \sum_{o \in O_i} \pi_o \, y_{io}
+  \;+\; w_{distancia}\, \widehat{D}\!\left(V(z)\right)
+  \;+\; w_{tiempo}\, \widehat{T}\!\left(V(z)\right)
+\end{equation}
+
+sujeta a las restricciones
+
+\begin{align}
+  \sum_{o \in O_i} y_{io} &= 1, & &\forall\, i \in L, \label{eq:c-asignacion}\\
+  y_{io} &\le z_{s(o)}, & &\forall\, i \in L,\ \forall\, o \in O_i, \label{eq:c-enlace}\\
+  \sum_{s \in S} z_s &\le k, & & \label{eq:c-paradas}\\
+  y_{io},\, z_s &\in \{0,1\}, & &\forall\, i,\, o,\, s. \label{eq:c-binarias}
+\end{align}
+
+La restricci\'on~\eqref{eq:c-asignacion} obliga a satisfacer cada art\'iculo con exactamente una
+opci\'on; la~\eqref{eq:c-enlace} garantiza que, si una opci\'on se utiliza, su tienda forma parte de
+la ruta; la~\eqref{eq:c-paradas} impone el n\'umero m\'aximo de paradas $k$; y
+la~\eqref{eq:c-binarias} fija el car\'acter binario de las decisiones. Los s\'imbolos
+$\widehat{D}$ y $\widehat{T}$ denotan la distancia y el tiempo \emph{normalizados} a una escala
+comparable con el t\'ermino de precio, y los pesos cumplen
+$w_{precio} + w_{distancia} + w_{tiempo} = 1$ con $w_\bullet \ge 0$.
+
+El problema~\eqref{eq:objetivo-global}--\eqref{eq:c-binarias} es un programa de optimizaci\'on
+combinatoria \emph{acoplado}: la funci\'on objetivo contiene, a trav\'es de $\widehat{D}$ y
+$\widehat{T}$, el coste de un problema del viajante que a su vez depende de qu\'e tiendas se
+seleccionan. Pertenece a la clase de los problemas NP-duros ---generaliza tanto la selecci\'on de
+subconjuntos con cardinalidad acotada como el TSP---, por lo que no admite, en general, una
+resoluci\'on exacta eficiente. Dado que la aplicaci\'on debe responder en tiempo interactivo
+(menos de 5 segundos), BarGAIN no resuelve el modelo de forma monol\'itica, sino que lo
+\textbf{descompone} en una secuencia de fases tratables que aproximan su \'optimo: una heur\'istica
+de asignaci\'on art\'iculo--opci\'on (Fase~1), una consolidaci\'on voraz que impone la cota de
+paradas de la ecuaci\'on~\eqref{eq:c-paradas} (Fase~2), el c\'alculo de los pesos log\'isticos
+(Fase~3) y la \emph{resoluci\'on exacta} del subproblema de ordenaci\'on (Fase~4). Las secciones
+siguientes detallan cada fase.
+
+\subsection{Fase 1 --- Resoluci\'on de los art\'iculos de la lista}\label{subsec:resolucion}
+
+El usuario escribe su lista en lenguaje libre (``leche'', ``manzanas'', ``pan de molde''), de modo
+que el primer reto es averiguar a qu\'e producto concreto del cat\'alogo se refiere cada anotaci\'on
+y en qu\'e tiendas est\'a disponible. Esta correspondencia se resuelve mediante una cascada de
+filtros que va acotando progresivamente los candidatos:
 
 \begin{enumerate}
-  \item \textbf{Preselecci\'on por trigramas:} los 20 productos m\'as similares por
-    \texttt{TrigramSimilarity} sobre \texttt{normalized\_name} (\'indice GIN
-    \cite{postgres_docs}).
-  \item \textbf{Intenci\'on sem\'antica (Gemini):} el m\'odulo \texttt{services/semantic.py}
-    consulta un modelo Gemini \cite{gemini_docs} con el texto del \'item y los candidatos, y
-    obtiene productos \emph{preferidos} y \emph{alternativos}, junto con la marca
-    \texttt{needs\_user\_confirmation} cuando el \'item es gen\'erico (``manzanas'' frente a
-    ``manzanas Fuji''). Si el modelo no est\'a disponible, se degrada a una heur\'istica local
-    basada en calificadores transformadores (``rallado'', ``molido''...). Las preferencias que
-    el usuario confirm\'o en optimizaciones anteriores
-    (\texttt{ShoppingListSemanticPreference}) tienen prioridad sobre la inferencia.
-  \item \textbf{Precios vigentes:} una \'unica consulta con \texttt{select\_related} recupera
-    el \'ultimo precio no caducado (\texttt{is\_stale=False}) de cada par producto--tienda
-    dentro del radio.
-  \item \textbf{Puntuaci\'on difusa:} cada candidato (\'item, precio) se punt\'ua con
-    \texttt{thefuzz} \cite{thefuzz_docs} combinando \texttt{token\_set\_ratio} y
-    \texttt{partial\_ratio} sobre variantes del nombre (85\,\% producto, 15\,\% contexto de
-    tienda), con una penalizaci\'on para calificadores no solicitados y un bonus sem\'antico
-    (+0,15 preferidos, +0,05 alternativos). Se conservan los 12 mejores candidatos por \'item.
-  \item \textbf{Selecci\'on:} entre los candidatos cuya similitud queda a menos de 0,08 del
-    m\'aximo, se elige el de menor precio efectivo (precio de oferta si existe).
+  \item \textbf{Preselecci\'on por semejanza textual:} se localizan los veinte productos del
+    cat\'alogo cuyo nombre m\'as se parece al texto escrito, comparando fragmentos de tres letras
+    para tolerar erratas y variantes de redacci\'on.
+  \item \textbf{Interpretaci\'on del significado:} un modelo de lenguaje (Gemini \cite{gemini_docs})
+    recibe el texto del usuario y esos candidatos, y decide cu\'ales encajan mejor, distinguiendo
+    los productos \emph{preferentes} de los \emph{alternativos}. Adem\'as se\~nala los casos en que
+    la anotaci\'on es gen\'erica y conviene preguntar al usuario (``manzanas'' frente a ``manzanas
+    Fuji''). Si el modelo no est\'a disponible, el sistema recurre a una regla local de respaldo
+    basada en t\'erminos que cambian la naturaleza del producto (``rallado'', ``molido''...). Las
+    elecciones que el usuario ya confirm\'o en ocasiones anteriores tienen prioridad sobre esta
+    inferencia.
+  \item \textbf{Recuperaci\'on de precios vigentes:} para los productos candidatos se obtiene, en
+    una sola consulta a la base de datos, el \'ultimo precio no caducado de cada combinaci\'on de
+    producto y tienda dentro del radio.
+  \item \textbf{Puntuaci\'on de cada opci\'on:} cada pareja de art\'iculo y precio recibe una
+    puntuaci\'on de parecido que pondera sobre todo la coincidencia del nombre del producto
+    (85\,\%) y, en menor medida, el contexto de la tienda (15\,\%), penaliza los matices no
+    solicitados por el usuario y premia las opciones que el modelo marc\'o como preferentes. Se
+    conservan los doce mejores candidatos por art\'iculo.
+  \item \textbf{Selecci\'on final:} entre las opciones pr\'acticamente empatadas en parecido se
+    elige la de menor precio efectivo, teniendo en cuenta el precio de oferta cuando existe.
 \end{enumerate}
 
 \subsection{Fase 2 --- Consolidaci\'on de paradas}\label{subsec:consolidacion}
@@ -398,29 +469,26 @@ eligiendo en cada paso el cambio de menor sobrecoste. Adicionalmente, si varias 
 misma cadena participan en la ruta, se consolidan en una \'unica tienda de esa cadena siempre
 que exista una alternativa sin sobrecoste.
 
-\subsection{Fase 3 --- Matriz de distancias y tiempos}\label{subsec:distancias}
+\subsection{Fase 3 --- C\'alculo de distancias y tiempos}\label{subsec:distancias}
 
-Las distancias y tiempos reales de conducci\'on entre el usuario y las tiendas seleccionadas se
-obtienen de \textbf{OpenRouteService (ORS)} \cite{ors_docs} en una \'unica petici\'on de matriz;
-si la clave API no est\'a configurada o la llamada falla, se aplica un \emph{fallback} haversine
-con una velocidad urbana media de 40 km/h:
+Para poder valorar cada recorrido es necesario conocer el coste de desplazarse entre la ubicaci\'on
+del usuario y cada una de las tiendas, y entre las tiendas entre s\'i; en t\'erminos del grafo
+descrito antes, se trata de asignar un peso a cada arista. Estas distancias y tiempos reales de
+conducci\'on se obtienen del servicio de rutas OpenRouteService \cite{ors_docs}, que sobre la
+cartograf\'ia de calles devuelve de una sola vez todos los trayectos entre los puntos implicados.
+Cuando ese servicio no est\'a disponible, el sistema recurre a una estimaci\'on de respaldo que
+calcula la distancia en l\'inea recta entre los puntos y la convierte en tiempo suponiendo una
+velocidad urbana media de 40 km/h, de modo que la optimizaci\'on nunca queda bloqueada por un fallo
+externo.
 
-\begin{verbatim}
-POST https://api.openrouteservice.org/v2/matrix/driving-car
-Authorization: {ORS_API_KEY}
+\subsection{Fase 4 --- Ordenaci\'on de la ruta}\label{subsec:ortools}
 
-{
-  "locations": [[lng1, lat1], [lng2, lat2], ...],
-  "metrics": ["distance", "duration"],
-  "units": "km"
-}
-\end{verbatim}
-
-\subsection{Fase 4 --- Ordenaci\'on de la ruta con OR-Tools}\label{subsec:ortools}
-
-La ordenaci\'on de paradas se modela con el \emph{routing solver} de OR-Tools
-\cite{ortools_docs} como un TSP de un solo veh\'iculo cuyo dep\'osito es la ubicaci\'on del
-usuario. El coste de cada arco $(i,j)$ integra los tres criterios con los pesos del usuario:
+Una vez ponderadas las aristas del grafo, ordenar las paradas equivale a recorrerlo partiendo de la
+ubicaci\'on del usuario, visitando las tiendas elegidas y regresando al punto de partida con el
+menor coste posible: el ya mencionado problema del viajante. Su resoluci\'on se delega en la
+biblioteca de optimizaci\'on combinatoria OR-Tools \cite{ortools_docs}, ampliamente empleada en el
+sector log\'istico. El peso de cada arista $(i,j)$ ---el coste de ir de la tienda $i$ a la $j$---
+combina los tres criterios seg\'un las preferencias del usuario:
 
 \begin{equation}\label{eq:arc-cost}
   c(i,j) = w_{distancia} \cdot \hat{d}_{ij}
@@ -428,23 +496,64 @@ usuario. El coste de cada arco $(i,j)$ integra los tres criterios con los pesos 
          - w_{precio} \cdot \hat{s}_{j}
 \end{equation}
 
-donde $\hat{d}_{ij}$ y $\hat{t}_{ij}$ son la distancia y el tiempo normalizados por el m\'aximo
-de sus matrices, y $\hat{s}_{j}$ es el \emph{ahorro normalizado} de la tienda destino $j$: la
-suma, sobre los \'items asignados a $j$, de la diferencia entre el siguiente mejor candidato y
-el precio elegido, dividida por el m\'aximo ahorro entre tiendas. De este modo, un usuario que
-pondera el precio tolera desv\'ios hacia tiendas con mayor ahorro, mientras que uno que pondera
-distancia o tiempo obtiene rutas m\'as compactas. El solver utiliza la estrategia
-\texttt{PATH\_CHEAPEST\_ARC} con un l\'imite duro de 5 segundos y una dimensi\'on de conteo que
-acota el n\'umero de paradas.
+donde $\hat{d}_{ij}$ y $\hat{t}_{ij}$ son la distancia y el tiempo entre ambos puntos, expresados en
+una escala comparable, y $\hat{s}_{j}$ representa el \emph{ahorro} que aporta la tienda de destino
+$j$: cuanto m\'as barata resulta la compra asignada a esa tienda frente a la siguiente mejor
+alternativa, mayor es el premio que reduce el coste de dirigirse hacia ella. As\'i, quien da
+prioridad al precio acepta peque\~nos desv\'ios hacia tiendas con mayor ahorro, mientras que quien
+prioriza la cercan\'ia o la rapidez obtiene recorridos m\'as compactos.
+
+Formalmente, sea $N = \{0\} \cup V$ el conjunto de nodos del recorrido, donde $0$ es la ubicaci\'on
+de partida del usuario y $V$ las tiendas seleccionadas en las fases anteriores. Se define, para cada
+par ordenado de nodos $(u,v)$ con $u \neq v$, la variable de decisi\'on binaria
+\[
+  x_{uv} =
+  \begin{cases}
+    1 & \text{si el recorrido va directamente del nodo } u \text{ al nodo } v,\\
+    0 & \text{en caso contrario.}
+  \end{cases}
+\]
+La ordenaci\'on \'optima de la ruta es el problema del viajante que minimiza el coste total de las
+aristas efectivamente recorridas:
+
+\begin{equation}\label{eq:tsp-objetivo}
+  \min \quad \sum_{u \in N} \sum_{\substack{v \in N \\ v \neq u}} c(u,v)\, x_{uv}
+\end{equation}
+
+sujeto a las restricciones de grado ---cada nodo se abandona y se alcanza exactamente una vez--- y a
+la eliminaci\'on de subtoures (formulaci\'on de Miller--Tucker--Zemlin), que impide soluciones
+formadas por ciclos desconectados:
+
+\begin{align}
+  \sum_{\substack{v \in N \\ v \neq u}} x_{uv} &= 1, & &\forall\, u \in N, \label{eq:tsp-out}\\
+  \sum_{\substack{u \in N \\ u \neq v}} x_{uv} &= 1, & &\forall\, v \in N, \label{eq:tsp-in}\\
+  \mu_i - \mu_j + |N|\, x_{ij} &\le |N| - 1, & &\forall\, i,j \in V,\ i \neq j, \label{eq:tsp-mtz}\\
+  x_{uv} &\in \{0,1\}, & &\forall\, u,v \in N,\ u \neq v, \label{eq:tsp-bin}
+\end{align}
+
+donde las variables auxiliares $\mu_i \in \mathbb{R}$ asignan una posici\'on de orden a cada tienda.
+El coste de arista $c(u,v)$ es el definido en la ecuaci\'on~\eqref{eq:arc-cost}, e incorpora la
+distancia, el tiempo y el ahorro ponderados por las preferencias del usuario; obs\'ervese que la
+suma doble de la ecuaci\'on~\eqref{eq:tsp-objetivo} recorre todas las aristas dirigidas posibles y
+que, gracias al car\'acter binario de $x_{uv}$, solo contribuyen al coste las que forman parte del
+recorrido elegido. Las distancias y los tiempos $\widehat{D}$ y $\widehat{T}$ que alimentan el
+t\'ermino log\'istico del problema global~\eqref{eq:objetivo-global} se obtienen evaluando este
+recorrido \'optimo.
+
+La b\'usqueda parte de una soluci\'on inicial razonable ---encadenar en cada paso la conexi\'on
+m\'as econ\'omica--- y se detiene en un m\'aximo de cinco segundos, lo que garantiza una respuesta
+\'agil aun cuando exista un gran n\'umero de combinaciones posibles. Dado que el n\'umero de paradas
+est\'a acotado por $k \le 4$, el grafo es de tama\~no muy reducido y, en la pr\'actica, OR-Tools
+alcanza el \'optimo de forma pr\'acticamente inmediata.
 
 \subsection{Fase 5 --- Persistencia y desambiguaci\'on interactiva}\label{subsec:persistencia}
 
-El resultado se persiste de forma transaccional en \texttt{OptimizationResult},
-\texttt{OptimizationRouteStop} y \texttt{OptimizationRouteStopItem}. Cuando la fase de
-resoluci\'on marca alg\'un \'item como ambiguo, la respuesta incluye las alternativas
-sem\'anticas; el endpoint \texttt{POST /api/v1/optimize/choices/} registra la elecci\'on del
-usuario como \texttt{ShoppingListSemanticPreference} y recalcula la ruta, de modo que las
-optimizaciones futuras de esa lista ya no repiten la pregunta.
+El resultado de la optimizaci\'on ---la ruta, sus paradas ordenadas y los productos asignados a cada
+una--- se guarda de forma \'integra en la base de datos, de manera que el usuario puede recuperarlo
+m\'as tarde sin necesidad de recalcularlo. Cuando durante la resoluci\'on alg\'un art\'iculo resulta
+ambiguo, la respuesta ofrece las distintas interpretaciones posibles; al elegir una, el sistema la
+recuerda como preferencia de esa lista y recalcula la ruta, de modo que las optimizaciones futuras
+de la misma lista ya no vuelven a plantear la pregunta.
 
 \subsection{Diagrama de secuencia del optimizador}\label{subsec:secuencia-optimizador}
 
@@ -473,8 +582,8 @@ similares. La generaci\'on de rutas alternativas se mantiene como l\'inea de tra
 
 \subsection{Complejidad y salvaguardas de rendimiento}\label{subsec:rendimiento}
 
-El requisito RNF-001 (optimizaci\'on en menos de 5 segundos) se garantiza \emph{por
-construcci\'on} mediante cotas expl\'icitas en cada fase, resumidas en el
+El objetivo de rendimiento de resolver la optimizaci\'on en menos de 5 segundos se garantiza
+\emph{por construcci\'on} mediante cotas expl\'icitas en cada fase, resumidas en el
 Cuadro~\ref{tab:rendimiento}. No se ha realizado a\'un una campa\~na formal de medici\'on de
 latencias (p95) sobre el conjunto de datos de demostraci\'on; queda documentada como trabajo
 pendiente en el Cap\'itulo~\ref{cap10}.
@@ -488,48 +597,43 @@ pendiente en el Cap\'itulo~\ref{cap10}.
 \toprule
 \textbf{Fase} & \textbf{Mecanismo} & \textbf{Cota} \\
 \midrule
-Resoluci\'on de \'items & \'Indice GIN + l\'imite de candidatos & 20 productos por \'item \\
-Puntuaci\'on de candidatos & Truncado del ranking & 12 candidatos por \'item \\
-Matriz de distancias & Petici\'on \'unica a ORS & 1 llamada externa por optimizaci\'on \\
-Ordenaci\'on de ruta & \texttt{time\_limit} del solver & $\leq$ 5 s \\
+Resoluci\'on de art\'iculos & B\'usqueda indexada + l\'imite de candidatos & 20 productos por art\'iculo \\
+Puntuaci\'on de candidatos & Recorte de la lista de opciones & 12 candidatos por art\'iculo \\
+C\'alculo de distancias & Una \'unica consulta al servicio de rutas & 1 llamada externa por optimizaci\'on \\
+Ordenaci\'on de ruta & L\'imite de tiempo de b\'usqueda & $\leq$ 5 s \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-El endpoint se ejecuta de forma s\'incrona dentro del ciclo petici\'on--respuesta: para los
-vol\'umenes del TFG (listas de decenas de \'items y decenas de tiendas por radio) las cotas
-anteriores mantienen la latencia dentro del objetivo. La ejecuci\'on as\'incrona v\'ia Celery y
-una cach\'e de matrices de distancia en Redis se identificaron como optimizaciones de
-evoluci\'on para escenarios de mayor carga, pero no forman parte de la implementaci\'on actual.
+La optimizaci\'on se resuelve de forma inmediata dentro de la propia petici\'on del usuario: para
+los vol\'umenes del TFG ---listas de decenas de art\'iculos y decenas de tiendas por radio--- las
+cotas anteriores mantienen el tiempo de respuesta dentro del objetivo. Procesar la optimizaci\'on en
+segundo plano y reutilizar las distancias ya calculadas mediante una cach\'e se identificaron como
+mejoras para escenarios de mayor carga, aunque no forman parte de la implementaci\'on actual.
 
 \section{M\'odulo de Web Scraping}\label{sec:scraping}
 
-El scraper es un \textbf{proyecto Scrapy independiente} (\texttt{scraping/}) \cite{scrapy_docs}
-desacoplado del c\'odigo de la API. La persistencia se realiza directamente a trav\'es del ORM:
-el pipeline \texttt{PriceUpsertPipeline} inicializa el entorno Django (\texttt{django.setup()})
-y escribe productos y precios normalizados en la base de datos, registrando la fuente como
-\texttt{scraping}.
+La recogida automatizada de precios se construye como un proyecto independiente \cite{scrapy_docs},
+separado del c\'odigo de la API. Cada recolector visita el cat\'alogo en l\'inea de una cadena,
+extrae los precios y los escribe ya normalizados en la base de datos com\'un, registrando su origen
+como recogida autom\'atica.
 
-El proyecto incluye \textbf{once spiders} (Mercadona, Carrefour, Lidl, DIA, Alcampo, Eroski,
-Hipercor, Consum, Covir\'an, Spar y Costco), todos cubiertos por tests unitarios. De ellos,
-\textbf{cuatro est\'an en operaci\'on programada} mediante Celery Beat (Mercadona a las 06:00,
-Carrefour a las 06:30, Lidl a las 07:00 y DIA a las 07:30, una vez al d\'ia conforme a RN-010);
-los siete restantes est\'an implementados y verificados a nivel de parser, pero no se han
-incorporado a la planificaci\'on peri\'odica ni validado de forma continuada contra los sitios
-reales.
+El proyecto incluye \textbf{once recolectores}, uno por cadena (Mercadona, Carrefour, Lidl, DIA,
+Alcampo, Eroski, Hipercor, Consum, Covir\'an, Spar y Costco), todos cubiertos por pruebas. De
+ellos, \textbf{cuatro operan de forma programada} (Mercadona, Carrefour, Lidl y DIA, una vez al
+d\'ia y de madrugada, dentro de la frecuencia m\'axima de una recogida diaria por cadena); los
+siete restantes est\'an
+implementados y verificados, pero no se han incorporado todav\'ia a la ejecuci\'on peri\'odica ni
+validado de forma continuada contra los sitios reales.
 
-Cada cadena requiere una estrategia diferente:
+Cada cadena requiere una estrategia distinta seg\'un c\'omo publique sus precios. Algunas, como
+Mercadona, exponen los datos de forma estructurada y estable, accesible directamente. Otras, como
+Carrefour, Lidl o DIA, generan su cat\'alogo din\'amicamente en el navegador, por lo que se recurre
+a una herramienta capaz de simular un navegador real \cite{playwright_docs} que ejecute esa
+l\'ogica y permita leer el contenido ya cargado.
 
-\begin{itemize}
-  \item \textbf{Mercadona:} API interna (\texttt{tienda.mercadona.es/api/}) no oficial pero
-    estable, accesible mediante peticiones HTTP est\'andar.
-  \item \textbf{Carrefour / Lidl / DIA:} Cat\'alogos con renderizado del lado del cliente (SPA),
-    por lo que se usa \textbf{Playwright} \cite{playwright_docs} para ejecutar el JavaScript y
-    obtener el DOM hidratado.
-\end{itemize}
-
-Todos los spiders declaran en sus \texttt{custom\_settings} un \texttt{DOWNLOAD\_DELAY} de
-2 segundos entre peticiones consecutivas (regla de negocio RN-010).
+Todos los recolectores respetan una espera m\'inima de dos segundos entre peticiones consecutivas
+para no sobrecargar los servidores de destino.
 
 \subsection{Consideraciones legales y \'eticas del scraping}\label{subsec:scraping-legal}
 
@@ -541,47 +645,42 @@ proyecto aborda expl\'icitamente:
     p\'ublico, informaci\'on factual y p\'ublica sin datos personales; el RGPD \cite{rgpd2016}
     no aplica a esta extracci\'on, aunque s\'i al tratamiento de los datos de los usuarios de
     BarGAIN (en particular su ubicaci\'on), que se realiza con consentimiento expl\'icito.
-  \item \textbf{Protocolo de exclusi\'on.} La regla de negocio RN-009 exige respetar las
-    directivas \texttt{robots.txt} \cite{rfc9309} y excluir las cadenas que proh\'iban
-    expresamente el acceso automatizado. Debe se\~nalarse con honestidad que, en la
-    configuraci\'on actual del proyecto Scrapy, la opci\'on global \texttt{ROBOTSTXT\_OBEY}
-    est\'a desactivada ---los spiders operan contra rutas concretas con retardo de 2 segundos y
-    frecuencia diaria---; su activaci\'on, junto con la revisi\'on individual de las condiciones
-    de uso de cada cadena, est\'a identificada como mejora necesaria para alinear plenamente la
-    implementaci\'on con RN-009 antes de cualquier operaci\'on a escala.
+  \item \textbf{Protocolo de exclusi\'on.} La pol\'itica de scraping responsable del proyecto exige
+    respetar las directivas \texttt{robots.txt} \cite{rfc9309} ---el est\'andar mediante el que un
+    sitio web declara qu\'e puede recorrerse de forma automatizada--- y excluir las cadenas que
+    proh\'iban expresamente el acceso autom\'atico. Debe se\~nalarse con honestidad que, en la
+    configuraci\'on actual, la comprobaci\'on global de esas directivas est\'a desactivada ---la
+    recogida se limita a rutas concretas, con un retardo de dos segundos y frecuencia diaria---; su
+    activaci\'on, junto con la revisi\'on individual de las condiciones de uso de cada cadena, est\'a
+    identificada como mejora necesaria para alinear plenamente la implementaci\'on con esa pol\'itica
+    de exclusi\'on antes de cualquier operaci\'on a escala.
   \item \textbf{Minimizaci\'on de impacto.} El retardo entre peticiones, la frecuencia m\'axima
-    diaria por cadena y la preferencia por APIs p\'ublicas internas frente al renderizado
-    completo reducen la carga impuesta a los servidores de destino, en l\'inea con las
-    obligaciones generales de diligencia de la LSSI-CE \cite{lssi2002}.
-  \item \textbf{Estrategia de sustituci\'on.} La prioridad de fuentes del sistema (API oficial
-    $>$ scraping $>$ crowdsourcing, RN-004) permite reemplazar el scraping por acuerdos o APIs
-    oficiales sin cambios de arquitectura, que es el escenario objetivo de una eventual
-    explotaci\'on comercial.
+    diaria por cadena y la preferencia por los datos estructurados que ya ofrecen los propios
+    sitios reducen la carga impuesta a los servidores de destino, en l\'inea con las obligaciones
+    generales de diligencia de la Ley de Servicios de la Sociedad de la Informaci\'on y de
+    Comercio Electr\'onico (LSSI-CE) \cite{lssi2002}.
+  \item \textbf{Estrategia de sustituci\'on.} La prioridad de fuentes del sistema, que antepone la
+    API oficial a los datos de primera mano del comercio y estos a la recogida autom\'atica, permite
+    reemplazar la recogida autom\'atica por acuerdos o APIs oficiales sin cambios de arquitectura,
+    que es el escenario objetivo de una eventual explotaci\'on comercial.
 \end{itemize}
 
 \section{M\'odulo OCR}\label{sec:ocr}
 
-El backend invoca \textbf{Google Cloud Vision API} \cite{vision_docs} con la imagen capturada
-por el usuario. La decisi\'on de migrar desde Tesseract a Vision API (ADR-007) se adopt\'o tras
-comprobar que Tesseract no reconoce con suficiente claridad tickets y listas fotografiadas en
-condiciones reales. La integraci\'on se realiza contra la API REST de Vision con preprocesado
-previo de la imagen (fragmento simplificado de \texttt{apps/ocr/services.py}):
+Cuando el usuario fotograf\'ia un ticket o una lista manuscrita, el backend env\'ia la imagen al
+servicio de reconocimiento \'optico de Google Cloud Vision \cite{vision_docs}, que devuelve el texto
+contenido en ella. La elecci\'on de este servicio (ADR-007) se adopt\'o tras comprobar que la
+alternativa local previamente considerada (Tesseract) no reconoc\'ia con suficiente fiabilidad los
+tickets y listas fotografiados en condiciones reales. Antes de enviarla, la imagen se preprocesa
+para mejorar la calidad del reconocimiento, y del resultado se filtran las l\'ineas que realmente
+parecen corresponder a productos, descartando el resto del ruido (totales, fechas, datos del
+establecimiento, etc.).
 
-\begin{verbatim}
-def extract_text_from_image(image_bytes: bytes,
-                            lang: str = "spa+eng") -> list[str]:
-    """Extrae lineas de texto con Google Vision y filtra ruido."""
-    processed = _preprocess_image_for_ocr(image_bytes)
-    response = _request_google_vision(processed, lang)
-    raw_text = response.get("fullTextAnnotation", {}).get("text", "")
-    return _extract_candidate_lines(raw_text)
-\end{verbatim}
-
-Los c\'odigos de idioma estilo Tesseract (\texttt{spa+eng}) se mantienen como alias de
-compatibilidad y se convierten internamente en \emph{hints} BCP-47 para Vision. Cada l\'inea
-extra\'ida se normaliza y se empareja contra el cat\'alogo con \texttt{thefuzz}
-(\texttt{token\_sort\_ratio}, umbral de confianza 80) \cite{thefuzz_docs}, devolviendo al
-cliente una lista de candidatos con su nivel de confianza para revisi\'on manual.
+Cada l\'inea reconocida se normaliza y se empareja con el producto m\'as parecido del cat\'alogo
+mediante la misma t\'ecnica de coincidencia aproximada empleada en la b\'usqueda, exigiendo un nivel
+m\'inimo de confianza. Al cliente se le devuelve, para cada l\'inea, una lista de candidatos con su
+grado de confianza, de modo que el usuario revise y confirme el resultado antes de incorporarlo a la
+lista.
 
 \subsection{Diagrama de secuencia OCR}\label{subsec:secuencia-ocr}
 
@@ -597,105 +696,99 @@ hasta la inserci\'on de \'items en la lista.
 
 \section{Integraci\'on del Asistente LLM}\label{sec:asistente}
 
-El asistente conversacional utiliza la \textbf{Google Gemini API}
-(\texttt{gemini-2.0-flash-lite}) como modelo subyacente (ADR-008). El backend actúa como proxy,
-añadiendo contexto de la compra del usuario al system prompt antes de enviar cada mensaje a la
-API mediante el SDK \texttt{google-genai}.
+El asistente conversacional se apoya en un modelo de lenguaje de Google, Gemini (ADR-008). El
+backend act\'ua como intermediario: antes de remitir cada mensaje al modelo, le a\~nade el contexto
+de la compra del usuario ---sus listas, las tiendas cercanas y los precios pertinentes--- de modo
+que las respuestas se basen en datos reales y no en informaci\'on gen\'erica.
 
-Se aplica una \textbf{ventana deslizante} sobre el historial de mensajes (\'ultimos 20 mensajes
-+ system prompt) para mantener el consumo de tokens controlado. El system prompt incluye un
-guardrail que limita las respuestas a consultas de compra dom\'estica (RN-007), y el endpoint
-est\'a protegido con un l\'imite de 30 peticiones/hora por usuario.
+Para contener el coste de cada consulta, solo se env\'ian al modelo los mensajes m\'as recientes de
+la conversaci\'on en lugar de todo el historial. Adem\'as, se le instruye expl\'icitamente para que
+limite sus respuestas al \'ambito de la compra dom\'estica, y el servicio impone un m\'aximo de
+treinta consultas por hora y usuario para evitar un uso abusivo.
 
-Adicionalmente, la capa de resoluci\'on sem\'antica del optimizador
-(Secci\'on~\ref{subsec:resolucion}) emplea un modelo Gemini independiente y configurable
-mediante la variable \texttt{GEMINI\_PRODUCT\_MATCH\_MODEL}, lo que permite usar un modelo
-distinto al del asistente conversacional para la clasificaci\'on de productos.
+De forma independiente, la fase de interpretaci\'on de la lista descrita en la
+Secci\'on~\ref{subsec:resolucion} emplea un modelo configurable por separado, lo que permite
+reservar para la clasificaci\'on de productos un modelo distinto al del asistente conversacional.
 
 \section{Infraestructura y Despliegue}\label{sec:infraestructura}
 
 \subsection{Contenedores Docker}\label{subsec:docker}
 
-Cada componente se ejecuta en un contenedor independiente, orquestados con Docker Compose:
+Cada componente se ejecuta en un contenedor independiente, coordinados entre s\'i, lo que aisla sus
+dependencias y facilita reproducir el sistema en cualquier entorno:
 
 \begin{itemize}
-  \item \textbf{nginx:} Reverse proxy y servicio de est\'aticos.
-  \item \textbf{backend:} Django + Gunicorn (3 workers).
-  \item \textbf{celery-worker:} Workers para tareas as\'incronas.
-  \item \textbf{celery-beat:} Scheduler de tareas peri\'odicas.
-  \item \textbf{db:} PostgreSQL 16 + PostGIS.
-  \item \textbf{redis:} Broker Celery + cach\'e.
+  \item un servidor frontal que recibe las peticiones y sirve los contenidos est\'aticos;
+  \item el servicio del backend que atiende la l\'ogica de la API;
+  \item los procesos que ejecutan las tareas en segundo plano y las que se lanzan de forma
+    peri\'odica;
+  \item la base de datos con sus capacidades geoespaciales;
+  \item el componente que act\'ua como cola de tareas y cach\'e.
 \end{itemize}
 
-Para el entorno de desarrollo se usa el modelo h\'ibrido (ADR-002): backend en Docker, frontend
-nativo en el host. Docker volumes en Windows rompen el HMR de Metro/Expo, por lo que el frontend
-no se dockeriza.
+Para el entorno de desarrollo se adopta un modelo h\'ibrido (ADR-002): el backend se ejecuta en
+contenedores, pero la aplicaci\'on de usuario se ejecuta directamente en el equipo de desarrollo,
+ya que contenerizarla en Windows interfer\'ia con la recarga autom\'atica de cambios durante la
+programaci\'on.
+
+No obstante, esa decisi\'on ata\~ne \'unicamente al ciclo de desarrollo. Para facilitar la puesta
+en marcha del frontend sin preparar un entorno local, el proyecto incluye adem\'as un despliegue en
+contenedor de la versi\'on web de la aplicaci\'on: una imagen genera su compilaci\'on est\'atica y
+la sirve mediante un servidor ligero, conectada al backend desplegado, de modo que el frontend
+puede levantarse con un \'unico comando (Cap\'itulo~\ref{cap09}). Al tratarse de una compilaci\'on
+ya construida, este contenedor no recurre a la recarga en caliente y, por tanto, no incurre en la
+limitaci\'on que motiv\'o el modelo h\'ibrido.
 
 \subsection{Pipeline CI/CD}\label{subsec:cicd}
 
-El repositorio incluye cinco workflows de GitHub Actions:
+El repositorio automatiza la integraci\'on y la entrega continuas (CI/CD) mediante cinco flujos de
+trabajo que se disparan autom\'aticamente ante cada cambio:
 
 \begin{itemize}
-  \item \textbf{\texttt{ci-backend.yml}:} Ejecuta \texttt{ruff check}, \texttt{ruff format
-    --check} y \texttt{pytest --cov} (con umbral bloqueante
-    \texttt{--cov-fail-under=80}) en cada push a cualquier rama.
-  \item \textbf{\texttt{ci-frontend.yml}:} Ejecuta \texttt{eslint}, \texttt{prettier --check}
-    y \texttt{jest --coverage} en cada push.
-  \item \textbf{\texttt{ios-build.yml}:} Genera el \texttt{.ipa} unsigned mediante
-    \texttt{expo prebuild} + \texttt{xcodebuild} en un runner \texttt{macos-latest}. El artefacto
-    se descarga y se instala en el iPhone de demo con Sideloadly.
-  \item \textbf{\texttt{cd-render-staging.yml}:} Despliega el backend en Render tras cada push
-    a \texttt{main} que afecte a \texttt{backend/} (v\'ia API de Render).
-  \item \textbf{\texttt{deploy-web-gh-pages.yml}:} Compila el portal business (Vite) y lo
-    publica en GitHub Pages.
+  \item la verificaci\'on del backend, que comprueba el estilo del c\'odigo y ejecuta su bater\'ia
+    de pruebas, exigiendo de forma bloqueante una cobertura m\'inima del 80\,\%;
+  \item la verificaci\'on de la aplicaci\'on de usuario, con sus propias comprobaciones de estilo
+    y pruebas;
+  \item la generaci\'on autom\'atica de la versi\'on instalable para iPhone, que se compila en un
+    entorno macOS y se instala despu\'es en el dispositivo de demostraci\'on;
+  \item el despliegue del backend en el servidor p\'ublico cuando se actualiza su c\'odigo;
+  \item la publicaci\'on del portal de comercios como sitio web est\'atico.
 \end{itemize}
 
-El deploy a staging se realiza mediante \textbf{Render Blueprints}. El repositorio define dos
-variantes declarativas: \texttt{render.yaml}, con web service, worker Celery, scheduler beat,
-Redis y base de datos PostgreSQL independientes; y \texttt{render.free.yaml}, la variante
-free tier empleada durante el TFG, que consolida Gunicorn y un proceso Celery worker + beat
-embebido en un \'unico web service. Cada push a \texttt{main} dispara un redespliegue
-autom\'atico.
+El despliegue p\'ublico se describe de forma declarativa, de modo que toda la infraestructura
+---servidor, procesos en segundo plano, cola de tareas y base de datos--- se reconstruye autom\'atica
+y reproduciblemente a partir de esa descripci\'on. Durante el TFG se emple\'o una variante adaptada
+al plan gratuito que consolida varios procesos en un \'unico servicio para ajustarse a sus recursos.
 
-\subsection{Variables de entorno}\label{subsec:env}
+\subsection{Gesti\'on de la configuraci\'on sensible}\label{subsec:env}
 
-La configuraci\'on sensible (claves API, credenciales de BD, secret key de Django) se gestiona
-exclusivamente mediante variables de entorno, nunca hardcodeadas. Se proporciona
-\texttt{.env.example} con los nombres de todas las variables requeridas.
+La informaci\'on sensible ---claves de los servicios externos, credenciales de la base de datos y
+las claves de seguridad de la aplicaci\'on--- nunca se incrusta en el c\'odigo, sino que se
+gestiona exclusivamente mediante variables de entorno. El proyecto incluye una plantilla con los
+nombres de todas las variables requeridas, sin sus valores reales, para facilitar la puesta en
+marcha en un nuevo entorno.
 
 \section{Dise\~no de la Interfaz de Usuario}\label{sec:ui}
 
 \subsection{Sistema de dise\~no}\label{subsec:design-system}
 
-El frontend define un sistema de dise\~no propio en \texttt{src/theme/}, bajo el concepto
-``Mercado Mediterr\'aneo Digital'', inspirado en los mercados sevillanos. El
-Cuadro~\ref{tab:colores} recoge los tokens principales de color.
+La aplicaci\'on cuenta con un sistema de dise\~no propio, articulado bajo el concepto ``Mercado
+Mediterr\'aneo Digital'' e inspirado en la est\'etica de los mercados sevillanos, que unifica color,
+tipograf\'ia y espaciado en toda la interfaz para transmitir cercan\'ia y confianza. En lugar de
+fijar valores concretos dispersos por el c\'odigo, el sistema centraliza todas las decisiones
+visuales en un conjunto de \emph{tokens} de dise\~no ---variables con nombre sem\'antico--- que las
+pantallas consumen de forma indirecta. As\'i, un cambio en el origen se propaga de manera coherente
+a toda la aplicaci\'on, y la apariencia queda desacoplada de cada pantalla concreta.
 
-\begin{table}[htbp]
-\centering
-\caption{Paleta de colores del sistema de dise\~no (\texttt{src/theme/colors.ts})}
-\label{tab:colores}
-\small
-\begin{tabular}{@{}lll@{}}
-\toprule
-\textbf{Token} & \textbf{Valor} & \textbf{Uso} \\
-\midrule
-\texttt{primary} & \texttt{\#E8541A} & Naranja Triana: CTAs y \'enfasis de marca \\
-\texttt{secondary} & \texttt{\#2D5016} & Verde oliva: \'exito, ahorro, acciones positivas \\
-\texttt{accent} & \texttt{\#F5C842} & Amarillo azulejo: acentos y badges \\
-\texttt{background} & \texttt{\#FAFAF7} & Fondo ra\'iz de la aplicaci\'on \\
-\texttt{surface} & \texttt{\#FDF6EC} & Superficie de tarjetas y paneles \\
-\texttt{success} & \texttt{\#3A7D44} & Confirmaciones y precio reducido \\
-\texttt{error} & \texttt{\#C0392B} & Errores y avisos cr\'iticos \\
-\texttt{text} & \texttt{\#1A1A18} & Texto principal \\
-\texttt{textMuted} & \texttt{\#4F4F47} & Texto secundario \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Tipograf\'ia:} Fraunces para titulares y Source Sans 3 para texto (en iOS se delega en
-SF Pro, la tipograf\'ia del sistema), con IBM Plex Mono/Menlo para valores monoespaciados.
-\textbf{Espaciado:} Escala de 4px.
+La paleta se organiza por \emph{funci\'on} y no por tono: un color principal de marca para las
+acciones y los \'enfasis, un color de signo positivo reservado al ahorro y a las confirmaciones, un
+color de aviso para errores y situaciones cr\'iticas, y una gama neutra de fondos, superficies y
+textos que sostiene la legibilidad. Esta asignaci\'on sem\'antica garantiza que un mismo significado
+---por ejemplo, ``ahorro'' o ``error''--- se represente siempre del mismo modo, refuerza la jerarqu\'ia
+visual y facilita mantener el contraste exigido por las pautas de accesibilidad. La tipograf\'ia
+sigue el mismo criterio: una fuente con personalidad para los titulares y otra de alta legibilidad
+para el texto corrido, con el espaciado organizado sobre una escala regular que aporta ritmo y
+consistencia a todas las vistas.
 
 \subsection{Pantallas principales}\label{subsec:pantallas}
 
@@ -705,11 +798,12 @@ La aplicaci\'on se estructura en cinco pesta\~nas principales:
   \item \textbf{Inicio / Dashboard:} Resumen de la lista activa, precio estimado en la tienda
     m\'as barata cercana, acceso r\'apido al asistente y alertas activas.
   \item \textbf{Mi Lista:} Gesti\'on de la lista activa con buscador de autocompletado, grupos
-    por categor\'ia, swipe-to-delete/check y bot\'on de optimizar ruta.
+    por categor\'ia, gestos de deslizamiento para marcar o eliminar productos y bot\'on de
+    optimizar ruta.
   \item \textbf{Explorar:} Mapa interactivo con marcadores de tiendas y panel inferior
     deslizable con detalles de la tienda seleccionada.
-  \item \textbf{Optimizador:} Sliders de pesos, resumen agregado de la ruta recomendada con su
-    desglose por parada, resoluci\'on de ambig\"uedades sem\'anticas y visualizaci\'on de la
+  \item \textbf{Optimizador:} Deslizadores de pesos, resumen agregado de la ruta recomendada con su
+    desglose por parada, resoluci\'on de ambig\"uedades en los productos y visualizaci\'on de la
     ruta en el mapa.
   \item \textbf{Perfil:} Datos personales, preferencias de optimizaci\'on, configuraci\'on de
     notificaciones y acceso al historial del asistente.
@@ -717,37 +811,29 @@ La aplicaci\'on se estructura en cinco pesta\~nas principales:
 
 \subsection{Adaptaci\'on a uso web (responsive y conveniencias de escritorio)}\label{subsec:adaptacion-web}
 
-La misma base de c\'odigo Expo (\texttt{frontend/src}) se reutiliza para ejecuci\'on en navegador
-de escritorio mediante \texttt{react-native-web}, sin duplicar pantallas ni alterar la
-navegaci\'on. La adaptaci\'on a escritorio se implementa como una capa transversal sobre las 15
-pantallas existentes, organizada en cuatro ejes:
+La misma base de c\'odigo de la aplicaci\'on m\'ovil se reutiliza para su ejecuci\'on en navegadores
+de escritorio, sin duplicar pantallas ni alterar la navegaci\'on. La adaptaci\'on al escritorio se
+construye como una capa transversal sobre las pantallas existentes, organizada en cuatro ejes:
 
 \begin{enumerate}
-  \item \textbf{Dise\~no responsive.} El hook \texttt{useBreakpoint()} (\texttt{src/hooks/})
-    clasifica el ancho del viewport en \texttt{mobile} ($<$768\,px), \texttt{tablet}
-    (768--1023\,px) y \texttt{desktop} ($\geq$1024\,px). Las pantallas centran su contenido a un
-    ancho m\'aximo legible (entre 560 y 900\,px seg\'un la pantalla) y los listados de tarjetas
-    pasan de 1 columna en m\'ovil a 2--4 columnas en escritorio. El componente
-    \texttt{MasterDetailLayout} aporta una disposici\'on maestro-detalle de dos paneles, y la
-    barra de pesta\~nas inferior se centra a 900\,px en escritorio.
-  \item \textbf{Interacci\'on con rat\'on y teclado.} Se a\~naden estados \emph{hover} (tintes y
-    realces), atajos de teclado (\texttt{Cmd/Ctrl+K} para enfocar el buscador, \texttt{Enter}
-    para a\~nadir \'item, \texttt{Esc} para cerrar), \emph{auto-focus} de campos al montar y
-    \emph{tooltips} web (\texttt{WebTooltip}). El reordenado de \'items de una lista emplea
-    \emph{drag-and-drop} HTML5 nativo en la variante \texttt{ListDetailScreen.web.tsx}.
-  \item \textbf{Conveniencias de escritorio.} Las utilidades de \texttt{src/utils/webExport.ts}
-    permiten exportar la lista de la compra a \texttt{.txt}, la comparativa de precios a
-    \texttt{.csv} y la ruta a fichero, as\'i como copiar al portapapeles direcciones y enlaces. La
-    generaci\'on de CSV incluye un \emph{guard} de inyecci\'on de f\'ormulas (OWASP) que escapa las
-    celdas que comienzan por \texttt{=}, \texttt{+}, \texttt{-} o \texttt{@}.
-  \item \textbf{Deep-linking.} La configuraci\'on \texttt{src/navigation/linking.ts} registra URLs
-    estables para las pantallas (p.\,ej.\ \texttt{/app/lists/:listId},
-    \texttt{/app/map/store/:storeId}, \texttt{/app/home/catalog?q=...}), de modo que el estado de la
-    aplicaci\'on es enlazable y navegable desde la barra de direcciones del navegador.
+  \item \textbf{Dise\~no adaptable.} La interfaz reconoce el ancho disponible y se reorganiza en
+    consecuencia: en m\'ovil presenta una sola columna; en pantallas grandes centra el contenido a
+    un ancho c\'omodo de lectura y distribuye los listados de tarjetas en varias columnas,
+    aprovechando disposiciones de dos paneles (lista y detalle) cuando el espacio lo permite.
+  \item \textbf{Interacci\'on con rat\'on y teclado.} Se incorporan realces al pasar el cursor,
+    atajos de teclado para las acciones frecuentes (enfocar el buscador, a\~nadir un producto o
+    cerrar un di\'alogo), enfoque autom\'atico de los campos y ayudas contextuales; la lista de la
+    compra puede reordenarse arrastrando sus elementos.
+  \item \textbf{Conveniencias de escritorio.} El usuario puede exportar la lista de la compra, la
+    comparativa de precios y la ruta a ficheros, as\'i como copiar direcciones y enlaces al
+    portapapeles. La exportaci\'on a hoja de c\'alculo incorpora una salvaguarda de seguridad que
+    neutraliza el riesgo de inyecci\'on de f\'ormulas en las celdas.
+  \item \textbf{Enlaces directos.} Cada pantalla relevante dispone de una direcci\'on web estable,
+    de modo que el estado de la aplicaci\'on ---una lista, una tienda o una b\'usqueda concreta---
+    puede guardarse como marcador o compartirse mediante un enlace.
 \end{enumerate}
 
-Todas las adiciones est\'an condicionadas a la plataforma web (comprobaci\'on de
-\texttt{Platform.OS}) o al \emph{breakpoint} activo, de forma que el comportamiento en m\'ovil
-permanece inalterado. Estas mejoras se incorporaron en una fase espec\'ifica de adaptaci\'on web
-posterior al cierre del plan inicial, y se validaron con 111 pruebas Jest (15 \emph{suites}) y
-una bater\'ia de verificaci\'on manual en navegador.
+Todas estas mejoras se activan \'unicamente en la versi\'on web o seg\'un el tama\~no de pantalla,
+de forma que el comportamiento en m\'ovil permanece inalterado. Se incorporaron en una fase
+espec\'ifica de adaptaci\'on web posterior al cierre del plan inicial, y se validaron con un amplio
+conjunto de pruebas automatizadas y una bater\'ia de verificaci\'on manual en navegador.

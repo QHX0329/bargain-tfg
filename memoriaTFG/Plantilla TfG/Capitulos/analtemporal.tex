@@ -31,16 +31,120 @@ F7 $\cdot$ Pruebas, deploy y cierre & S18--S20 & 25 & Completada \\
 
 \section{Metodolog\'ia de trabajo y trazabilidad del proceso}\label{sec:metodologia-trazabilidad}
 
-Se aplic\'o una metodolog\'ia incremental con ciclos cortos por fase ---definici\'on de alcance
-y criterios de aceptaci\'on, implementaci\'on por m\'odulos, validaci\'on automatizada (lint y
-tests), verificaci\'on funcional y documental, y cierre de fase con artefactos de evidencia---
-que permiti\'o absorber cambios sin comprometer la estabilidad del sistema. Sobre esa base
-incremental, el proyecto incorpora una caracter\'istica metodol\'ogica singular que merece
-descripci\'on propia: todo el ciclo de vida se ejecut\'o mediante un flujo de desarrollo
-asistido por agentes de inteligencia artificial, gobernado por el m\'etodo \emph{GSD}
-(\emph{Get Stuff Done}) y versionado \'integramente en el propio repositorio. El resultado es
-que no solo el producto, sino tambi\'en el \emph{proceso} de ingenier\'ia que lo produjo, es
-inspeccionable, auditable y reproducible por terceros.
+La distribuci\'on por fases descrita en la secci\'on anterior no es un calendario est\'atico, sino
+el reflejo de la metodolog\'ia de trabajo que gobern\'o el proyecto d\'ia a d\'ia. Cada una de las
+fases del Cuadro~\ref{tab:fases-temporales} se abord\'o con el mismo ciclo incremental ---definici\'on
+de alcance y criterios de aceptaci\'on, implementaci\'on por m\'odulos, validaci\'on automatizada
+(an\'alisis est\'atico y pruebas), verificaci\'on funcional y documental, y cierre de fase con
+artefactos de evidencia---, lo que permiti\'o absorber cambios sin comprometer la estabilidad del
+sistema. Esta secci\'on explica c\'omo se ejecut\'o ese ciclo y por qu\'e las horas anteriores se
+tradujeron en un proceso trazable.
+
+La inteligencia artificial desempe\~na en este Trabajo Fin de Grado un doble papel que conviene
+delimitar desde el principio. Por un lado, es una \textbf{herramienta para desarrollar el TFG}:
+la programaci\'on del c\'odigo se llev\'o a cabo mediante agentes de IA, mientras que el papel del
+autor fue el de \textbf{gestor y verificador} del proceso ---definir el alcance y los criterios de
+aceptaci\'on de cada fase, dirigir a los agentes, y revisar y validar cada entrega antes de
+aceptarla---. Por otro lado, ese mismo modo de trabajo es tambi\'en, en s\'i mismo, un
+\textbf{objeto de estudio del propio TFG}: el proyecto no solo construye un producto, sino que
+documenta y eval\'ua de forma reproducible una metodolog\'ia de ingenier\'ia del software asistida
+por agentes. As\'i, el flujo descrito a continuaci\'on debe leerse en esa doble clave ---como el
+instrumento que produjo BarGAIN y como una aportaci\'on metodol\'ogica observable por el tribunal---.
+
+Todo el ciclo de vida se gobern\'o mediante el m\'etodo \emph{GSD} (\emph{Get Stuff Done})
+\cite{gsd_repo}, un sistema abierto de desarrollo dirigido por especificaci\'on para agentes de
+c\'odigo, y se version\'o \'integramente en el propio repositorio. El resultado es que no solo el
+producto, sino tambi\'en el \emph{proceso} de ingenier\'ia que lo produjo, es inspeccionable,
+auditable y reproducible por terceros.
+
+\subsection{El framework GSD: flujo de trabajo y comandos}\label{subsec:gsd-flujo}
+
+El problema que GSD resuelve es la \emph{degradaci\'on del contexto} (\emph{context rot}): a medida
+que una conversaci\'on con un agente se alarga, su ventana de contexto se satura de historial
+---razonamientos exploratorios, lecturas de ficheros, diferencias de c\'odigo--- y la calidad de
+sus respuestas decae, llegando a contradecir decisiones anteriores. La respuesta de GSD es el
+\textbf{aislamiento de contexto}: el trabajo se descompone en tareas at\'omicas y cada una se
+ejecuta en una instancia nueva del agente, con la ventana limpia, apoy\'andose en ficheros de
+memoria persistentes que transportan la informaci\'on entre sesiones sin recargar ninguna de ellas.
+
+Sobre esa idea, GSD organiza el desarrollo en \emph{hitos} (\emph{milestones}) que se descomponen
+en fases, y cada fase recorre un ciclo ordenado ---\textbf{discutir}, \textbf{planificar},
+\textbf{ejecutar} y \textbf{verificar}--- antes de darse por cerrada, siguiendo el patr\'on
+\emph{idea $\rightarrow$ hoja de ruta $\rightarrow$ plan de fase $\rightarrow$ ejecuci\'on
+at\'omica}. Cada paso produce un artefacto escrito que act\'ua como fuente de verdad del siguiente,
+de modo que la especificaci\'on, y no el historial de la conversaci\'on, es lo que sobrevive a los
+l\'imites de sesi\'on. Todo el flujo se opera mediante \'ordenes (\emph{comandos}) de un \'unico
+espacio de nombres \texttt{gsd}, cada una asociada a un momento concreto del proceso. A
+continuaci\'on se describe el flujo completo, agrupado por etapas.
+
+\medskip\noindent\textbf{Arranque del proyecto.}
+\begin{description}
+  \item[\texttt{/gsd-new-project}] Inicia el proyecto: a partir de unas preguntas ---o de un
+    documento de requisitos existente--- genera la definici\'on del producto, los requisitos y la
+    hoja de ruta en el \'arbol \texttt{.planning/}, y deja aprobado el roadmap inicial.
+  \item[\texttt{/gsd-map-codebase}] Para proyectos ya existentes, analiza el c\'odigo actual con
+    agentes en paralelo y construye un mapa fiel de su estructura, de modo que las fases siguientes
+    partan de lo que realmente hay y no de suposiciones.
+\end{description}
+
+\medskip\noindent\textbf{Ciclo de cada fase.} Cada fase de la hoja de ruta atraviesa, en orden,
+los siguientes pasos:
+\begin{description}
+  \item[\texttt{/gsd-discuss-phase}] Abre una conversaci\'on previa para fijar las preferencias y
+    decisiones de la fase ---el qu\'e y el c\'omo--- antes de planificar nada, dejando por escrito
+    los supuestos acordados.
+  \item[\texttt{/gsd-ui-phase}] Solo en fases con interfaz: establece el \emph{contrato de
+    dise\~no} (componentes, estados y pautas visuales) que la implementaci\'on deber\'a respetar.
+  \item[\texttt{/gsd-plan-phase}] Investiga y redacta el plan de la fase, descompon\'iendola en
+    tareas at\'omicas con sus criterios de aceptaci\'on, y lo verifica antes de tocar c\'odigo. Es
+    la fase de \emph{planificar}: produce un documento, no c\'odigo.
+  \item[\texttt{/gsd-execute-phase}] Ejecuta el plan de forma aut\'onoma ---a menudo con tareas en
+    paralelo---: escribe el c\'odigo, confirma los cambios en el control de versiones y registra en
+    un resumen lo realmente hecho y las desviaciones. Es la fase de \emph{ejecutar}, idealmente
+    sobre una copia de trabajo aislada.
+  \item[\texttt{/gsd-verify-work}] Comprueba el resultado mediante una validaci\'on funcional
+    manual (UAT) sobre lo construido. Es la fase de \emph{verificar}.
+  \item[\texttt{/gsd-code-review}] Somete los cambios a una revisi\'on de c\'odigo ---seguridad,
+    rendimiento y correcci\'on--- con un contexto independiente del que los escribi\'o.
+  \item[\texttt{/gsd-validate-phase}] Validaci\'on retroactiva: contrasta de forma sistem\'atica
+    que cada requisito de la fase qued\'o efectivamente cubierto, cerrando los huecos que la
+    verificaci\'on manual pudiera haber pasado por alto.
+  \item[\texttt{/gsd-ship}] Empaqueta el trabajo ya verificado en una solicitud de incorporaci\'on
+    (\emph{pull request}).
+  \item[\texttt{/gsd-ui-review}] Solo en fases con interfaz: realiza una auditor\'ia visual del
+    resultado frente al contrato de dise\~no fijado en \texttt{/gsd-ui-phase}.
+\end{description}
+
+\medskip\noindent\textbf{Cierre de hito.} Cuando todas las fases de un hito est\'an completas:
+\begin{description}
+  \item[\texttt{/gsd-audit-milestone}] Audita el hito comprobando que todos sus requisitos se han
+    entregado realmente; constituye la \emph{verificaci\'on a nivel de hito}, complementaria a la
+    verificaci\'on por fase.
+  \item[\texttt{/gsd-complete-milestone}] Da el hito por terminado: archiva sus artefactos y
+    etiqueta la versi\'on entregada.
+  \item[\texttt{/gsd-new-milestone}] Abre el siguiente hito y reanuda el ciclo de fases.
+\end{description}
+
+\medskip\noindent\textbf{Apoyo y continuidad.} De forma transversal, el flujo dispone de \'ordenes
+auxiliares que sostienen el resto:
+\begin{description}
+  \item[\texttt{/gsd-progress}] Muestra el estado global del proyecto y, con la opci\'on adecuada,
+    detecta y lanza autom\'aticamente el siguiente paso pendiente.
+  \item[\texttt{/gsd-pause-work} y \texttt{/gsd-resume-work}] Suspenden y retoman el trabajo entre
+    sesiones generando un resumen de contexto, de modo que una interrupci\'on no haga perder el
+    hilo.
+  \item[\texttt{/gsd-spike}, \texttt{/gsd-sketch} y \texttt{/gsd-explore}] Habilitan trabajo
+    exploratorio ---prototipos desechables, bocetos de soluci\'on o exploraci\'on del problema---
+    antes de comprometer una fase, mientras que \texttt{/gsd-quick} atiende correcciones peque\~nas
+    sin recorrer el ciclo completo.
+\end{description}
+
+La separaci\'on en contextos distintos es deliberada: quien planifica, quien implementa y quien
+verifica son instancias independientes del agente, lo que evita que la verificaci\'on herede la
+confianza del c\'odigo reci\'en escrito y reproduce, con agentes, la sana separaci\'on entre
+desarrollo y revisi\'on propia de los equipos humanos. En BarGAIN, este flujo se aplic\'o fase a
+fase (F1--F7), y sus artefactos ---planes, res\'umenes y registros--- son precisamente los que
+pueblan el \'arbol \texttt{.planning/} que se describe a continuaci\'on.
 
 \subsection{Planificaci\'on viva: el \'arbol \texttt{.planning/}}
 
@@ -140,16 +244,58 @@ Pruebas y despliegue & 25 & 594,25 \\
 \end{tabular}
 \end{table}
 
-Adicionalmente, el coste operativo en staging se mantuvo bajo durante el TFG
-gracias al uso de planes gratuitos o de bajo consumo (Render, Sentry, GitHub Actions).
+Junto al coste de desarrollo, conviene distinguir el \textbf{coste operativo}, es decir, el gasto
+recurrente de mantener el sistema en funcionamiento. Durante el TFG este coste se mantuvo
+pr\'acticamente nulo gracias al uso deliberado de planes gratuitos: el backend, la base de datos
+PostgreSQL/PostGIS y la cola Redis se alojan en el plan gratuito de Render; el portal de comercios
+se publica como sitio est\'atico en GitHub Pages; la integraci\'on y entrega continuas y la
+generaci\'on de la versi\'on para iPhone se ejecutan dentro de los minutos gratuitos de GitHub
+Actions; la monitorizaci\'on de errores emplea el nivel gratuito de Sentry; y los servicios de IA y
+de rutas (Google Cloud Vision para el OCR, Gemini para el asistente y OpenRouteService para las
+distancias) operan dentro de sus respectivas cuotas gratuitas, holgadas para los vol\'umenes de un
+entorno de demostraci\'on. La contrapartida de esta gratuidad es la limitaci\'on de recursos: el
+servicio gratuito de Render hiberna tras un periodo sin tr\'afico, lo que introduce un arranque
+en fr\'io de entre 30 y 60 segundos en la primera petici\'on, asumible en \emph{staging} pero no en
+producci\'on.
+
+Una explotaci\'on real exigir\'ia migrar a planes de pago, cuyo orden de magnitud se estima en el
+Cuadro~\ref{tab:coste-operativo} para un escenario inicial de baja carga. Las cifras son
+orientativas y se basan en las tarifas p\'ublicas de cada proveedor a fecha de redacci\'on; los
+servicios facturados por uso (OCR, modelo de lenguaje y c\'alculo de rutas) crecen con el n\'umero
+de usuarios activos, por lo que su coste real depender\'ia directamente de la adopci\'on.
+
+\begin{table}[htbp]
+\centering
+\caption{Estimaci\'on del coste operativo mensual (escenario inicial de producci\'on)}
+\label{tab:coste-operativo}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Servicio} & \textbf{Funci\'on} & \textbf{Coste mensual (EUR)} \\
+\midrule
+Render (servicio web + PostgreSQL/Redis) & Backend, base de datos y cola & 20--50 \\
+Sentry (plan de equipo) & Monitorizaci\'on de errores & 0--25 \\
+GitHub Actions / Pages & CI/CD y portal est\'atico & 0--10 \\
+Google Cloud Vision (OCR) & Reconocimiento de tickets & Por uso ($\sim$1,30/1.000 im\'agenes) \\
+Gemini API (asistente) & Asistente conversacional & Por uso (seg\'un consultas) \\
+OpenRouteService & Distancias y tiempos de ruta & 0 (cuota) -- por uso \\
+\midrule
+\textbf{Base fija estimada} & & \textbf{$\sim$20--85} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+En conjunto, el sistema puede sostenerse con un coste fijo reducido en su arranque y escalar el
+gasto variable de forma proporcional al uso, lo que resulta coherente con el car\'acter de prueba
+de concepto del TFG y con una eventual puesta en marcha gradual.
 
 \section{Riesgos y mitigaciones}
 
 Los riesgos operativos principales fueron:
 
 \begin{itemize}
-	\item \textbf{Cambios en fuentes de scraping:} mitigado con spiders modulares y
-		fallback de crowdsourcing.
+	\item \textbf{Cambios en fuentes de scraping:} mitigado con recolectores modulares e
+		independientes por cadena y con la actualizaci\'on directa de los comercios verificados.
 	\item \textbf{Dependencia de APIs externas:} mitigado con cach\'e y degradaci\'on controlada.
 	\item \textbf{Carga de trabajo en fases finales:} mitigado con cierre incremental de
 		entregables y automatizaci\'on de validaci\'on.

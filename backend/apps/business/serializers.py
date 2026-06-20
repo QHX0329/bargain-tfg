@@ -10,10 +10,24 @@ from .models import BusinessProfile, Promotion
 
 
 class BusinessProfileSerializer(serializers.ModelSerializer):
-    """Serializer para BusinessProfile."""
+    """Serializer para BusinessProfile.
+
+    Expone ``verification_status`` derivado (pending/verified/rejected) para que el
+    frontend pueda bloquear el acceso de perfiles no verificados, y acepta unas
+    coordenadas opcionales (``latitude``/``longitude``) con las que crea
+    automáticamente la tienda asociada al negocio en el momento del alta.
+    """
 
     is_verified = serializers.BooleanField(read_only=True)
     rejection_reason = serializers.CharField(read_only=True)
+    verification_status = serializers.SerializerMethodField()
+    # Coordenadas opcionales para crear la tienda asociada (solo escritura).
+    latitude = serializers.FloatField(
+        write_only=True, required=False, min_value=-90, max_value=90
+    )
+    longitude = serializers.FloatField(
+        write_only=True, required=False, min_value=-180, max_value=180
+    )
 
     class Meta:
         model = BusinessProfile
@@ -25,8 +39,11 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
             "address",
             "website",
             "is_verified",
+            "verification_status",
             "rejection_reason",
             "price_alert_threshold_pct",
+            "latitude",
+            "longitude",
             "created_at",
             "updated_at",
         ]
@@ -34,10 +51,62 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
             "id",
             "user",
             "is_verified",
+            "verification_status",
             "rejection_reason",
             "created_at",
             "updated_at",
         ]
+
+    def get_verification_status(self, obj: BusinessProfile) -> str:
+        """Estado de verificación derivado para el cliente."""
+        if obj.is_verified:
+            return "verified"
+        if obj.rejection_reason:
+            return "rejected"
+        return "pending"
+
+    def create(self, validated_data: dict) -> BusinessProfile:
+        """Crea el perfil y, de forma atómica, su tienda asociada.
+
+        Si no se aportan coordenadas se usa el centro de Sevilla por defecto, de modo
+        que el negocio siempre disponga de una tienda sobre la que cargar precios y
+        promociones una vez verificado.
+        """
+        from django.contrib.gis.geos import Point
+        from django.db import transaction
+
+        latitude = validated_data.pop("latitude", None)
+        longitude = validated_data.pop("longitude", None)
+        # Centro de Sevilla (lat, lng) por defecto si el negocio no aporta ubicación.
+        lat = latitude if latitude is not None else 37.3891
+        lng = longitude if longitude is not None else -5.9845
+
+        with transaction.atomic():
+            profile = super().create(validated_data)
+            Store.objects.create(
+                name=profile.business_name,
+                address=profile.address[:300],
+                location=Point(lng, lat, srid=4326),
+                is_local_business=True,
+                business_profile=profile,
+                is_active=True,
+            )
+        return profile
+
+    def update(self, instance: BusinessProfile, validated_data: dict) -> BusinessProfile:
+        """Reubica la tienda asociada si se reciben nuevas coordenadas."""
+        latitude = validated_data.pop("latitude", None)
+        longitude = validated_data.pop("longitude", None)
+        profile = super().update(instance, validated_data)
+
+        if latitude is not None and longitude is not None:
+            from django.contrib.gis.geos import Point
+
+            store = profile.stores.order_by("id").first()
+            if store is not None:
+                store.location = Point(longitude, latitude, srid=4326)
+                store.save(update_fields=["location", "updated_at"])
+        return profile
 
 
 class BusinessProfileAdminSerializer(BusinessProfileSerializer):

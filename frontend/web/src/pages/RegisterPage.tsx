@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Input, Button, Card, Typography, message } from 'antd';
+import { Form, Input, InputNumber, Button, Card, Typography, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/client';
 import { handleLogin } from '../services/auth';
@@ -19,7 +19,13 @@ interface RegisterFormValues {
   tax_id: string;
   address: string;
   website: string;
+  latitude: number;
+  longitude: number;
 }
+
+// Centro de Sevilla por defecto para la ubicación de la tienda.
+const DEFAULT_LATITUDE = 37.3891;
+const DEFAULT_LONGITUDE = -5.9845;
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -44,12 +50,15 @@ const RegisterPage: React.FC = () => {
       const token = localStorage.getItem('access_token') ?? '';
       setToken(token);
 
-      // 3. Crear perfil de negocio
+      // 3. Crear perfil de negocio (el backend crea la tienda asociada con estas
+      //    coordenadas; si no se indican, usa el centro de Sevilla por defecto).
       await apiClient.post('/business/profiles/', {
         business_name: values.business_name,
         tax_id: values.tax_id,
         address: values.address,
         website: values.website || '',
+        latitude: values.latitude ?? DEFAULT_LATITUDE,
+        longitude: values.longitude ?? DEFAULT_LONGITUDE,
       });
 
       // 4. Cargar perfil recién creado
@@ -62,7 +71,10 @@ const RegisterPage: React.FC = () => {
         setProfile(profiles[0]);
       }
 
-      void message.success('Registro completado. Tu perfil está pendiente de verificación.');
+      void message.success(
+        'Registro completado. Un administrador debe validar tu perfil antes de que puedas ' +
+          'gestionar precios y promociones.',
+      );
       navigate('/dashboard');
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { error?: { message?: string }; detail?: string } } };
@@ -110,6 +122,10 @@ const RegisterPage: React.FC = () => {
             layout="vertical"
             onFinish={onFinish}
             autoComplete="off"
+            initialValues={{
+              latitude: DEFAULT_LATITUDE,
+              longitude: DEFAULT_LONGITUDE,
+            }}
           >
             <Typography.Text strong style={{ display: 'block', marginBottom: 12 }}>
               Datos de acceso
@@ -195,6 +211,45 @@ const RegisterPage: React.FC = () => {
             <Form.Item label="Web (opcional)" name="website">
               <Input placeholder="https://www.minegocio.es" size="large" />
             </Form.Item>
+
+            <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
+              Ubicación de tu tienda (coordenadas). Puedes obtenerlas en Google Maps; por defecto
+              se usa el centro de Sevilla.
+            </Typography.Text>
+
+            <div style={{ display: 'flex', gap: 12 }}>
+              <Form.Item
+                label="Latitud"
+                name="latitude"
+                style={{ flex: 1 }}
+                rules={[{ required: true, message: 'Latitud obligatoria' }]}
+              >
+                <InputNumber
+                  size="large"
+                  style={{ width: '100%' }}
+                  step={0.0001}
+                  min={-90}
+                  max={90}
+                  placeholder="37.3891"
+                />
+              </Form.Item>
+
+              <Form.Item
+                label="Longitud"
+                name="longitude"
+                style={{ flex: 1 }}
+                rules={[{ required: true, message: 'Longitud obligatoria' }]}
+              >
+                <InputNumber
+                  size="large"
+                  style={{ width: '100%' }}
+                  step={0.0001}
+                  min={-180}
+                  max={180}
+                  placeholder="-5.9845"
+                />
+              </Form.Item>
+            </div>
 
             <Form.Item style={{ marginBottom: 0 }}>
               <Button

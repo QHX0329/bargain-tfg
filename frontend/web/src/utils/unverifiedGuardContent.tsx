@@ -19,8 +19,8 @@ export function getGuardContent(
     return (
       <Result
         status="warning"
-        title="Solicitud en revisión"
-        subTitle="Tu solicitud está siendo revisada. Te notificaremos cuando sea aprobada."
+        title="Perfil pendiente de validación"
+        subTitle="Tu solicitud está siendo revisada. Un administrador debe validar tu perfil de negocio antes de que puedas usar el portal. Te notificaremos por email cuando sea aprobada."
       />
     );
   }

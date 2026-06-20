@@ -1,0 +1,24 @@
+# Despliegue local de la app de usuario (Expo web) conectada al backend
+# desplegado en Render. Pensado para levantar el frontend con un solo comando,
+# sin necesidad de Node ni de configurar el entorno en la maquina anfitriona.
+#
+# Uso:
+#   docker compose -f docker-compose.web.yml up --build
+#   -> abrir http://localhost:8081
+#
+# Para apuntar a otro backend, exportar EXPO_PUBLIC_API_URL antes de construir:
+#   EXPO_PUBLIC_API_URL=http://localhost:8000/api/v1 \
+#     docker compose -f docker-compose.web.yml up --build
+
+services:
+  frontend-web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.web
+      args:
+        EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-https://bargain-free-api.onrender.com/api/v1}
+    image: bargain-frontend-web
+    container_name: bargain-frontend-web
+    ports:
+      - "8081:80"
+    restart: unless-stopped

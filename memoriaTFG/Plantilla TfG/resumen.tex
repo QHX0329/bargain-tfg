@@ -1,49 +1,54 @@
 \cdpchapter{Resumen}
 
-BarGAIN es una plataforma de compra inteligente orientada a optimizar la cesta de la compra
-del consumidor combinando tres variables de decisi\'on: precio, distancia y tiempo.
-El proyecto desarrolla una soluci\'on full-stack con backend en Django/DRF,
-base de datos PostgreSQL + PostGIS, cliente m\'ovil en React Native (Expo),
-y companion web para el portal de comercios.
+Hacer la compra cada semana plantea una decisi\'on que casi nadie tiene tiempo de resolver bien:
+en qu\'e tiendas comprar para gastar menos sin recorrer media ciudad. Los precios var\'ian
+notablemente de un supermercado a otro, pero compararlos a mano resulta tedioso y, cuando se hace,
+rara vez se tiene en cuenta lo que cuesta desplazarse hasta el establecimiento m\'as barato.
 
-La propuesta integra cuatro capacidades diferenciales en una \'unica aplicaci\'on:
-(1) comparaci\'on multi-tienda de precios,
-(2) optimizaci\'on multicriterio de ruta con OR-Tools,
-(3) digitalizaci\'on de listas y tickets mediante OCR con Google Cloud Vision,
-y (4) asistente conversacional basado en LLM (Google Gemini) v\'ia backend proxy.
+BarGAIN es una aplicaci\'on m\'ovil y web pensada para resolver precisamente eso. A partir de la
+lista de la compra del usuario y de su ubicaci\'on, calcula la combinaci\'on de tiendas m\'as
+conveniente atendiendo a la vez a tres factores: cu\'anto cuesta la cesta, cu\'anto hay que
+desplazarse y cu\'anto tiempo lleva. Cada persona decide a qu\'e da m\'as importancia ---ahorrar,
+ir cerca o tardar poco--- y la aplicaci\'on ajusta su recomendaci\'on en consecuencia.
 
-Desde la perspectiva de ingenier\'ia del software, el trabajo cubre el ciclo completo:
-an\'alisis de requisitos, dise\~no arquitect\'onico, implementaci\'on modular,
-pruebas unitarias/integraci\'on/E2E, despliegue en staging y documentaci\'on t\'ecnica.
-La arquitectura se organiza en dominios desacoplados
-(users, products, stores, prices, shopping\_lists, optimizer, ocr, assistant, business,
-notifications), con tareas as\'incronas en Celery y Redis para procesos pesados.
+Adem\'as de comparar precios entre supermercados, la aplicaci\'on incorpora tres capacidades que
+la distinguen de los comparadores habituales: propone la ruta de compra m\'as ventajosa repartida
+entre varias tiendas; permite crear la lista a partir de una foto de un ticket o de una nota
+escrita a mano, sin teclear; y ofrece un asistente conversacional al que se puede preguntar en
+lenguaje corriente por precios, ofertas o por la mejor manera de organizar la compra. Un portal
+web complementario da cabida al peque\~no comercio local, que puede publicar sus precios y
+promociones para competir en igualdad de condiciones con las grandes cadenas.
 
-Como resultado, se obtiene un prototipo funcional validado en entorno de desarrollo y staging,
-con cobertura de pruebas en m\'odulos cr\'iticos, flujos E2E automatizados para el web companion,
-y verificaciones manuales en flujos m\'oviles dependientes de GPS/c\'amara.
-La memoria documenta adem\'as limitaciones, decisiones arquitect\'onicas y l\'ineas de
-evoluci\'on para convertir BarGAIN en un producto escalable.
+El proyecto se ha llevado a cabo recorriendo el ciclo completo de la ingenier\'ia del software
+---an\'alisis de requisitos, dise\~no, implementaci\'on, pruebas y despliegue---. El resultado es
+un prototipo plenamente funcional, accesible de forma p\'ublica y verificado mediante pruebas
+automatizadas y ensayos en un dispositivo real. La memoria recoge tambi\'en las decisiones de
+dise\~no adoptadas, las limitaciones de esta primera versi\'on y las l\'ineas de mejora previstas
+para convertir BarGAIN en un producto a mayor escala.
 
 \cdpchapter{Abstract}
 
-BarGAIN is an intelligent shopping platform focused on optimizing grocery baskets by combining
-three decision variables: price, distance, and time. The project delivers a full-stack solution
-with a Django/DRF backend, PostgreSQL + PostGIS geospatial storage,
-React Native (Expo) mobile client, and a web companion for small businesses.
+Doing the weekly grocery shopping involves a decision few people have time to get right: which
+shops to visit in order to spend less without driving halfway across town. Prices vary widely from
+one supermarket to another, but comparing them by hand is tedious and, even when done, it rarely
+accounts for the cost of travelling to the cheapest store.
 
-The proposal integrates four key capabilities in a single system:
-(1) multi-store price comparison,
-(2) multicriteria route optimization with OR-Tools,
-(3) OCR-based list/ticket digitization using Google Cloud Vision,
-and (4) a conversational assistant powered by an LLM (Google Gemini) through a backend proxy.
+BarGAIN is a mobile and web application designed to solve exactly that. Starting from the user's
+shopping list and location, it works out the most convenient combination of shops by weighing
+three factors at once: how much the basket costs, how far one has to travel, and how long it
+takes. Each person chooses what matters most ---saving money, staying nearby, or spending little
+time--- and the application adapts its recommendation accordingly.
 
-From a software engineering standpoint, the work covers the whole lifecycle:
-requirements analysis, architecture design, modular implementation,
-unit/integration/E2E testing, staging deployment, and technical documentation.
-The architecture is organized into decoupled domains, with asynchronous processing
-delegated to Celery workers over Redis.
+Beyond comparing supermarket prices, the application offers three capabilities that set it apart
+from conventional comparators: it suggests the most advantageous shopping route across several
+shops; it lets users build their list from a photo of a receipt or a handwritten note, with no
+typing required; and it provides a conversational assistant that answers everyday questions about
+prices, offers, or how best to organise the shopping. A complementary web portal welcomes small
+local businesses, which can publish their prices and promotions to compete on equal terms with the
+large chains.
 
-The final outcome is a functional prototype validated through automated and manual tests,
-with clear traceability of technical decisions, current limitations,
-and future evolution paths toward production readiness.
+The project was carried out following the full software engineering lifecycle ---requirements
+analysis, design, implementation, testing, and deployment---. The outcome is a fully functional,
+publicly accessible prototype, validated through both automated tests and trials on a real device.
+The report also documents the design decisions made, the limitations of this first version, and
+the planned improvements toward turning BarGAIN into a larger-scale product.

@@ -10,12 +10,13 @@ El proyecto BarGAIN ha completado todos los bloques de desarrollo planificados:
   \item \textbf{F1:} an\'alisis, requisitos y dise\~no de arquitectura.
   \item \textbf{F2:} infraestructura base de desarrollo y CI/CD.
   \item \textbf{F3:} backend core completo con todos los m\'odulos de dominio y API documentada.
-  \item \textbf{F4:} frontend base y avanzado --- autenticaci\'on, listas, cat\'alogo, mapa,
-    notificaciones, perfil y Places enrichment.
+  \item \textbf{F4:} aplicaci\'on de usuario, b\'asica y avanzada --- autenticaci\'on, listas,
+    cat\'alogo, mapa, notificaciones, perfil e informaci\'on enriquecida de los establecimientos.
   \item \textbf{F5:} sistema de optimizaci\'on multicriterio (OR-Tools + OpenRouteService),
     scraping de precios (Scrapy + Playwright, 11 spiders implementados y 4 en operaci\'on
-    programada), OCR de tickets (Google Cloud Vision API + fuzzy matching), asistente LLM
-    (Google Gemini 2.0 Flash Lite) y wiring de pantallas m\'oviles a endpoints reales.
+    programada), reconocimiento de tickets (Google Cloud Vision con emparejamiento aproximado),
+    asistente conversacional (Google Gemini) y conexi\'on de las pantallas m\'oviles con los
+    servicios reales del backend.
   \item \textbf{F6:} portal business completo para PYMEs --- servicio de aprobaci\'on compartido,
     gesti\'on de precios y promociones, tests de integraci\'on, UAT verificada, notificaciones push
     y email, sincronizaci\'on documental.
@@ -33,19 +34,19 @@ verificados de forma automatizada con Playwright.
 \section{Aportaciones principales del trabajo}\label{sec:aportaciones}
 
 \begin{itemize}
-  \item \textbf{Optimizador multicriterio propio con capa sem\'antica:} resoluci\'on
-    sem\'antico-difusa de cada \'item (trigramas + Gemini + fuzzy matching con desambiguaci\'on
-    interactiva), consolidaci\'on de paradas y ordenaci\'on de la ruta con el routing solver de
-    OR-Tools, con costes de arco ponderados (precio, distancia, tiempo) y distancias reales de
-    conducci\'on de OpenRouteService. Es el n\'ucleo diferencial del TFG.
+  \item \textbf{Optimizador multicriterio propio con interpretaci\'on de la lista:} resoluci\'on de
+    cada art\'iculo combinando semejanza textual, un modelo de lenguaje y emparejamiento aproximado
+    con desambiguaci\'on interactiva; consolidaci\'on de paradas; y ordenaci\'on de la ruta como un
+    problema del viajante sobre un grafo cuyas aristas ponderan precio, distancia y tiempo, con
+    distancias reales de conducci\'on. Es el n\'ucleo diferencial del TFG.
 
-  \item \textbf{Pipeline de datos de precios automatizado:} once spiders Scrapy implementados y
-    verificados con tests, de los que cuatro (Mercadona, Carrefour, Lidl y DIA) operan con
-    programaci\'on peri\'odica v\'ia Celery Beat y normalizaci\'on de producto contra cat\'alogo
-    interno.
+  \item \textbf{Recogida de precios automatizada:} once recolectores implementados y verificados con
+    pruebas, de los que cuatro (Mercadona, Carrefour, Lidl y DIA) operan de forma programada y
+    normalizan cada producto contra el cat\'alogo interno.
 
-  \item \textbf{OCR sobre tickets con Google Vision API:} extracci\'on de texto, fuzzy matching
-    contra cat\'alogo y conversi\'on autom\'atica a \'items de lista. Elimina la entrada manual.
+  \item \textbf{Reconocimiento de tickets:} extracci\'on del texto, emparejamiento aproximado contra
+    el cat\'alogo y conversi\'on autom\'atica en art\'iculos de la lista, eliminando la entrada
+    manual.
 
   \item \textbf{Portal business para PYMEs:} flujo completo de registro, aprobaci\'on por
     administrador, gesti\'on de precios y promociones, con visibilidad para el consumidor final.
@@ -73,8 +74,8 @@ verificados de forma automatizada con Playwright.
     respeto a \texttt{robots.txt} del proyecto Scrapy debe activarse antes de cualquier
     operaci\'on a escala (Cap\'itulo~\ref{cap08}).
 
-  \item \textbf{Caducidad de precios:} los precios de scraping tienen TTL de 48 horas y los de
-    crowdsourcing 24 horas; pueden no reflejar cambios de precio intradiarios.
+  \item \textbf{Caducidad de precios:} los precios obtenidos de forma autom\'atica caducan a las
+    48 horas; pueden no reflejar cambios de precio intradiarios.
 
   \item \textbf{Despliegue en plan gratuito (Render):} la infraestructura p\'ublica del
     proyecto se sostiene sobre el \emph{free tier} de Render, lo que impone tres restricciones
@@ -111,8 +112,9 @@ verificados de forma automatizada con Playwright.
 
 \begin{itemize}
   \item \textbf{Modelo h\'ibrido backend Docker / frontend nativo en host:} determinante para la
-    productividad en Windows. Docker volumes en Windows rompen el HMR de Metro/Expo; ejecutar el
-    frontend nativo elimina este problema manteniendo el backend aislado.
+    productividad en Windows. Docker volumes en Windows rompen la recarga de m\'odulos en caliente
+    (HMR) de Metro/Expo; ejecutar el frontend nativo elimina este problema manteniendo el backend
+    aislado.
 
   \item \textbf{Contratos API expl\'icitos y documentaci\'on viva:} mantener TASKS.md, ADRs y la
     memoria actualizados durante el desarrollo (no al final) reduce la fricci\'on entre backend y
@@ -127,10 +129,10 @@ verificados de forma automatizada con Playwright.
     tickets de supermercado reales (texto impreso variable), justificando el coste de la llamada
     API frente a la alternativa local.
 
-  \item \textbf{Playwright request fixture para flujos mobile-only:} los flujos de lista y
-    optimizador son exclusivos de la app m\'ovil. Cubrirlos con tests API-level (Playwright
-    \texttt{request} fixture) permite automatizaci\'on completa sin necesitar una interfaz web
-    consumer.
+  \item \textbf{Pruebas a nivel de API para flujos exclusivos del m\'ovil:} las funciones de lista
+    y optimizador solo existen en la aplicaci\'on m\'ovil. Verificarlas directamente contra la API,
+    sin pasar por una interfaz, permite automatizar por completo su comprobaci\'on sin necesidad de
+    una versi\'on web equivalente.
 \end{itemize}
 
 \section{Trabajo futuro}\label{sec:trabajofuturo}
@@ -146,17 +148,17 @@ verificados de forma automatizada con Playwright.
     e incorporar nuevas cadenas (Aldi, El Corte Ingl\'es alimentaci\'on) y PYMEs locales v\'ia
     integraci\'on API propia.
 
-  \item \textbf{Precios en tiempo real:} varios supermercados est\'an desplegando APIs semi-p\'ublicas
-    o feeds RSS de precios; la arquitectura est\'a preparada para incorporarlos como fuente
-    \texttt{api} en el modelo \texttt{Price}.
+  \item \textbf{Precios en tiempo real:} varios supermercados est\'an desplegando interfaces
+    semip\'ublicas o canales de difusi\'on de precios; la arquitectura est\'a preparada para
+    incorporarlos como una nueva fuente oficial de datos sin cambios de dise\~no.
 
   \item \textbf{Sistema de rese\~nas de productos:} los usuarios podr\'ian valorar la
     calidad/frescura de productos por tienda, a\~nadiendo una dimensi\'on cualitativa al
     comparador.
 
-  \item \textbf{Suscripci\'on premium para PYMEs:} el modelo de negocio contempla tres tiers
-    (\texttt{free}, \texttt{basic}, \texttt{premium}) con funcionalidades diferenciadas; la
-    implementaci\'on actual es el tier gratuito.
+  \item \textbf{Suscripci\'on premium para PYMEs:} el modelo de negocio contempla tres niveles
+    de servicio ---gratuito, b\'asico y premium--- con funcionalidades diferenciadas; la
+    implementaci\'on actual corresponde al nivel gratuito.
 
   \item \textbf{Internacionalizaci\'on:} la arquitectura soporta m\'ultiples pa\'ises; la
     expansi\'on requiere scrapers por mercado y ajuste de la l\'ogica de normalizaci\'on de

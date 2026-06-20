@@ -35,27 +35,37 @@ especialmente en el segmento de cesta alimentaria diaria.
 
 PostGIS \cite{postgis_docs, postgis_in_action} permite resolver consultas de proximidad con
 precisi\'on y rendimiento, mientras que OR-Tools \cite{ortools_docs} facilita modelar el
-problema de ordenaci\'on de paradas como una variante del TSP/VRP \cite{tsp_study} en
-instancias peque\~nas (m\'aximo 3--4 paradas en nuestro caso). Para el c\'alculo de distancias
-reales por carretera existen servicios de enrutamiento sobre datos de OpenStreetMap
-\cite{osrm_2011}, de los que el proyecto adopta OpenRouteService \cite{ors_docs}.
+problema de ordenaci\'on de paradas como una variante del problema del viajante de comercio (TSP)
+y del problema de enrutamiento de veh\'iculos (VRP) \cite{tsp_study} en instancias peque\~nas
+(m\'aximo 3--4 paradas en nuestro caso). Para el c\'alculo de distancias reales por carretera
+existen servicios de enrutamiento sobre datos de OpenStreetMap \cite{osrm_2011}, de los que el
+proyecto adopta OpenRouteService \cite{ors_docs}.
 
 \subsection{Ingesta de datos de precio}
 
-La combinaci\'on de Scrapy \cite{scrapy_docs} y Playwright \cite{playwright_docs} es adecuada
-para cat\'alogos din\'amicos de supermercados.
-Sin embargo, por robustez de producto, BarGAIN no depende de una \'unica fuente y combina:
+Para que el sistema sea \'util, necesita conocer los precios reales de muchos productos en muchas
+tiendas y mantenerlos al d\'ia. Reunir esa informaci\'on es uno de los retos principales del
+proyecto, porque cada cadena publica sus precios de una forma distinta y los cambia con
+frecuencia. El planteamiento que adopta BarGAIN consiste en recopilar de manera autom\'atica y
+peri\'odica los precios que los supermercados muestran en sus propias webs, transform\'andolos a
+un formato com\'un que permita compararlos entre s\'i.
 
-\begin{itemize}
-	\item scraping programado,
-	\item aportaciones de crowdsourcing,
-	\item actualizaci\'on manual de comercios verificados.
-\end{itemize}
+Por robustez, el sistema no depende de un \'unico origen de datos, sino que combina dos v\'ias
+complementarias: la recogida autom\'atica y programada de los precios publicados por las grandes
+cadenas, y la actualizaci\'on directa que los propios comercios verificados realizan desde el
+portal de empresas. De este modo, si una fuente falla o queda desactualizada, la otra mantiene la
+informaci\'on viva, y los datos aportados de primera mano por los comercios gozan de prioridad por
+su mayor fiabilidad. Las herramientas concretas que sustentan esta recogida automatizada se
+detallan en el cap\'itulo de dise\~no e implementaci\'on.
 
 \subsection{OCR y asistente}
 
-Para OCR se adopta Google Cloud Vision API \cite{vision_docs} por mejor rendimiento pr\'actico
-en tickets y fotos reales. Para el asistente se integra Gemini \cite{gemini_docs} mediante
+El reconocimiento \'optico de caracteres (OCR, del ingl\'es \emph{Optical Character Recognition})
+es la tecnolog\'ia que convierte el texto contenido en una imagen ---una fotograf\'ia, un ticket o
+una nota manuscrita--- en texto digital editable y procesable. En BarGAIN constituye la v\'ia para
+que el usuario transforme un ticket o una lista escrita a mano en \'items estructurados de su lista
+de la compra. Para esta tarea se adopta Google Cloud Vision API \cite{vision_docs} por su mejor
+rendimiento pr\'actico en tickets y fotos reales. Para el asistente se integra Gemini \cite{gemini_docs} mediante
 backend proxy, con guardrails para limitar respuestas al dominio de la compra. La viabilidad
 de este tipo de asistentes se apoya en la capacidad de los grandes modelos de lenguaje para
 resolver tareas con pocos ejemplos \cite{brown2020} y en t\'ecnicas de generaci\'on aumentada

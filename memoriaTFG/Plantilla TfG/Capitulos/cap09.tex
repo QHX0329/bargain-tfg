@@ -23,10 +23,11 @@ de un tel\'efono actual de gama media; las de escritorio, a una ventana de 1440$
 \section{Despliegue y acceso al sistema}\label{sec:manual-requisitos}
 
 BarGAIN se encuentra desplegado en infraestructura p\'ublica: el backend (API REST, base de
-datos PostgreSQL/PostGIS y cola Redis) se ejecuta en \emph{Render} bajo la URL
-\texttt{https://bargain-free-api.onrender.com}, y el portal para comercios se sirve como
+datos PostgreSQL/PostGIS y cola Redis) se ejecuta en \emph{Render} bajo el localizador uniforme de
+recursos (URL) \url{https://bargain-free-api.onrender.com}, y el portal para comercios se sirve
+como
 aplicaci\'on est\'atica desde \emph{GitHub Pages} en
-\texttt{https://qhx0329.github.io/bargain-tfg/}. La aplicaci\'on de usuario final, construida
+\url{https://qhx0329.github.io/bargain-tfg/}. La aplicaci\'on de usuario final, construida
 con Expo, puede ejecutarse en un navegador de escritorio desde el propio repositorio o
 instalarse en un iPhone a partir del artefacto generado por la integraci\'on continua. Todas
 las variantes del cliente consumen el mismo backend de Render, por lo que los datos son
@@ -43,7 +44,7 @@ El portal \emph{business} no requiere instalaci\'on alguna: basta un navegador m
 El procedimiento de acceso es el siguiente:
 
 \begin{enumerate}
-  \item Navegar a \texttt{https://qhx0329.github.io/bargain-tfg/}. Se carga la p\'agina de
+  \item Navegar a \url{https://qhx0329.github.io/bargain-tfg/}. Se carga la p\'agina de
     presentaci\'on del portal.
   \item Pulsar \emph{Empezar onboarding} (o navegar a \texttt{/login} si ya se dispone de
     cuenta).
@@ -74,18 +75,48 @@ npm install
   \item Revisar la configuraci\'on de entorno del fichero \texttt{frontend/.env.local}. La
     variable \texttt{EXPO\_PUBLIC\_API\_URL} apunta por defecto al backend desplegado en
     Render:
+{\footnotesize
 \begin{verbatim}
 EXPO_PUBLIC_API_URL=https://bargain-free-api.onrender.com/api/v1
 \end{verbatim}
+}
     Para trabajar contra un backend local en Docker basta sustituirla por
-    \texttt{http://localhost:8000/api/v1}.
+    \url{http://localhost:8000/api/v1}.
   \item Arrancar el servidor de desarrollo en modo web:
 \begin{verbatim}
 npx expo start --web
 \end{verbatim}
-  \item Abrir \texttt{http://localhost:8081} en el navegador. Se mostrar\'a la pantalla de
+  \item Abrir \url{http://localhost:8081} en el navegador. Se mostrar\'a la pantalla de
     inicio de sesi\'on; el registro de una cuenta nueva se realiza desde la propia interfaz.
 \end{enumerate}
+
+\subsection{Despliegue del frontend en Docker (la forma m\'as simple)}\label{subsec:manual-docker-web}
+
+El procedimiento anterior exige instalar \emph{Node.js} y las dependencias del proyecto en la
+m\'aquina. Como alternativa a\'un m\'as sencilla, pensada para quien solo desea probar la
+aplicaci\'on sin preparar un entorno de desarrollo, el proyecto incorpora un despliegue del
+frontend en contenedor: una imagen compila la versi\'on web de la aplicaci\'on y la sirve ya
+construida, conectada autom\'aticamente al backend p\'ublico de Render. El \'unico requisito es
+disponer de Docker en el equipo.
+
+A diferencia del modelo de desarrollo ---en el que la aplicaci\'on se ejecuta de forma nativa para
+conservar la recarga en caliente (Cap\'itulo~\ref{cap08})---, este despliegue genera una
+\emph{compilaci\'on est\'atica} de la aplicaci\'on web y la publica mediante un servidor ligero, de
+modo que el contenedor arranca de forma reproducible en cualquier sistema sin interferir con el
+flujo de programaci\'on. El procedimiento se reduce a dos pasos: clonar el repositorio y, situado
+en su ra\'iz, construir y levantar el contenedor con un \'unico comando:
+
+{\footnotesize
+\begin{verbatim}
+docker compose -f docker-compose.web.yml up --build
+\end{verbatim}
+}
+
+Al finalizar, la aplicaci\'on queda disponible en \url{http://localhost:8081}, lista para
+registrarse o iniciar sesi\'on contra el backend desplegado. Si se desea apuntar a otra instancia
+del backend, la direcci\'on puede ajustarse mediante una variable de entorno documentada en el
+propio fichero de orquestaci\'on; por defecto utiliza el servicio p\'ublico de Render, por lo que
+no requiere configuraci\'on adicional.
 
 \subsection{Instalaci\'on de la aplicaci\'on en iPhone}\label{subsec:manual-ios}
 
@@ -164,7 +195,7 @@ interacciones desde el arranque de la aplicaci\'on.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.40\textwidth]{diagramas/capturas/mobile-home.png}
+\includegraphics[width=0.34\textwidth]{diagramas/capturas/mobile-home.png}
 \caption{Pantalla principal de la aplicaci\'on m\'ovil, con notificaciones, listas activas,
 tiendas cercanas y alertas de precio}
 \label{fig:manual-home}
@@ -202,7 +233,7 @@ apenas var\'ian de una semana a otra.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.40\textwidth]{diagramas/capturas/mobile-plantillas.png}
+\includegraphics[width=0.34\textwidth]{diagramas/capturas/mobile-plantillas.png}
 \caption{Plantillas de lista: instanciaci\'on de compras recurrentes a partir de una plantilla
 guardada}
 \label{fig:manual-plantillas}
@@ -222,7 +253,7 @@ Desde cualquier tarjeta se accede a la comparativa de precios del producto
 (Figura~\ref{fig:manual-catalogo}, derecha), que constituye una de las aportaciones centrales del
 sistema: una tabla ordenable con el precio del art\'iculo en cada tienda del radio configurado,
 se\~nalando las ofertas vigentes y la antig\"uedad de cada dato seg\'un su fuente (API oficial,
-\emph{scraping} o aportaci\'on de usuarios, por este orden de prioridad). La misma pantalla
+datos del propio comercio o recogida autom\'atica, por este orden de fiabilidad). La misma pantalla
 incorpora el hist\'orico de precios con un gr\'afico de evoluci\'on temporal, que permite valorar
 si el precio actual es coyuntural o estable, y la creaci\'on de alertas de precio sobre el
 producto consultado.
@@ -245,7 +276,7 @@ repositorio com\'un sin renunciar al crecimiento colaborativo del mismo.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.40\textwidth]{diagramas/capturas/mobile-proponer.png}
+\includegraphics[width=0.34\textwidth]{diagramas/capturas/mobile-proponer.png}
 \caption{Propuesta de alta de un nuevo producto en el cat\'alogo, sujeta a aprobaci\'on por el
 administrador}
 \label{fig:manual-proponer}
@@ -282,7 +313,7 @@ determinados establecimientos.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.40\textwidth]{diagramas/capturas/mobile-favoritas.png}
+\includegraphics[width=0.34\textwidth]{diagramas/capturas/mobile-favoritas.png}
 \caption{Tiendas favoritas del usuario, con acceso directo a su perfil}
 \label{fig:manual-favoritas}
 \end{figure}
@@ -382,7 +413,7 @@ recorrido completo en la aplicaci\'on de mapas del dispositivo.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.40\textwidth]{diagramas/capturas/mobile-ruta.png}
+\includegraphics[width=0.34\textwidth]{diagramas/capturas/mobile-ruta.png}
 \caption{Ruta de compra optimizada: par\'ametros, resultado agregado, desglose por parada y
 resoluci\'on de ambig\"uedades sem\'anticas con rec\'alculo}
 \label{fig:manual-ruta}
@@ -430,7 +461,7 @@ uso descritas en el Cap\'itulo~\ref{cap08}.
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.40\textwidth]{diagramas/capturas/mobile-asistente.png}
+\includegraphics[width=0.34\textwidth]{diagramas/capturas/mobile-asistente.png}
 \caption{Asistente conversacional con sugerencias de inicio y campo de consulta; las respuestas
 con productos incluyen fichas de a\~nadido directo a la lista}
 \label{fig:manual-asistente}
@@ -476,7 +507,8 @@ cat\'alogo en rejilla multicolumna con soporte de teclado (derecha)}
 El resto de pantallas sigue el mismo patr\'on de adaptaci\'on; sus capturas se recogen en el
 Ap\'endice~\ref{apendice-capturas-web} para no sobrecargar este cap\'itulo. En s\'intesis: la
 comparativa de precios (Figura~\ref{fig:manual-web-comparativa}) gana una cabecera fija y
-exportaci\'on de la tabla a \texttt{CSV}; el detalle de lista a\~nade el reordenado de \'items
+exportaci\'on de la tabla a un fichero de valores separados por comas (CSV); el detalle de lista
+a\~nade el reordenado de \'items
 por arrastre y la exportaci\'on en texto plano; las colecciones de listas y plantillas
 (Figura~\ref{fig:manual-web-listas}) se presentan como rejillas de tarjetas; el mapa ancla el
 panel de tiendas como columna lateral y el perfil de tienda adopta dos columnas
@@ -636,7 +668,7 @@ resoluci\'on:
 
 \begin{itemize}
   \item \textbf{El frontend no conecta con el backend:} verificar que el backend est\'a
-    levantado (\texttt{make dev}) y expuesto en \texttt{http://localhost:8000}.
+    levantado (\texttt{make dev}) y expuesto en \url{http://localhost:8000}.
   \item \textbf{Errores de autenticaci\'on al navegar:} cerrar sesi\'on e iniciarla de nuevo
     para regenerar el par de tokens.
   \item \textbf{No aparecen tiendas en el mapa:} comprobar los permisos de ubicaci\'on del

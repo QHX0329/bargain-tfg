@@ -14,23 +14,44 @@ El sistema define cuatro actores principales:
 
 \section{Requisitos de informaci\'on}
 
-El modelo de informaci\'on se articula en doce bloques (RI-001 a RI-012), que cubren:
+El modelo de informaci\'on se articula en doce requisitos de informaci\'on (RI), identificados
+como RI-001 a RI-012, que definen los datos que el sistema debe almacenar y gestionar:
 
-\begin{itemize}
-	\item usuarios y preferencias de optimizaci\'on,
-	\item cat\'alogo (productos, categor\'ias, marcas),
-	\item tiendas geolocalizadas y cadenas,
-	\item precios actuales e hist\'oricos,
-	\item listas de compra y resultados de optimizaci\'on,
-	\item perfiles business y promociones,
-	\item sesiones OCR y conversaciones del asistente.
-\end{itemize}
+\begin{description}
+  \item[RI-001 Usuarios.] Identidad (nombre de usuario \'unico, email \'unico, contrase\~na
+    \emph{hasheada}), rol (consumidor, comercio, administrador), ubicaci\'on por defecto (punto
+    geogr\'afico con identificador de sistema de referencia espacial, SRID, 4326), radio de
+    b\'usqueda, m\'aximo de paradas, pesos de optimizaci\'on y preferencias de notificaci\'on.
+  \item[RI-002 Productos.] Cat\'alogo normalizado: nombre, nombre normalizado, n\'umero de
+    art\'iculo europeo (EAN-13) opcional, categor\'ia, marca, unidad, imagen y estado.
+  \item[RI-003 Categor\'ias.] Jerarqu\'ia navegable con categor\'ia padre y orden de
+    visualizaci\'on.
+  \item[RI-004 Marcas.] Nombre, logotipo y v\'inculo opcional con cadena (marca blanca).
+  \item[RI-005 Cadenas.] Nombre, logotipo, web, disponibilidad de API oficial y color corporativo.
+  \item[RI-006 Tiendas.] Establecimiento f\'isico geolocalizado (punto con \'indice espacial),
+    cadena opcional, horario en formato \emph{JavaScript Object Notation} (JSON), indicador de
+    comercio local y nivel de suscripci\'on.
+  \item[RI-007 Precios.] Precio actual e hist\'orico por par producto--tienda: precio, precio
+    unitario, oferta y caducidad, fuente (API oficial, recogida autom\'atica o comercio
+    verificado), verificaci\'on y bandera de caducidad.
+  \item[RI-008 Listas.] Listas por usuario con \'items de texto libre normalizado, cantidad y
+    estado de comprado; la vinculaci\'on a productos se resuelve de forma diferida.
+  \item[RI-009 Optimizaciones.] Resultado persistente: ubicaci\'on, radio, pesos, totales, ruta
+    (paradas ordenadas e \'items por parada) y preferencias sem\'anticas confirmadas.
+  \item[RI-010 Perfiles de negocio.] Datos fiscales (NIF/CIF \'unico), estado de verificaci\'on,
+    umbral de alerta competitiva y promociones asociadas.
+  \item[RI-011 Sesiones OCR.] Imagen procesada, texto extra\'ido, candidatos reconocidos con
+    confianza y estado de la sesi\'on.
+  \item[RI-012 Conversaciones.] Historial de mensajes usuario/asistente con fechas y estado.
+\end{description}
 
 \section{Requisitos funcionales}
 
-Se definieron 35 requisitos funcionales (RF-001 a RF-035) agrupados por dominios, tal y como
-resume el Cuadro~\ref{tab:rf-grupos}. El cat\'alogo completo, con el enunciado de cada
-requisito, se recoge en el Ap\'endice~\ref{apendice-requisitos}.
+Se definieron 34 requisitos funcionales (RF), identificados como RF-001 a RF-034 y agrupados por
+dominios, tal y como resume el Cuadro~\ref{tab:rf-grupos}. El enunciado completo de cada requisito
+se detalla a continuaci\'on en el Cuadro~\ref{tab:rf-catalogo}. La especificaci\'on extendida, con
+criterios de aceptaci\'on e historias de usuario (HU-001 a HU-030), se mantiene versionada en el
+repositorio (\texttt{docs/memoria/07-requisitos.md}).
 
 \begin{table}[htbp]
 \centering
@@ -42,18 +63,68 @@ requisito, se recoge en el Ap\'endice~\ref{apendice-requisitos}.
 \textbf{Dominio} & \textbf{IDs} & \textbf{Capacidad principal} \\
 \midrule
 Autenticaci\'on y perfil & RF-001..RF-005 & Registro, login JWT, preferencias \\
-Cat\'alogo de productos & RF-006..RF-010 & B\'usqueda, detalle, crowdsourcing \\
+Cat\'alogo de productos & RF-006..RF-010 & B\'usqueda, detalle, propuesta de productos \\
 Tiendas y mapa & RF-011..RF-014 & Proximidad, detalle, favoritos \\
-Precios & RF-015..RF-019 & Comparaci\'on, hist\'orico, alertas \\
-Listas de compra & RF-020..RF-023 & CRUD, compartir, plantillas \\
-Optimizador & RF-024..RF-027 & Ruta multicriterio y rec\'alculo \\
-OCR & RF-028..RF-029 & Captura y matching fuzzy \\
-Asistente LLM & RF-030..RF-031 & Consultas naturales y sugerencias \\
-Portal business & RF-032..RF-034 & Onboarding, precios, promociones \\
-Notificaciones & RF-035 & Push / email por eventos \\
+Precios & RF-015..RF-018 & Comparaci\'on, hist\'orico, alertas \\
+Listas de compra & RF-019..RF-022 & CRUD, compartir, plantillas \\
+Optimizador & RF-023..RF-026 & Ruta multicriterio y rec\'alculo \\
+OCR & RF-027..RF-028 & Captura y matching fuzzy \\
+Asistente LLM & RF-029..RF-030 & Consultas naturales y sugerencias \\
+Portal business & RF-031..RF-033 & Onboarding, precios, promociones \\
+Notificaciones & RF-034 & Push / email por eventos \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\begin{small}
+\begin{longtable}{@{}p{2.1cm}p{4.2cm}p{7.6cm}@{}}
+\caption{Cat\'alogo de requisitos funcionales}\label{tab:rf-catalogo}\\
+\toprule
+\textbf{ID} & \textbf{Nombre} & \textbf{S\'intesis} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Nombre} & \textbf{S\'intesis} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+RF-001 & Registro de usuario & Alta con nombre de usuario, email \'unico y contrase\~na validada. \\
+RF-002 & Inicio de sesi\'on & Autenticaci\'on con nombre de usuario y contrase\~na; par de tokens JWT con rotaci\'on; tiempos de vida configurables por entorno (60 min/7 d\'ias en la configuraci\'on de referencia). \\
+RF-003 & Gesti\'on de perfil & Consulta y modificaci\'on de datos personales y preferencias. \\
+RF-004 & Preferencias de optimizaci\'on & Pesos relativos de precio/distancia/tiempo, radio (1--25 km) y paradas (1--4). \\
+RF-005 & Recuperaci\'on de contrase\~na & Restablecimiento por enlace de correo con caducidad. \\
+RF-006 & Consulta de productos & B\'usqueda con filtros, paginaci\'on y ordenaci\'on. \\
+RF-007 & Detalle de producto & Ficha completa con rango de precios en tiendas cercanas. \\
+RF-008 & Autocompletado & Sugerencias en tiempo real con coincidencia aproximada sobre nombre normalizado. \\
+RF-009 & Categor\'ias & Jerarqu\'ia de categor\'ias navegable. \\
+RF-010 & Propuesta de producto & Alta de un nuevo producto propuesta por el usuario, sujeta a aprobaci\'on del administrador. \\
+RF-011 & Tiendas por proximidad & Listado por radio configurable ordenado por distancia. \\
+RF-012 & Detalle de tienda & Informaci\'on completa y precios de la lista activa del usuario. \\
+RF-013 & Mapa & Mapa interactivo con marcadores diferenciados por cadena/comercio local. \\
+RF-014 & Tiendas favoritas & Marcado de favoritas con acceso r\'apido y notificaciones. \\
+RF-015 & Comparaci\'on por producto & Precios en todas las tiendas del radio con fuente y antig\"uedad. \\
+RF-016 & Comparaci\'on de cesta & Coste total de la lista en cada tienda individual. \\
+RF-017 & Hist\'orico de precios & Evoluci\'on temporal del precio con gr\'afico. \\
+RF-018 & Alerta de precio & Notificaci\'on al alcanzar un precio objetivo. \\
+RF-019 & Gesti\'on de listas & Altas, consultas, modificaciones y bajas de listas con l\'imite de 20 activas. \\
+RF-020 & Gesti\'on de \'items & Texto libre normalizado, cantidades y marcado de comprado. \\
+RF-021 & Compartir lista & Edici\'on colaborativa con otros usuarios registrados. \\
+RF-022 & Plantillas & Listas reutilizables instanciables. \\
+RF-023 & Optimizaci\'on de ruta & Asignaci\'on \'item$\to$(producto, tienda) con resoluci\'on sem\'antico-difusa y ruta recomendada ordenada seg\'un los pesos del usuario; ambig\"uedades resolubles con rec\'alculo. \\
+RF-024 & Ruta en mapa & Recorrido, paradas y productos por parada sobre mapa interactivo. \\
+RF-025 & Desglose de ahorro & Precio total, distancia, tiempo y desglose por parada. \\
+RF-026 & Rec\'alculo bajo demanda & Nueva optimizaci\'on en menos de 5 s al cambiar par\'ametros. \\
+RF-027 & Captura OCR & Foto de lista o ticket procesada con reconocimiento \'optico. \\
+RF-028 & Emparejamiento OCR & Candidatos del cat\'alogo con nivel de confianza y correcci\'on manual. \\
+RF-029 & Consulta en lenguaje natural & Chat con respuestas contextualizadas con datos reales. \\
+RF-030 & Sugerencias de ahorro & Estrategias de ahorro limitadas al dominio de compra. \\
+RF-031 & Registro de negocio & Alta PYME con datos fiscales sujeta a verificaci\'on. \\
+RF-032 & Precios del comercio & Actualizaci\'on manual con fuente verificada sin caducidad. \\
+RF-033 & Promociones & Creaci\'on y gesti\'on de promociones con vigencia. \\
+RF-034 & Notificaciones & \emph{Push} y email por eventos seg\'un preferencias. \\
+\end{longtable}
+\end{small}
 
 \section{Criterios de aceptaci\'on del producto}
 
@@ -71,35 +142,67 @@ Los criterios de aceptaci\'on se validan a nivel funcional y de experiencia:
 
 \section{Requisitos no funcionales}
 
-Se definieron ocho requisitos no funcionales (RNF-001 a RNF-008), cuyo enunciado completo se
-recoge en el Ap\'endice~\ref{apendice-requisitos}:
+Se definieron ocho requisitos no funcionales (RNF), identificados como RNF-001 a RNF-008, que
+fijan las cualidades que el sistema debe satisfacer m\'as all\'a de sus funciones concretas:
 
-\begin{itemize}
-	\item \textbf{RNF-001} rendimiento API (p95 inferior a 500 ms en CRUD y a 5 s en
-		optimizaci\'on),
-	\item \textbf{RNF-002} disponibilidad del entorno de staging,
-	\item \textbf{RNF-003} seguridad (HTTPS, JWT con rotaci\'on, rate limiting, hashing de
-		contrase\~nas),
-	\item \textbf{RNF-004} usabilidad (flujo principal en un m\'aximo de 3 interacciones y
-		criterios de accesibilidad WCAG 2.1 \cite{wcag21}),
-	\item \textbf{RNF-005} escalabilidad arquitect\'onica,
-	\item \textbf{RNF-006} mantenibilidad (cobertura de tests $\geq$ 80\,\% y convenciones
-		verificadas en CI),
-	\item \textbf{RNF-007} compatibilidad multiplataforma,
-	\item \textbf{RNF-008} protecci\'on de datos conforme al RGPD \cite{rgpd2016}.
-\end{itemize}
+\begin{description}
+  \item[RNF-001 Rendimiento.] La API debe responder con un percentil 95 inferior a 500 ms en las
+    operaciones de crear, leer, actualizar y borrar (CRUD) e inferior a 5 segundos en la
+    optimizaci\'on de rutas.
+  \item[RNF-002 Disponibilidad.] Disponibilidad m\'inima del 99\,\% mensual en el entorno de
+    \emph{staging}, excluyendo ventanas de mantenimiento. El alcance real de su validaci\'on se
+    detalla en el Cap\'itulo~\ref{cap10}.
+  \item[RNF-003 Seguridad.] HTTPS obligatorio, testigos de autenticaci\'on firmados (JWT) con
+    rotaci\'on, limitaci\'on de peticiones (100/h an\'onimos y 1.000/h autenticados), \emph{hashing}
+    seguro de contrase\~nas y cifrado de los datos sensibles. Se trata de las \emph{medidas
+    t\'ecnicas} que protegen el sistema frente a accesos y usos indebidos.
+  \item[RNF-004 Usabilidad.] Las acciones principales deben completarse en un m\'aximo de 3
+    interacciones, con dise\~no adaptable y conforme a las pautas de accesibilidad para el contenido
+    web (WCAG) 2.1 nivel AA \cite{wcag21}.
+  \item[RNF-005 Escalabilidad.] La arquitectura debe poder crecer hasta unos 10.000 usuarios
+    concurrentes apoy\'andose en procesos de tareas en segundo plano independientes y en una API
+    sin estado.
+  \item[RNF-006 Mantenibilidad.] El sistema debe ser sencillo de evolucionar y corregir a lo largo
+    del tiempo. Para garantizarlo se exige una cobertura de pruebas automatizadas de al menos el
+    80\,\%, verificada de forma \emph{bloqueante} en la integraci\'on continua (un cambio que la
+    reduzca por debajo de ese umbral no se integra), el cumplimiento de convenciones de estilo
+    homog\'eneas comprobadas autom\'aticamente (PEP 8 en el backend y ESLint/Prettier en el
+    frontend) y una organizaci\'on modular del c\'odigo, con la l\'ogica de negocio separada en una
+    capa de servicios. El objetivo es que cualquier desarrollador pueda incorporarse al proyecto y
+    modificarlo con bajo riesgo de regresi\'on.
+  \item[RNF-007 Compatibilidad.] El sistema debe funcionar en iOS 15 o superior, Android 10 o
+    superior y las dos \'ultimas versiones de los navegadores principales.
+  \item[RNF-008 Protecci\'on de datos.] Cumplimiento del Reglamento General de Protecci\'on de
+    Datos (RGPD) \cite{rgpd2016}: consentimiento expl\'icito para el uso de la ubicaci\'on, derecho
+    al olvido y minimizaci\'on de los datos tratados. Conviene subrayar que este requisito
+    \textbf{no debe confundirse con RNF-003}: aunque ambos conciernen al usuario, RNF-003 establece
+    las medidas \emph{t\'ecnicas} de seguridad del sistema, mientras que RNF-008 atiende a una
+    obligaci\'on \emph{jur\'idica} sobre la licitud del tratamiento de los datos personales. Son
+    requisitos complementarios pero de naturaleza distinta ---t\'ecnica frente a legal--- y se
+    verifican por separado.
+\end{description}
 
 \section{Reglas de negocio}
 
-Las reglas RN-001..RN-010 gobiernan l\'imites y pol\'iticas operativas:
+Las reglas de negocio (RN), numeradas RN-001 a RN-010, gobiernan los l\'imites y las pol\'iticas
+operativas que el sistema debe hacer cumplir:
 
-\begin{itemize}
-	\item radio m\'aximo de b\'usqueda y n\'umero m\'aximo de paradas,
-	\item caducidad y prioridad de fuentes de precio,
-	\item restricciones del asistente al dominio de compra,
-	\item verificaci\'on previa de perfiles business,
-	\item pol\'iticas de scraping responsable y frecuencia de ejecuci\'on.
-\end{itemize}
+\begin{description}
+  \item[RN-001] Radio de b\'usqueda entre 1 y 25 km (10 km por defecto).
+  \item[RN-002] M\'aximo 4 paradas por ruta (3 por defecto).
+  \item[RN-003] Caducidad de precios: 48 h para los obtenidos por recogida autom\'atica; sin
+    caducidad para los introducidos por comercio verificado.
+  \item[RN-004] Prioridad de fuentes: API oficial $>$ comercio verificado $>$ recogida autom\'atica.
+  \item[RN-005] Rechazo de precios no positivos y marcado de precios an\'omalos ($>$200\,\% de la
+    media) como sospechosos.
+  \item[RN-006] M\'aximo 20 listas activas por usuario.
+  \item[RN-007] El asistente solo responde consultas del dominio de compra.
+  \item[RN-008] Verificaci\'on administrativa previa de los perfiles de comercio.
+  \item[RN-009] Respeto a las directivas \texttt{robots.txt} \cite{rfc9309} y exclusi\'on de las
+    cadenas que proh\'iban el acceso automatizado.
+  \item[RN-010] Frecuencia m\'axima de recogida automatizada de una vez cada 24 h por cadena, con
+    un retardo m\'inimo de 2 segundos entre peticiones.
+\end{description}
 
 \section{Diagramas de casos de uso}
 
@@ -124,10 +227,33 @@ Los diagramas de casos de uso recogen las interacciones principales de cada acto
 La trazabilidad entre requisitos, implementaci\'on y pruebas se documenta en tres niveles:
 
 \begin{itemize}
-	\item el Ap\'endice~\ref{apendice-requisitos} de esta memoria (cat\'alogo completo de
-		requisitos y tabla de trazabilidad dominio--m\'odulo--suite de pruebas),
+	\item el Cuadro~\ref{tab:trazabilidad} de esta secci\'on, que vincula cada dominio funcional
+		con el m\'odulo que lo implementa y las suites de prueba que lo verifican,
 	\item \texttt{TASKS.md} en el repositorio (estado por fase/tarea, con identificadores
 		referenciados desde los commits),
 	\item \texttt{tests/unit}, \texttt{tests/integration} y \texttt{frontend/web/e2e}
 		(verificaci\'on ejecutable).
 \end{itemize}
+
+\begin{table}[htbp]
+\centering
+\caption{Trazabilidad de dominios funcionales a m\'odulos y suites de prueba}
+\label{tab:trazabilidad}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Dominio (RF)} & \textbf{M\'odulo} & \textbf{Suites de prueba} \\
+\midrule
+Autenticaci\'on (001--005) & \texttt{apps/users} & \texttt{test\_users}, \texttt{test\_auth\_endpoints}, \texttt{auth.spec} \\
+Cat\'alogo (006--010) & \texttt{apps/products} & \texttt{test\_products}, \texttt{test\_product\_endpoints} \\
+Tiendas (011--014) & \texttt{apps/stores} & \texttt{test\_stores}, \texttt{test\_store\_endpoints} \\
+Precios (015--018) & \texttt{apps/prices} & \texttt{test\_prices}, \texttt{test\_price\_endpoints} \\
+Listas (019--022) & \texttt{apps/shopping\_lists} & \texttt{test\_shopping\_lists}, \texttt{test\_list\_endpoints} \\
+Optimizador (023--026) & \texttt{apps/optimizer} & \texttt{test\_optimizer*}, \texttt{test\_distance\_ors}, \texttt{optimizer.spec} \\
+OCR (027--028) & \texttt{apps/ocr} & \texttt{test\_ocr}, \texttt{test\_ocr\_api}, \texttt{ocr.spec} \\
+Asistente (029--030) & \texttt{apps/assistant} & \texttt{test\_assistant}, \texttt{test\_assistant\_api} \\
+Business (031--033) & \texttt{apps/business} & \texttt{test\_business\_*}, \texttt{business.spec} \\
+Notificaciones (034) & \texttt{apps/notifications} & \texttt{test\_notification\_*} \\
+\bottomrule
+\end{tabular}
+\end{table}

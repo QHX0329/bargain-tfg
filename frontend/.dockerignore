@@ -1,0 +1,15 @@
+node_modules
+web
+dist
+dist-web
+dist-prod
+build
+coverage
+playwright-report
+.expo
+.git
+.planning
+__tests__
+__mocks__
+*.log
+.env.local

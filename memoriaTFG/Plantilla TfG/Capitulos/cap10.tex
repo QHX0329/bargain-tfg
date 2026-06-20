@@ -125,9 +125,9 @@ Business portal & \texttt{business.spec.ts} & UI & Registro PYME $\to$ aprobaci\
 \end{tabular}
 \end{table}
 
-Los flujos de optimizador y OCR se implementan como tests API-level (usando el fixture
-\texttt{request} de Playwright, sin interfaz de usuario o UI) porque estas funcionalidades son exclusivas
-de la app m\'ovil --- el web companion es un portal business y no dispone de pantallas de
+Los flujos de optimizador y OCR se implementan como tests a nivel de API (usando el \emph{fixture}
+\texttt{request} de Playwright, sin interfaz de usuario) porque estas funcionalidades son exclusivas
+de la app m\'ovil --- el portal web es exclusivamente de empresas y no dispone de pantallas de
 consumidor. Este enfoque verifica la integraci\'on backend end-to-end de los features principales
 del TFG sin requerir una interfaz web que no existe.
 

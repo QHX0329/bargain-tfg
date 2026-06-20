@@ -18,6 +18,7 @@ import { apiClient } from '../api/client';
 import { useBusinessStore } from '../store/businessStore';
 import type { BusinessProfile } from '../store/businessStore';
 import { extractBusinessProfiles } from '../utils/businessProfiles';
+import { getErrorMessage } from '../utils/errorMessage';
 
 const { Title } = Typography;
 
@@ -61,8 +62,8 @@ const BusinessProfilePage: React.FC = () => {
           if (profiles.length > 0) {
             setProfile(profiles[0]);
           }
-        } catch {
-          setError('Error al cargar el perfil del negocio');
+        } catch (err) {
+          setError(getErrorMessage(err, 'No se pudo cargar el perfil de tu negocio. Inténtalo de nuevo.'));
         } finally {
           setFetchLoading(false);
         }
@@ -100,8 +101,8 @@ const BusinessProfilePage: React.FC = () => {
       setProfile(res.data);
       setEditing(false);
       void message.success('Perfil actualizado correctamente');
-    } catch {
-      void message.error('Error al actualizar el perfil');
+    } catch (err) {
+      void message.error(getErrorMessage(err, 'No se pudo actualizar el perfil. Revisa los datos e inténtalo de nuevo.'));
     } finally {
       setLoading(false);
     }

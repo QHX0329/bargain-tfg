@@ -16,6 +16,22 @@
 \usepackage{array}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{float}
+
+% --- Ajuste de colocacion de figuras -----------------------------------------
+% Parametros mas permisivos para que las figuras se situen cerca del texto que
+% las referencia y no "floten" a paginas alejadas, y barrera de flotantes para
+% impedir que crucen los limites de seccion.
+\usepackage{placeins}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.7}
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{4}
+% ----------------------------------------------------------------------------
+
 \usepackage[hidelinks,unicode]{hyperref}
 \usepackage{apacite}
 

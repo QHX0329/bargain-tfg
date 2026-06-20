@@ -30,6 +30,7 @@ import {
   resolveEntityName,
   type EntityLike,
 } from '../utils/entityResolver';
+import { getErrorMessage } from '../utils/errorMessage';
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -241,8 +242,15 @@ const PromotionsPage: React.FC = () => {
       }
       closeModal();
       void fetchPromotions();
-    } catch {
-      void message.error(editingPromotion ? 'Error al actualizar la promoción' : 'Error al crear la promoción');
+    } catch (err) {
+      void message.error(
+        getErrorMessage(
+          err,
+          editingPromotion
+            ? 'No se pudo actualizar la promoción. Revisa los datos e inténtalo de nuevo.'
+            : 'No se pudo crear la promoción. Revisa los datos e inténtalo de nuevo.',
+        ),
+      );
     }
   };
 

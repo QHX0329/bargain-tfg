@@ -25,8 +25,8 @@ El proyecto BarGAIN ha completado todos los bloques de desarrollo planificados:
 \end{itemize}
 
 Adicionalmente, tras el cierre del plan inicial se incorpor\'o una fase de adaptaci\'on de la app
-de usuario al uso web de escritorio (dise\~no responsive, atajos de teclado, exportaciones y
-deep-linking), documentada en los Cap\'itulos~\ref{cap08} y~\ref{cap09}.
+de usuario al uso web de escritorio (dise\~no adaptable, atajos de teclado, exportaciones y
+enlaces directos), documentada en los Cap\'itulos~\ref{cap08} y~\ref{cap09}.
 
 El sistema est\'a desplegado en staging (Render.com) y los cuatro flujos E2E cr\'iticos han sido
 verificados de forma automatizada con Playwright.
@@ -51,8 +51,8 @@ verificados de forma automatizada con Playwright.
   \item \textbf{Portal business para PYMEs:} flujo completo de registro, aprobaci\'on por
     administrador, gesti\'on de precios y promociones, con visibilidad para el consumidor final.
 
-  \item \textbf{Asistente LLM con guardrails de dominio:} Gemini 2.0 Flash Lite con restricci\'on
-    tem\'atica a consultas de compra, historial de conversaci\'on y rate limiting.
+  \item \textbf{Asistente LLM con restricci\'on de dominio:} modelo Gemini ce\~nido tem\'aticamente
+    a consultas de compra, con historial de conversaci\'on y limitaci\'on de peticiones.
 
   \item \textbf{Arquitectura full-stack coherente:} separaci\'on clara entre apps Django, workers
     Celery independientes, PostGIS para geoespacial y React Native + Expo para iOS y web desde
@@ -92,9 +92,10 @@ verificados de forma automatizada con Playwright.
     genera certificados con caducidad de 7 d\'ias, que requieren re-sideload peri\'odico para el
     dispositivo de demo.
 
-  \item \textbf{RNF-005 sin load test real:} la justificaci\'on de escalabilidad a 10.000 usuarios
-    concurrentes es arquitectural (Celery workers independientes, PostGIS spatial index, API
-    stateless). Un load test completo requeriría infraestructura de pago fuera del alcance del TFG.
+  \item \textbf{RNF-005 sin prueba de carga real:} la justificaci\'on de escalabilidad a 10.000
+    usuarios concurrentes es arquitect\'onica (procesos Celery independientes, \'indice espacial de
+    PostGIS y API sin estado). Una prueba de carga completa requerir\'ia infraestructura de pago
+    fuera del alcance del TFG.
 
   \item \textbf{Validaciones no funcionales pendientes:} no se ha realizado una campa\~na formal
     de medici\'on de latencias p95 (RNF-001) ni se ha instrumentado monitorizaci\'on continua de

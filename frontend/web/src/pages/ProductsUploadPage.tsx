@@ -25,6 +25,7 @@ import {
   type EntityLike,
   type EntityReference,
 } from '../utils/entityResolver';
+import { getErrorMessage } from '../utils/errorMessage';
 
 const { Title, Text } = Typography;
 
@@ -330,9 +331,14 @@ const ProductsUploadPage: React.FC = () => {
       });
       void message.success('Producto actualizado correctamente en el catálogo global');
       closeDrawer();
-      window.location.reload(); 
-    } catch {
-      void message.error('Error al actualizar el producto. Verifica los datos o si el código EAN ya existe.');
+      window.location.reload();
+    } catch (err) {
+      void message.error(
+        getErrorMessage(
+          err,
+          'No se pudo actualizar el producto. Revisa los datos o comprueba si el código EAN ya existe.',
+        ),
+      );
     } finally {
       setEditLoading(false);
     }
@@ -573,13 +579,13 @@ const ProductsUploadPage: React.FC = () => {
     try {
       const payload = normalizePayload(values);
       if (!payload) {
-        throw new Error('Validación fallida');
+        throw new Error('Revisa los campos obligatorios antes de enviar el producto.');
       }
       await submitProposal(payload);
       void message.success('Producto enviado para revisión correctamente');
       manualForm.resetFields();
-    } catch {
-      void message.error('No se pudo enviar el producto. Revisa los datos e inténtalo de nuevo.');
+    } catch (err) {
+      void message.error(getErrorMessage(err, 'No se pudo enviar el producto. Revisa los datos e inténtalo de nuevo.'));
     } finally {
       setManualLoading(false);
     }

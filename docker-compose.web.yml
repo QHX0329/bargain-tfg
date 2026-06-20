@@ -9,6 +9,12 @@
 # Para apuntar a otro backend, exportar EXPO_PUBLIC_API_URL antes de construir:
 #   EXPO_PUBLIC_API_URL=http://localhost:8000/api/v1 \
 #     docker compose -f docker-compose.web.yml up --build
+#
+# La clave de Google Maps se toma del entorno del host (por ejemplo, de un
+# fichero .env junto a este compose o exportada en la shell). No se incluye
+# ningun valor por defecto para evitar que la clave quede en el repositorio:
+#   EXPO_PUBLIC_GOOGLE_MAPS_KEY=tu-clave \
+#     docker compose -f docker-compose.web.yml up --build
 
 services:
   frontend-web:
@@ -17,6 +23,8 @@ services:
       dockerfile: Dockerfile.web
       args:
         EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-https://bargain-free-api.onrender.com/api/v1}
+        EXPO_PUBLIC_GOOGLE_MAPS_KEY: ${EXPO_PUBLIC_GOOGLE_MAPS_KEY:-}
+        EXPO_PUBLIC_GOOGLE_MAPS_MAP_ID: ${EXPO_PUBLIC_GOOGLE_MAPS_MAP_ID:-9b2a3c03b0a10f4025e8fe57}
     image: bargain-frontend-web
     container_name: bargain-frontend-web
     ports:

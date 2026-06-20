@@ -13,8 +13,14 @@ WORKDIR /app
 # Configuracion embebida en el bundle (las variables EXPO_PUBLIC_* se inyectan
 # en tiempo de compilacion). Por defecto apunta al backend desplegado en Render;
 # puede sobreescribirse con --build-arg.
+#
+# IMPORTANTE: la clave de Google Maps NUNCA se incrusta aqui (este fichero se
+# versiona y la clave quedaria expuesta en el repositorio). Debe pasarse en
+# tiempo de build, por ejemplo:
+#   docker build --build-arg EXPO_PUBLIC_GOOGLE_MAPS_KEY="$EXPO_PUBLIC_GOOGLE_MAPS_KEY" ...
+# o mediante docker-compose, que la inyecta desde el entorno del host (.env).
 ARG EXPO_PUBLIC_API_URL=https://bargain-free-api.onrender.com/api/v1
-ARG EXPO_PUBLIC_GOOGLE_MAPS_KEY=AIzaSyAcaQ9wKrY_eCsVNHhPgB7qaRI_1PiLGXw
+ARG EXPO_PUBLIC_GOOGLE_MAPS_KEY=
 ARG EXPO_PUBLIC_GOOGLE_MAPS_MAP_ID=9b2a3c03b0a10f4025e8fe57
 ENV EXPO_PUBLIC_API_URL=$EXPO_PUBLIC_API_URL \
     EXPO_PUBLIC_GOOGLE_MAPS_KEY=$EXPO_PUBLIC_GOOGLE_MAPS_KEY \

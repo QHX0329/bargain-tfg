@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Input, InputNumber, Button, Card, Typography, message } from 'antd';
+import { Form, Input, Button, Card, Typography, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/client';
 import { handleLogin } from '../services/auth';
@@ -7,6 +7,9 @@ import axios from 'axios';
 import { useBusinessStore } from '../store/businessStore';
 import type { BusinessProfile } from '../store/businessStore';
 import { extractBusinessProfiles } from '../utils/businessProfiles';
+import { getErrorMessage } from '../utils/errorMessage';
+import AddressAutocomplete from '../components/AddressAutocomplete';
+import type { SelectedAddress } from '../components/AddressAutocomplete';
 
 const { Title } = Typography;
 
@@ -19,11 +22,13 @@ interface RegisterFormValues {
   tax_id: string;
   address: string;
   website: string;
-  latitude: number;
-  longitude: number;
 }
 
-// Centro de Sevilla por defecto para la ubicación de la tienda.
+// Clave de Google Maps (Places) del portal. Si no está configurada, el campo de
+// dirección funciona como texto libre y se usan unas coordenadas por defecto.
+const MAPS_API_KEY = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined)?.trim();
+
+// Centro de Sevilla, usado solo como respaldo cuando no hay autocompletado.
 const DEFAULT_LATITUDE = 37.3891;
 const DEFAULT_LONGITUDE = -5.9845;
 
@@ -31,10 +36,26 @@ const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const { setToken, setProfile } = useBusinessStore();
   const [loading, setLoading] = React.useState(false);
+  const [selectedAddress, setSelectedAddress] = React.useState<SelectedAddress | null>(null);
 
   const onFinish = async (values: RegisterFormValues) => {
-    setLoading(true);
+    // Con autocompletado activo, exigimos que la dirección provenga del
+    // desplegable de Google (así garantizamos que es real y tiene coordenadas).
+    let latitude = DEFAULT_LATITUDE;
+    let longitude = DEFAULT_LONGITUDE;
+    if (MAPS_API_KEY) {
+      if (!selectedAddress || selectedAddress.address !== values.address) {
+        void message.error(
+          'Elige tu dirección entre las sugerencias de Google para validarla. ' +
+            'Empieza a escribir y selecciónala en el desplegable.',
+        );
+        return;
+      }
+      latitude = selectedAddress.latitude;
+      longitude = selectedAddress.longitude;
+    }
 
+    setLoading(true);
     try {
       // 1. Registrar usuario con rol business
       await apiClient.post('/auth/register/', {
@@ -50,15 +71,15 @@ const RegisterPage: React.FC = () => {
       const token = localStorage.getItem('access_token') ?? '';
       setToken(token);
 
-      // 3. Crear perfil de negocio (el backend crea la tienda asociada con estas
-      //    coordenadas; si no se indican, usa el centro de Sevilla por defecto).
+      // 3. Crear perfil de negocio. El backend crea la tienda asociada con estas
+      //    coordenadas, obtenidas de la dirección validada por Google.
       await apiClient.post('/business/profiles/', {
         business_name: values.business_name,
         tax_id: values.tax_id,
         address: values.address,
         website: values.website || '',
-        latitude: values.latitude ?? DEFAULT_LATITUDE,
-        longitude: values.longitude ?? DEFAULT_LONGITUDE,
+        latitude,
+        longitude,
       });
 
       // 4. Cargar perfil recién creado
@@ -77,12 +98,9 @@ const RegisterPage: React.FC = () => {
       );
       navigate('/dashboard');
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { error?: { message?: string }; detail?: string } } };
-      const errorMsg =
-        axiosErr.response?.data?.error?.message ||
-        axiosErr.response?.data?.detail ||
-        'Error al registrar. Revisa los datos e inténtalo de nuevo.';
-      void message.error(errorMsg);
+      void message.error(
+        getErrorMessage(err, 'No se pudo completar el registro. Revisa los datos e inténtalo de nuevo.'),
+      );
     } finally {
       setLoading(false);
     }
@@ -122,10 +140,6 @@ const RegisterPage: React.FC = () => {
             layout="vertical"
             onFinish={onFinish}
             autoComplete="off"
-            initialValues={{
-              latitude: DEFAULT_LATITUDE,
-              longitude: DEFAULT_LONGITUDE,
-            }}
           >
             <Typography.Text strong style={{ display: 'block', marginBottom: 12 }}>
               Datos de acceso
@@ -204,52 +218,22 @@ const RegisterPage: React.FC = () => {
               label="Dirección"
               name="address"
               rules={[{ required: true, message: 'Dirección del negocio obligatoria' }]}
+              extra={
+                MAPS_API_KEY
+                  ? 'Empieza a escribir y elige tu dirección en el desplegable de Google. La ubicación de tu tienda se obtiene automáticamente.'
+                  : 'Introduce la dirección completa de tu negocio.'
+              }
             >
-              <Input.TextArea rows={2} placeholder="Calle Ejemplo 12, 41001 Sevilla" />
+              <AddressAutocomplete
+                apiKey={MAPS_API_KEY}
+                onSelect={setSelectedAddress}
+                placeholder="Calle Ejemplo 12, 41001 Sevilla"
+              />
             </Form.Item>
 
             <Form.Item label="Web (opcional)" name="website">
               <Input placeholder="https://www.minegocio.es" size="large" />
             </Form.Item>
-
-            <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
-              Ubicación de tu tienda (coordenadas). Puedes obtenerlas en Google Maps; por defecto
-              se usa el centro de Sevilla.
-            </Typography.Text>
-
-            <div style={{ display: 'flex', gap: 12 }}>
-              <Form.Item
-                label="Latitud"
-                name="latitude"
-                style={{ flex: 1 }}
-                rules={[{ required: true, message: 'Latitud obligatoria' }]}
-              >
-                <InputNumber
-                  size="large"
-                  style={{ width: '100%' }}
-                  step={0.0001}
-                  min={-90}
-                  max={90}
-                  placeholder="37.3891"
-                />
-              </Form.Item>
-
-              <Form.Item
-                label="Longitud"
-                name="longitude"
-                style={{ flex: 1 }}
-                rules={[{ required: true, message: 'Longitud obligatoria' }]}
-              >
-                <InputNumber
-                  size="large"
-                  style={{ width: '100%' }}
-                  step={0.0001}
-                  min={-180}
-                  max={180}
-                  placeholder="-5.9845"
-                />
-              </Form.Item>
-            </div>
 
             <Form.Item style={{ marginBottom: 0 }}>
               <Button

@@ -23,6 +23,7 @@ import {
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { apiClient } from '../api/client';
+import { getErrorMessage } from '../utils/errorMessage';
 
 const { Title, Text } = Typography;
 
@@ -78,7 +79,7 @@ const AdminApprovalPage: React.FC = () => {
     } catch (err: unknown) {
       const e = err as { response?: { status?: number } };
       if (e.response?.status === 403) setForbidden(true);
-      else void message.error('Error cargando perfiles');
+      else void message.error(getErrorMessage(err, 'No se pudieron cargar los perfiles pendientes.'));
     } finally {
       setLoadingProfiles(false);
     }
@@ -95,7 +96,7 @@ const AdminApprovalPage: React.FC = () => {
     } catch (err: unknown) {
       const e = err as { response?: { status?: number } };
       if (e.response?.status === 403) setForbidden(true);
-      else void message.error('Error cargando propuestas');
+      else void message.error(getErrorMessage(err, 'No se pudieron cargar las propuestas pendientes.'));
     } finally {
       setLoadingProposals(false);
     }
@@ -112,8 +113,8 @@ const AdminApprovalPage: React.FC = () => {
       await apiClient.post(`/business/profiles/${id}/approve/`);
       void message.success('Perfil aprobado');
       setProfiles((prev) => prev.filter((p) => p.id !== id));
-    } catch {
-      void message.error('Error al aprobar el perfil');
+    } catch (err) {
+      void message.error(getErrorMessage(err, 'No se pudo aprobar el perfil. Inténtalo de nuevo.'));
     } finally {
       setActionLoading(false);
     }
@@ -125,8 +126,8 @@ const AdminApprovalPage: React.FC = () => {
       await apiClient.post(`/products/proposals/admin/${id}/approve/`);
       void message.success('Propuesta aprobada y producto creado');
       setProposals((prev) => prev.filter((p) => p.id !== id));
-    } catch {
-      void message.error('Error al aprobar la propuesta');
+    } catch (err) {
+      void message.error(getErrorMessage(err, 'No se pudo aprobar la propuesta. Inténtalo de nuevo.'));
     } finally {
       setActionLoading(false);
     }
@@ -152,8 +153,8 @@ const AdminApprovalPage: React.FC = () => {
         setProposals((prev) => prev.filter((p) => p.id !== id));
       }
       setRejectModal({ open: false, type: 'profile', id: null });
-    } catch {
-      void message.error('Error al rechazar');
+    } catch (err) {
+      void message.error(getErrorMessage(err, 'No se pudo completar el rechazo. Inténtalo de nuevo.'));
     } finally {
       setActionLoading(false);
     }

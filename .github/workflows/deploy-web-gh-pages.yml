@@ -27,6 +27,9 @@ jobs:
       VITE_BASE_PATH: '/bargain-tfg/'
       VITE_DEMO_VIDEO_URL: 'https://youtu.be/EdZuggir4dY'
       VITE_API_URL: 'https://bargain-free-api.onrender.com/api/v1'
+      # Clave del navegador para el autocompletado de direcciones (Places).
+      # Se define como secreto del repositorio; nunca se incrusta en el código.
+      VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

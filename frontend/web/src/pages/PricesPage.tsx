@@ -28,8 +28,22 @@ import {
   resolveEntityName,
   type EntityReference,
 } from '../utils/entityResolver';
+import { getErrorMessage } from '../utils/errorMessage';
 
 const { Title } = Typography;
+
+/** Etiquetas legibles para los campos que puede devolver el backend en errores. */
+const FIELD_LABELS: Record<string, string> = {
+  store: 'Tienda',
+  product: 'Producto',
+  price: 'Precio',
+  unit_price: 'Precio por unidad',
+  offer_price: 'Precio de oferta',
+  offer_end_date: 'Fin de la oferta',
+  non_field_errors: '',
+  __all__: '',
+  detail: '',
+};
 
 interface ProductOption {
   id: string;
@@ -124,7 +138,11 @@ const PricesPage: React.FC = () => {
     }
     if (value && typeof value === 'object') {
       return Object.entries(value as Record<string, unknown>)
-        .map(([key, inner]) => `${key}: ${formatBulkUpdateErrors(inner)}`)
+        .map(([key, inner]) => {
+          const label = key in FIELD_LABELS ? FIELD_LABELS[key] : key;
+          const text = formatBulkUpdateErrors(inner);
+          return label ? `${label}: ${text}` : text;
+        })
         .join('; ');
     }
     return String(value);
@@ -373,8 +391,8 @@ const PricesPage: React.FC = () => {
       }
       closeDrawer();
       void fetchPrices();
-    } catch {
-      void message.error('Error al guardar el precio');
+    } catch (err) {
+      void message.error(getErrorMessage(err, 'No se pudo guardar el precio. Revisa los datos e inténtalo de nuevo.'));
     }
   };
 
@@ -390,8 +408,8 @@ const PricesPage: React.FC = () => {
           await apiClient.delete(`/business/prices/${record.id}/`);
           void message.success('Precio eliminado');
           void fetchPrices();
-        } catch {
-          void message.error('Error al eliminar el precio');
+        } catch (err) {
+          void message.error(getErrorMessage(err, 'No se pudo eliminar el precio. Inténtalo de nuevo.'));
         }
       },
     });

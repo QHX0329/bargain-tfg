@@ -1,0 +1,50 @@
+name: Keep Backend Alive
+
+# Mantiene despierto el backend del plan gratuito de Render.
+#
+# El servicio web gratuito de Render se duerme tras 15 min sin tráfico y la
+# siguiente petición sufre un "cold start" de 30-60 s. Este workflow hace un
+# ping periódico a /api/v1/health/ (endpoint exento de throttling, REGLA-06)
+# para evitar la hibernación.
+#
+# NOTA sobre minutos de Actions:
+#   - En repos PÚBLICOS los minutos de GitHub Actions son gratis e ilimitados.
+#   - En repos PRIVADOS cada ejecución se factura redondeando a 1 min; a */10
+#     son ~4.300 ejecuciones/mes y superarías los 2.000 min gratuitos. Si el
+#     repo es privado, usa mejor un pinger externo gratuito (cron-job.org o
+#     UptimeRobot) apuntando a la misma URL, o sube el intervalo a */14.
+
+on:
+  schedule:
+    # Cada 10 minutos. (GitHub puede retrasar los cron unos minutos; 10 deja
+    # margen frente al límite de 15 min de inactividad de Render.)
+    - cron: '*/10 * * * *'
+  workflow_dispatch: {}
+
+# Evita solapamientos si una ejecución se retrasa.
+concurrency:
+  group: keep-alive
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping health endpoint
+        env:
+          HEALTH_URL: https://bargain-free-api.onrender.com/api/v1/health/
+        run: |
+          echo "Pinging $HEALTH_URL"
+          # Hasta 3 intentos con espera (cubre el cold start si estaba dormido).
+          for attempt in 1 2 3; do
+            code=$(curl -fsS -m 90 -o /tmp/health.json -w '%{http_code}' "$HEALTH_URL" || echo "000")
+            echo "Intento $attempt -> HTTP $code"
+            if [ "$code" = "200" ]; then
+              echo "Backend despierto:"; cat /tmp/health.json; echo
+              exit 0
+            fi
+            sleep 20
+          done
+          echo "El backend no respondió 200 tras 3 intentos."
+          exit 1

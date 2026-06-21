@@ -1,0 +1,94 @@
+name: Scrape Prices
+
+# Ejecuta los spiders de Scrapy en el runner de GitHub (gratis) y persiste los
+# precios directamente en la base de datos de Render mediante el pipeline
+# PriceUpsertPipeline (Django ORM).
+#
+# Ventaja frente a Celery embebido: el scraping ocurre aunque el servicio web
+# de Render esté dormido, y no consume CPU del plan gratuito de Render.
+#
+# REQUISITO (una sola vez): añadir en GitHub el secreto del repositorio
+#   Settings -> Secrets and variables -> Actions -> New repository secret
+#     Name:  RENDER_DATABASE_URL
+#     Value: la "External Database URL" de tu Postgres de Render
+#            (Dashboard de Render -> tu base de datos -> Connections ->
+#             External Database URL). Empieza por postgresql://...
+#   El pipeline la convierte internamente a postgis:// de forma automática.
+
+on:
+  schedule:
+    # Dos veces al día (UTC). Los precios de scraping caducan a las 48 h, así
+    # que con 2 pasadas diarias se mantienen frescos de sobra.
+    - cron: '0 6,18 * * *'
+  workflow_dispatch:
+    inputs:
+      spiders:
+        description: 'Spiders a ejecutar (separados por espacio)'
+        required: false
+        default: 'mercadona carrefour dia lidl'
+
+concurrency:
+  group: scrape-prices
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PYTHON_VERSION: '3.12'
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      DJANGO_PROJECT_DIR: ${{ github.workspace }}/backend
+      DATABASE_URL: ${{ secrets.RENDER_DATABASE_URL }}
+      # No se arranca ningún worker Celery durante el crawl; valor de relleno
+      # para que la importación de settings no falle.
+      REDIS_URL: redis://localhost:6379/0
+    steps:
+      - name: Comprobar que el secreto existe
+        run: |
+          if [ -z "${DATABASE_URL}" ]; then
+            echo "::error::Falta el secreto RENDER_DATABASE_URL. Añádelo en Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-scrape-${{ hashFiles('backend/requirements/dev.txt') }}
+
+      - name: Instalar GDAL (requerido por django.contrib.gis)
+        run: sudo apt-get update && sudo apt-get install -y gdal-bin libgdal-dev
+
+      - name: Instalar dependencias
+        run: pip install -r backend/requirements/dev.txt
+
+      - name: Ejecutar spiders
+        working-directory: scraping
+        run: |
+          SPIDERS="${{ github.event.inputs.spiders }}"
+          if [ -z "$SPIDERS" ]; then
+            SPIDERS="mercadona carrefour dia lidl"
+          fi
+          echo "Spiders a ejecutar: $SPIDERS"
+          fail=0
+          for spider in $SPIDERS; do
+            echo "::group::scrapy crawl $spider"
+            # No abortamos el resto si uno falla (best-effort por cadena).
+            if scrapy crawl "$spider"; then
+              echo "$spider OK"
+            else
+              echo "::warning::El spider '$spider' falló"
+              fail=1
+            fi
+            echo "::endgroup::"
+          done
+          if [ "$fail" = "1" ]; then
+            echo "::warning::Al menos un spider falló (ver logs arriba)."
+          fi

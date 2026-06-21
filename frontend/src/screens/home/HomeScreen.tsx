@@ -857,33 +857,6 @@ export const HomeScreen: React.FC = () => {
           )}
         </Animated.View>
 
-        {/* ── Optimizer teaser ───────────────────────────────────────── */}
-        <Animated.View
-          entering={FadeInDown.delay(440).duration(250)}
-          style={styles.section}
-        >
-          <TouchableOpacity
-            style={teaserStyles.card}
-            activeOpacity={1}
-            onPress={() =>
-              Alert.alert(
-                "Próximamente",
-                "Esta función estará disponible próximamente",
-              )
-            }
-          >
-            <Ionicons
-              name="lock-closed-outline"
-              size={24}
-              color={colors.textMuted}
-            />
-            <View style={teaserStyles.info}>
-              <Text style={teaserStyles.title}>Optimizar ruta</Text>
-              <Text style={teaserStyles.badge}>Próximamente</Text>
-            </View>
-          </TouchableOpacity>
-        </Animated.View>
-
         <View style={{ height: spacing.xxl }} />
       </ScrollView>
     </SafeAreaView>
@@ -1174,38 +1147,6 @@ const priceAlertStyles = StyleSheet.create({
   },
   prices: {
     fontFamily: fontFamilies.body,
-    fontSize: fontSize.xs,
-    color: colors.textMuted,
-    marginTop: 1,
-  },
-});
-
-// ─── Estilos Optimizer teaser ─────────────────────────────────────────────────
-
-const teaserStyles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    padding: spacing.sm,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    opacity: 0.5,
-  },
-  info: {
-    flex: 1,
-  },
-  title: {
-    fontFamily: fontFamilies.bodyMedium,
-    fontWeight: "500",
-    fontSize: fontSize["15"],
-    color: colors.textMuted,
-  },
-  badge: {
-    fontFamily: fontFamilies.bodySemiBold,
-    fontWeight: "600",
     fontSize: fontSize.xs,
     color: colors.textMuted,
     marginTop: 1,

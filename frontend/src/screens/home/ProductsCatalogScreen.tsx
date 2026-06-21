@@ -52,6 +52,7 @@ import type { Product, ShoppingList, Store } from "@/types/domain";
 import { blurActiveElementOnWeb } from "@/utils/webA11y";
 
 const STORE_FILTER_CONCURRENCY = 6;
+const PRICE_FETCH_CONCURRENCY = 6;
 
 async function runWithConcurrency<T>(
   tasks: (() => Promise<T>)[],
@@ -251,6 +252,10 @@ export const ProductsCatalogScreen: React.FC = () => {
   const [loadingPriceIds, setLoadingPriceIds] = useState<Set<string>>(
     new Set(),
   );
+  // Productos cuyo mejor precio ya se ha solicitado (en curso o resuelto).
+  // Se usa como guard estable para no depender de estado en fetchLowestPrice,
+  // evitando re-ejecuciones del efecto en cada resolución de precio.
+  const requestedPriceIdsRef = useRef<Set<string>>(new Set());
   const [pickerVisible, setPickerVisible] = useState(false);
   const [pendingProduct, setPendingProduct] = useState<Product | null>(null);
   const [addingToListId, setAddingToListId] = useState<string | null>(null);
@@ -506,6 +511,7 @@ export const ProductsCatalogScreen: React.FC = () => {
     try {
       setPriceByProductId({});
       setLoadingPriceIds(new Set());
+      requestedPriceIdsRef.current = new Set();
       await Promise.all([
         loadProductsPage(1, true),
         loadNearbyStores(),
@@ -541,48 +547,62 @@ export const ProductsCatalogScreen: React.FC = () => {
     productsPage,
   ]);
 
-  const fetchLowestPrice = useCallback(
-    async (productId: string) => {
-      if (
-        loadingPriceIds.has(productId) ||
-        Object.prototype.hasOwnProperty.call(priceByProductId, productId)
-      ) {
-        return;
-      }
+  const fetchLowestPrice = useCallback(async (productId: string) => {
+    // Guard estable: si ya se pidió (en curso o resuelto) no se repite.
+    if (requestedPriceIdsRef.current.has(productId)) {
+      return;
+    }
+    requestedPriceIdsRef.current.add(productId);
 
-      setLoadingPriceIds((prev) => new Set(prev).add(productId));
-      try {
-        const rows = await priceService.getPriceComparison(productId);
-        const prices = rows
-          .map((row) => {
-            const candidate = [row.promo_price, row.offer_price, row.price]
-              .filter(Boolean)
-              .map((value) => parseFloat(String(value)));
-            return candidate.length > 0 ? Math.min(...candidate) : null;
-          })
-          .filter((value): value is number => value !== null);
-        const minPrice = prices.length > 0 ? Math.min(...prices) : null;
-        setPriceByProductId((prev) => ({ ...prev, [productId]: minPrice }));
-      } catch {
-        setPriceByProductId((prev) => ({ ...prev, [productId]: null }));
-      } finally {
-        setLoadingPriceIds((prev) => {
-          const next = new Set(prev);
-          next.delete(productId);
-          return next;
-        });
-      }
-    },
-    [loadingPriceIds, priceByProductId],
-  );
-
-  useEffect(() => {
-    const visibleIds = filteredProducts
-      .slice(0, 20)
-      .map((product) => product.id);
-    visibleIds.forEach((id) => {
-      void fetchLowestPrice(id);
+    setLoadingPriceIds((prev) => {
+      const next = new Set(prev);
+      next.add(productId);
+      return next;
     });
+    try {
+      const rows = await priceService.getPriceComparison(productId);
+      const prices = rows
+        .map((row) => {
+          const candidate = [row.promo_price, row.offer_price, row.price]
+            .filter(Boolean)
+            .map((value) => parseFloat(String(value)));
+          return candidate.length > 0 ? Math.min(...candidate) : null;
+        })
+        .filter((value): value is number => value !== null);
+      const minPrice = prices.length > 0 ? Math.min(...prices) : null;
+      setPriceByProductId((prev) => ({ ...prev, [productId]: minPrice }));
+    } catch {
+      setPriceByProductId((prev) => ({ ...prev, [productId]: null }));
+    } finally {
+      setLoadingPriceIds((prev) => {
+        const next = new Set(prev);
+        next.delete(productId);
+        return next;
+      });
+    }
+  }, []);
+
+  // Carga el mejor precio de TODOS los productos cargados (no solo los 20
+  // primeros), de modo que los items traídos por paginación (onEndReached)
+  // también muestren la comparativa. Concurrencia acotada para evitar ráfagas.
+  useEffect(() => {
+    const pending = filteredProducts.filter(
+      (product) => !requestedPriceIdsRef.current.has(product.id),
+    );
+    if (pending.length === 0) {
+      return;
+    }
+
+    let cancelled = false;
+    const tasks = pending.map((product) => async () => {
+      if (cancelled) return;
+      await fetchLowestPrice(product.id);
+    });
+    void runWithConcurrency(tasks, PRICE_FETCH_CONCURRENCY);
+
+    return () => {
+      cancelled = true;
+    };
   }, [filteredProducts, fetchLowestPrice]);
 
   const handleOpenProduct = useCallback(

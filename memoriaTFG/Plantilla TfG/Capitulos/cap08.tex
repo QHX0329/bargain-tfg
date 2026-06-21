@@ -742,7 +742,7 @@ limitaci\'on que motiv\'o el modelo h\'ibrido.
 \subsection{Pipeline CI/CD}\label{subsec:cicd}
 
 El repositorio automatiza la integraci\'on y la entrega continuas (CI/CD) mediante cinco flujos de
-trabajo que se disparan autom\'aticamente ante cada cambio:
+trabajo que se disparan autom\'aticamente ante cada cambio en el c\'odigo:
 
 \begin{itemize}
   \item la verificaci\'on del backend, que comprueba el estilo del c\'odigo y ejecuta su bater\'ia
@@ -759,6 +759,35 @@ El despliegue p\'ublico se describe de forma declarativa, de modo que toda la in
 ---servidor, procesos en segundo plano, cola de tareas y base de datos--- se reconstruye autom\'atica
 y reproduciblemente a partir de esa descripci\'on. Durante el TFG se emple\'o una variante adaptada
 al plan gratuito que consolida varios procesos en un \'unico servicio para ajustarse a sus recursos.
+
+\subsection{Tareas autom\'aticas programadas}\label{subsec:tareas-programadas}
+
+Adem\'as de los flujos anteriores, que reaccionan a los cambios en el c\'odigo, el proyecto
+incorpora dos tareas que se ejecutan solas de forma peri\'odica, siguiendo un horario, sobre la
+misma plataforma de automatizaci\'on y sin coste adicional. Su prop\'osito no es comprobar el
+c\'odigo, sino mantener el servicio p\'ublico vivo y \'util en el d\'ia a d\'ia.
+
+La primera se ocupa de \textbf{evitar que el servidor se ``duerma''}. El alojamiento gratuito
+empleado suspende el servicio tras unos minutos sin visitas y, cuando llega la siguiente petici\'on,
+tarda entre treinta y sesenta segundos en reactivarse. Para la persona que abre la aplicaci\'on en
+ese momento, esa espera se percibe como un fallo. La tarea programada realiza una breve visita
+autom\'atica al servidor cada pocos minutos ---una simple comprobaci\'on de estado---, de manera que
+este se mantiene despierto y responde con normalidad cuando un usuario real lo necesita. Es una
+soluci\'on pragm\'atica, pensada para que la demostraci\'on p\'ublica resulte fluida dentro de las
+limitaciones del plan gratuito.
+
+La segunda automatiza la \textbf{recogida peri\'odica de precios}. Hasta entonces, la captura de
+precios depend\'ia de que el servidor estuviera activo; con esta tarea, los recolectores se ejecutan
+por su cuenta un par de veces al d\'ia directamente en la plataforma de automatizaci\'on, que se
+encarga de obtener los precios de las cadenas y guardarlos en la base de datos. Este planteamiento
+aporta tres ventajas: los precios se mantienen actualizados dentro de su periodo de validez; la
+recogida sigue funcionando aunque el servidor est\'e inactivo; y el trabajo m\'as costoso se traslada
+fuera del servicio gratuito, liberando sus recursos para atender a los usuarios.
+
+En conjunto, ambas tareas hacen que el despliegue gratuito resulte plenamente utilizable para una
+demostraci\'on continuada. No eliminan, sin embargo, las restricciones de fondo de dicho plan
+---en particular la vigencia limitada de la base de datos---, que se recogen entre las limitaciones
+del proyecto (Cap\'itulo~\ref{cap11}).
 
 \subsection{Gesti\'on de la configuraci\'on sensible}\label{subsec:env}
 

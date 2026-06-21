@@ -35,10 +35,22 @@ const DEFAULT_API_BASE_URL = "https://bargain-free-api.onrender.com/api/v1";
 const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL?.trim() || DEFAULT_API_BASE_URL;
 
+/**
+ * Timeout de las peticiones (ms).
+ *
+ * El backend público se aloja en el *free tier* de Render, que hiberna la
+ * instancia tras unos minutos sin tráfico. La primera petición tras la
+ * hibernación sufre un *cold start* de 30–60 s mientras el contenedor se
+ * reactiva. Un timeout corto (p. ej. 15 s) abortaría esa primera petición y la
+ * pantalla lo mostraría como un fallo de credenciales, cuando en realidad el
+ * servidor solo estaba despertando. 60 s cubren el peor caso documentado.
+ */
+const REQUEST_TIMEOUT_MS = 60000;
+
 function createBaseClient() {
   return axios.create({
     baseURL: API_BASE_URL,
-    timeout: 15000,
+    timeout: REQUEST_TIMEOUT_MS,
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
@@ -48,6 +60,21 @@ function createBaseClient() {
 
 /** Instancia de Axios con configuración base */
 export const apiClient = createBaseClient();
+
+/**
+ * Despierta el backend de forma anticipada (fire-and-forget).
+ *
+ * Pensado para invocarse cuando el usuario llega a una pantalla previa a una
+ * acción de red (p. ej. la de inicio de sesión): mientras teclea sus
+ * credenciales, la instancia de Render sale de la hibernación, de modo que el
+ * envío posterior encuentra el servidor ya activo. Ignora cualquier error: su
+ * único propósito es reactivar el contenedor, no obtener datos.
+ */
+export function warmUpBackend(): void {
+  publicApiClient.get("/health/").catch(() => {
+    /* silencioso: solo pretende sacar la instancia de la hibernación */
+  });
+}
 
 /**
  * Cliente para endpoints públicos.
@@ -64,7 +91,7 @@ export const publicApiClient = createBaseClient();
  */
 const refreshAxios = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: REQUEST_TIMEOUT_MS,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",

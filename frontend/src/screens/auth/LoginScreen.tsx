@@ -6,7 +6,8 @@
  * el objeto User completo y lo persiste en authStore + SecureStore.
  */
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import {
   ActivityIndicator,
   Image,
@@ -26,7 +27,35 @@ import { useNavigation } from "@react-navigation/native";
 import { colors, spacing, textStyles } from "@/theme";
 import { useAuthStore } from "@/store/authStore";
 import { authService } from "@/api/authService";
+import { warmUpBackend } from "@/api/client";
 import type { AuthStackParamList } from "@/navigation/types";
+
+/**
+ * Traduce un error de la llamada de login a un mensaje claro para el usuario.
+ *
+ * Distingue tres situaciones que antes se mostraban todas como «credenciales
+ * incorrectas»:
+ *  - El servidor no responde a tiempo (cold start del *free tier* de Render).
+ *  - No hay conexión / no se obtuvo respuesta del servidor.
+ *  - Credenciales realmente inválidas (401).
+ */
+function loginErrorMessage(err: unknown): string {
+  if (axios.isAxiosError(err)) {
+    const isTimeout =
+      err.code === "ECONNABORTED" || /timeout/i.test(err.message ?? "");
+    if (isTimeout) {
+      return "El servidor está tardando en responder; puede estar reactivándose. Espera unos segundos e inténtalo de nuevo.";
+    }
+    if (!err.response) {
+      return "No se pudo conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo.";
+    }
+    if (err.response.status === 401) {
+      return "Usuario o contraseña incorrectos";
+    }
+    return "No se pudo iniciar sesión. Inténtalo de nuevo en unos segundos.";
+  }
+  return "Usuario o contraseña incorrectos";
+}
 
 type LoginNavigationProp = NativeStackNavigationProp<
   AuthStackParamList,
@@ -43,6 +72,14 @@ export const LoginScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resetMessage, setResetMessage] = useState<string | null>(null);
+
+  // El backend gratuito de Render hiberna tras inactividad. Lanzamos un ping de
+  // reactivación al abrir la pantalla para que, mientras el usuario escribe sus
+  // credenciales, la instancia ya esté despierta y el login no falle por el
+  // cold start.
+  useEffect(() => {
+    warmUpBackend();
+  }, []);
 
   const handleLogin = async () => {
     if (!username.trim() || !password.trim()) {
@@ -65,8 +102,8 @@ export const LoginScreen: React.FC = () => {
       };
 
       await useAuthStore.getState().login(tokens.access, tokens.refresh, user);
-    } catch {
-      setError("Usuario o contraseña incorrectos");
+    } catch (err) {
+      setError(loginErrorMessage(err));
     } finally {
       setIsLoading(false);
     }

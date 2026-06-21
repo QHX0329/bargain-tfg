@@ -1,31 +1,30 @@
 name: Scrape Prices
 
-# Ejecuta los spiders de Scrapy en el runner de GitHub (gratis) y persiste los
+# Ejecuta los spiders de Scrapy en runners de GitHub (gratis) y persiste los
 # precios directamente en la base de datos de Render mediante el pipeline
 # PriceUpsertPipeline (Django ORM).
 #
-# Ventaja frente a Celery embebido: el scraping ocurre aunque el servicio web
-# de Render esté dormido, y no consume CPU del plan gratuito de Render.
+# Optimización de tiempo:
+#   - Cada spider se ejecuta en un JOB INDEPENDIENTE en paralelo (matriz), de
+#     modo que el tiempo total ya no es la suma de los cuatro, sino el del más
+#     lento. Cada job tiene su propio presupuesto de tiempo.
+#   - Se sube la concurrencia y se baja el retardo entre peticiones mediante
+#     overrides -s (prioridad 'cmdline', que prevalece sobre el custom_settings
+#     de cada spider). Mercadona pasaba de ~1 petición cada 2 s a varias en
+#     paralelo, que es lo que hacía que superara los 30 minutos.
+#   - Playwright (con su navegador) solo se instala para Carrefour, el único
+#     spider que lo necesita; los demás arrancan mucho antes.
 #
 # REQUISITO (una sola vez): añadir en GitHub el secreto del repositorio
 #   Settings -> Secrets and variables -> Actions -> New repository secret
 #     Name:  RENDER_DATABASE_URL
-#     Value: la "External Database URL" de tu Postgres de Render
-#            (Dashboard de Render -> tu base de datos -> Connections ->
-#             External Database URL). Empieza por postgresql://...
-#   El pipeline la convierte internamente a postgis:// de forma automática.
+#     Value: la "External Database URL" de tu Postgres de Render.
 
 on:
   schedule:
-    # Dos veces al día (UTC). Los precios de scraping caducan a las 48 h, así
-    # que con 2 pasadas diarias se mantienen frescos de sobra.
+    # Dos veces al día (UTC). Los precios de scraping caducan a las 48 h.
     - cron: '0 6,18 * * *'
-  workflow_dispatch:
-    inputs:
-      spiders:
-        description: 'Spiders a ejecutar (separados por espacio)'
-        required: false
-        default: 'mercadona carrefour dia lidl'
+  workflow_dispatch: {}
 
 concurrency:
   group: scrape-prices
@@ -33,8 +32,13 @@ concurrency:
 
 jobs:
   scrape:
+    name: Scrape ${{ matrix.spider }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        spider: [mercadona, carrefour, dia, lidl]
     env:
       PYTHON_VERSION: '3.12'
       DJANGO_SETTINGS_MODULE: config.settings.dev
@@ -56,12 +60,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-scrape-${{ hashFiles('backend/requirements/dev.txt') }}
+          cache: pip
+          cache-dependency-path: backend/requirements/dev.txt
 
       - name: Instalar GDAL (requerido por django.contrib.gis)
         run: sudo apt-get update && sudo apt-get install -y gdal-bin libgdal-dev
@@ -69,29 +69,20 @@ jobs:
       - name: Instalar dependencias
         run: pip install -r backend/requirements/dev.txt
 
-      - name: Instalar navegador de Playwright (necesario para el spider de Carrefour)
+      - name: Instalar navegador de Playwright (solo Carrefour)
+        if: matrix.spider == 'carrefour'
         run: python -m playwright install --with-deps chromium
 
-      - name: Ejecutar spiders
+      - name: Ejecutar spider ${{ matrix.spider }}
         working-directory: scraping
         run: |
-          SPIDERS="${{ github.event.inputs.spiders }}"
-          if [ -z "$SPIDERS" ]; then
-            SPIDERS="mercadona carrefour dia lidl"
-          fi
-          echo "Spiders a ejecutar: $SPIDERS"
-          fail=0
-          for spider in $SPIDERS; do
-            echo "::group::scrapy crawl $spider"
-            # No abortamos el resto si uno falla (best-effort por cadena).
-            if scrapy crawl "$spider"; then
-              echo "$spider OK"
-            else
-              echo "::warning::El spider '$spider' falló"
-              fail=1
-            fi
-            echo "::endgroup::"
-          done
-          if [ "$fail" = "1" ]; then
-            echo "::warning::Al menos un spider falló (ver logs arriba)."
-          fi
+          python -m scrapy crawl "${{ matrix.spider }}" \
+            -s AUTOTHROTTLE_ENABLED=True \
+            -s AUTOTHROTTLE_START_DELAY=0.5 \
+            -s AUTOTHROTTLE_MAX_DELAY=10 \
+            -s AUTOTHROTTLE_TARGET_CONCURRENCY=8 \
+            -s CONCURRENT_REQUESTS=16 \
+            -s CONCURRENT_REQUESTS_PER_DOMAIN=16 \
+            -s DOWNLOAD_DELAY=0 \
+            -s RETRY_TIMES=2 \
+            -s CLOSESPIDER_TIMEOUT=1200

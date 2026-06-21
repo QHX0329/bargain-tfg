@@ -168,7 +168,21 @@ async def _render_home_html() -> tuple[str, str, str, int]:
         try:
             await page.goto(CARREFOUR_HOME_URL, wait_until="domcontentloaded", timeout=60000)
             await _dismiss_cookie_banner(page)
-            await page.wait_for_timeout(5000)
+
+            # Espera a que el catálogo (renderizado en servidor) aparezca, en lugar
+            # de un retardo fijo. Si Cloudflare sirviera un reto anti-bot, esta
+            # espera agota su tiempo y el conteo posterior será 0, lo que queda
+            # registrado en el aviso de parse_home para diagnóstico.
+            try:
+                await page.wait_for_selector(_product_card_selector(), timeout=20000)
+            except Exception:
+                pass
+
+            # Desplazamiento progresivo para forzar la carga diferida de más tarjetas
+            # de producto (la landing añade resultados a medida que se hace scroll).
+            for _ in range(6):
+                await page.mouse.wheel(0, 4000)
+                await page.wait_for_timeout(800)
 
             product_count = await page.locator(_product_card_selector()).count()
             html = await page.content()
@@ -262,7 +276,7 @@ def _browser_user_agent() -> str:
     return (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/124.0.0.0 Safari/537.36"
+        "Chrome/127.0.0.0 Safari/537.36"
     )
 
 

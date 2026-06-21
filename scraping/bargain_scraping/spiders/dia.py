@@ -6,24 +6,28 @@ from decimal import Decimal, InvalidOperation
 
 import scrapy
 import structlog
+from playwright.async_api import async_playwright
 
 from bargain_scraping.items import ProductPriceItem
 
 logger = structlog.get_logger(__name__)
 
-START_URLS = [
-    "https://www.dia.es/",
-    "https://www.dia.es/search?q=leche",
-    "https://www.dia.es/search?q=pan",
-    "https://www.dia.es/search?q=fruta",
-]
+DIA_HOME_URL = "https://www.dia.es/"
 
 
 class DiaSpider(scrapy.Spider):
-    """Spider de DIA que extrae productos desde JSON SSR embebido."""
+    """Spider de DIA que extrae productos desde el JSON SSR embebido.
+
+    DIA está protegido por Akamai Bot Manager, que responde 403 a las descargas
+    HTTP planas desde IPs de centro de datos. Por eso la home se renderiza con un
+    navegador real (Playwright): el motor ejecuta el sensor de Akamai, obtiene la
+    cookie de validación y recibe el HTML con el estado embebido
+    (``vike_pageContext``), del que se extraen los productos como antes.
+    """
 
     name = "dia"
     allowed_domains = ["www.dia.es"]
+    handle_httpstatus_list = [403]
 
     custom_settings = {
         "DOWNLOAD_DELAY": 1,
@@ -32,20 +36,28 @@ class DiaSpider(scrapy.Spider):
     }
 
     def start_requests(self):
-        """Genera requests a home y búsquedas públicas de DIA."""
-        for url in START_URLS:
-            yield scrapy.Request(
-                url=url,
-                headers={"User-Agent": _browser_user_agent()},
-                callback=self.parse_page,
-                errback=self.errback_handler,
-            )
+        """Dispara una única petición a la home; Playwright toma el relevo."""
+        yield scrapy.Request(
+            url=DIA_HOME_URL,
+            headers=_browser_headers(),
+            callback=self.parse_page,
+            errback=self.errback_handler,
+        )
 
-    def parse_page(self, response):
-        """Parsea el script vike_pageContext y mapea productos al item común."""
-        page_context = _extract_page_context(response.text)
+    async def parse_page(self, response):
+        """Renderiza la home con Playwright y extrae el estado embebido."""
+        try:
+            html = await _render_home_html()
+        except Exception as exc:
+            logger.error("Error renderizando la home de DIA", error=str(exc))
+            return
+
+        page_context = _extract_page_context(html)
         if not page_context:
-            logger.warning("No se pudo extraer vike_pageContext en DIA", url=response.url)
+            logger.warning(
+                "No se pudo extraer vike_pageContext en DIA (posible reto Akamai)",
+                url=response.url,
+            )
             return
 
         products = _extract_products_from_page_context(page_context)
@@ -89,8 +101,72 @@ def _browser_user_agent() -> str:
     return (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/124.0.0.0 Safari/537.36"
+        "Chrome/127.0.0.0 Safari/537.36"
     )
+
+
+def _browser_headers() -> dict[str, str]:
+    return {
+        "Accept": (
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,"
+            "image/webp,image/apng,*/*;q=0.8"
+        ),
+        "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
+        "Upgrade-Insecure-Requests": "1",
+        "User-Agent": _browser_user_agent(),
+    }
+
+
+async def _dismiss_cookie_banner(page) -> None:
+    for selector in [
+        "#onetrust-accept-btn-handler",
+        "#onetrust-reject-all-handler",
+        "button[aria-label*='aceptar' i]",
+    ]:
+        try:
+            await page.locator(selector).click(timeout=1500)
+            await page.wait_for_timeout(500)
+            return
+        except Exception:
+            continue
+
+
+async def _render_home_html() -> str:
+    """Renderiza la home de DIA con un navegador real para sortear Akamai.
+
+    El navegador ejecuta el sensor anti-bot y obtiene el HTML con el estado
+    embebido. Si Akamai sirviera un reto, la espera por ``vike_pageContext``
+    agota su tiempo y el contenido devuelto no contendrá ese script, lo que se
+    refleja en el aviso de ``parse_page``.
+    """
+    async with async_playwright() as playwright:
+        browser = await playwright.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-blink-features=AutomationControlled",
+            ],
+        )
+        context = await browser.new_context(
+            user_agent=_browser_user_agent(),
+            locale="es-ES",
+            timezone_id="Europe/Madrid",
+            viewport={"width": 1366, "height": 2200},
+        )
+        page = await context.new_page()
+        try:
+            await page.goto(DIA_HOME_URL, wait_until="domcontentloaded", timeout=60000)
+            await _dismiss_cookie_banner(page)
+            try:
+                await page.wait_for_selector("script#vike_pageContext", timeout=20000)
+            except Exception:
+                pass
+            # Margen para que el sensor de Akamai valide la sesión.
+            await page.wait_for_timeout(2500)
+            return await page.content()
+        finally:
+            await browser.close()
 
 
 def _extract_page_context(html_text: str) -> dict | None:

@@ -69,8 +69,8 @@ jobs:
       - name: Instalar dependencias
         run: pip install -r backend/requirements/dev.txt
 
-      - name: Instalar navegador de Playwright (solo Carrefour)
-        if: matrix.spider == 'carrefour'
+      - name: Instalar navegador de Playwright (Carrefour y DIA)
+        if: matrix.spider == 'carrefour' || matrix.spider == 'dia'
         run: python -m playwright install --with-deps chromium
 
       - name: Ejecutar spider ${{ matrix.spider }}

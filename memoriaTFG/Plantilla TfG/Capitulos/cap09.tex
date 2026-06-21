@@ -28,8 +28,10 @@ recursos (URL) \url{https://bargain-free-api.onrender.com}, y el portal para com
 como
 aplicaci\'on est\'atica desde \emph{GitHub Pages} en
 \url{https://qhx0329.github.io/bargain-tfg/}. La aplicaci\'on de usuario final, construida
-con Expo, puede ejecutarse en un navegador de escritorio desde el propio repositorio o
-instalarse en un iPhone a partir del artefacto generado por la integraci\'on continua. Todas
+con Expo, est\'a publicada como sitio est\'atico en \emph{Render} en
+\url{https://bargain-app.onrender.com}, accesible directamente desde el navegador y sin
+necesidad de instalaci\'on; de forma alternativa puede ejecutarse en local desde el repositorio
+o instalarse en un iPhone a partir del artefacto generado por la integraci\'on continua. Todas
 las variantes del cliente consumen el mismo backend de Render, por lo que los datos son
 consistentes entre plataformas.
 
@@ -55,6 +57,27 @@ El procedimiento de acceso es el siguiente:
   \item Una vez aprobado, iniciar sesi\'on para acceder al centro de operaciones descrito en la
     Secci\'on~\ref{sec:manual-business}.
 \end{enumerate}
+
+\subsection{Acceso a la aplicaci\'on de usuario en internet (sin instalaci\'on)}\label{subsec:manual-web-publico}
+
+La forma m\'as sencilla de probar la aplicaci\'on de consumo es a trav\'es de su despliegue
+p\'ublico, que no requiere descargar el proyecto ni instalar ninguna herramienta:
+
+\begin{enumerate}
+  \item Abrir \url{https://bargain-app.onrender.com} en cualquier navegador moderno, de
+    escritorio o m\'ovil. Se carga directamente la pantalla de inicio de sesi\'on.
+  \item Registrar una cuenta nueva desde el enlace \emph{Reg\'istrate}, o iniciar sesi\'on con
+    una cuenta ya existente.
+  \item Operar con normalidad: gesti\'on de listas de la compra, comparativa de precios, mapa
+    de tiendas, optimizaci\'on de ruta, reconocimiento de tickets (OCR) y asistente
+    conversacional.
+\end{enumerate}
+
+Este despliegue se reconstruye y se publica de forma autom\'atica con cada cambio en el c\'odigo
+de la aplicaci\'on, gracias a la integraci\'on continua con el repositorio. Al tratarse de un
+sitio est\'atico servido desde una red de distribuci\'on de contenidos, la p\'agina carga de
+inmediato; \'unicamente la primera llamada a la API puede percibir el arranque en fr\'io del
+backend descrito al inicio de esta secci\'on.
 
 \subsection{Ejecuci\'on de la aplicaci\'on de usuario en local (Expo web)}\label{subsec:manual-expo-local}
 
@@ -165,7 +188,7 @@ apellidos, correo electr\'onico (\'unico, empleado para comunicaciones y recuper
 contrase\~na) y contrase\~na con confirmaci\'on, aplicando validaci\'on inmediata en el cliente
 antes de delegar en la validaci\'on definitiva del servidor.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-login.png}
 \hfill
@@ -193,7 +216,7 @@ vigentes con su precio objetivo. Esta disposici\'on responde a un principio de d
 guiado toda la interfaz: las tareas frecuentes deben resolverse en un m\'aximo de tres
 interacciones desde el arranque de la aplicaci\'on.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.34\textwidth]{diagramas/capturas/mobile-home.png}
 \caption{Pantalla principal de la aplicaci\'on m\'ovil, con notificaciones, listas activas,
@@ -211,7 +234,7 @@ una lista (Figura~\ref{fig:manual-listas}, derecha) presenta los \'items con con
 cantidad ``$+$/$-$'', casillas de verificaci\'on para marcar productos como comprados y acciones
 de exportaci\'on y compartici\'on en la cabecera.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-listas.png}
 \hfill
@@ -231,7 +254,7 @@ listas: a partir de una plantilla ---por ejemplo, la compra b\'asica semanal--- 
 nuevas listas con un solo gesto, evitando reconstruir manualmente colecciones de productos que
 apenas var\'ian de una semana a otra.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.34\textwidth]{diagramas/capturas/mobile-plantillas.png}
 \caption{Plantillas de lista: instanciaci\'on de compras recurrentes a partir de una plantilla
@@ -258,7 +281,7 @@ incorpora el hist\'orico de precios con un gr\'afico de evoluci\'on temporal, qu
 si el precio actual es coyuntural o estable, y la creaci\'on de alertas de precio sobre el
 producto consultado.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-catalogo.png}
 \hfill
@@ -274,7 +297,7 @@ Figura~\ref{fig:manual-proponer}, indicando nombre, marca, c\'odigo de barras y 
 propuesta queda pendiente de revisi\'on por un administrador, lo que preserva la calidad del
 repositorio com\'un sin renunciar al crecimiento colaborativo del mismo.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.34\textwidth]{diagramas/capturas/mobile-proponer.png}
 \caption{Propuesta de alta de un nuevo producto en el cat\'alogo, sujeta a aprobaci\'on por el
@@ -295,7 +318,7 @@ informaci\'on de contacto y horario junto con el cat\'alogo de productos detecta
 y sus precios, de modo que el usuario puede evaluar un comercio concreto sin abandonar el
 contexto del mapa.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-mapa.png}
 \hfill
@@ -311,7 +334,7 @@ r\'apidas de la pantalla principal. Las tiendas favoritas reciben un tratamiento
 generaci\'on de candidatos del optimizador de rutas, reflejando la fidelidad del usuario a
 determinados establecimientos.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.34\textwidth]{diagramas/capturas/mobile-favoritas.png}
 \caption{Tiendas favoritas del usuario, con acceso directo a su perfil}
@@ -335,7 +358,7 @@ activas con su precio objetivo y permite editarlas o eliminarlas. Una alerta se 
 comparativa de un producto indicando el umbral deseado; cuando alg\'un establecimiento publica un
 precio igual o inferior, el backend dispara la notificaci\'on correspondiente.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-notificaciones.png}
 \hfill
@@ -361,7 +384,7 @@ suma se normaliza autom\'aticamente a la unidad. De este modo, una misma lista p
 distintas para un usuario que prioriza el ahorro frente a otro que prioriza la inmediatez, sin
 que ninguno de los dos necesite comprender el algoritmo subyacente.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-perfil.png}
 \hfill
@@ -375,7 +398,7 @@ Las operaciones sobre la cuenta se completan con la edici\'on de los datos b\'as
 de contrase\~na (Figura~\ref{fig:manual-cuenta}), este \'ultimo con verificaci\'on de la
 contrase\~na vigente y validaci\'on de robustez de la nueva.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-editar-perfil.png}
 \hfill
@@ -411,7 +434,7 @@ ya no repiten la pregunta. El comportamiento de la pantalla es persistente: al s
 recupera la \'ultima ruta calculada desde la base de datos, y \emph{Ver en mapa} abre el
 recorrido completo en la aplicaci\'on de mapas del dispositivo.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.34\textwidth]{diagramas/capturas/mobile-ruta.png}
 \caption{Ruta de compra optimizada: par\'ametros, resultado agregado, desglose por parada y
@@ -436,7 +459,7 @@ debajo). El usuario act\'ua como verificador final: corrige nombres en l\'inea, 
 cantidades con los selectores y descarta las l\'ineas irrelevantes. En el tercer paso confirma la
 operaci\'on, eligiendo entre volcar los \'items a una lista existente o crear una nueva.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.32\textwidth]{diagramas/capturas/mobile-ocr-captura.png}
 \hfill
@@ -459,7 +482,7 @@ abandonar la conversaci\'on. El asistente est\'a acotado deliberadamente a su do
 preguntas ajenas a la compra responde declinando la consulta, como parte de las salvaguardas de
 uso descritas en el Cap\'itulo~\ref{cap08}.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.34\textwidth]{diagramas/capturas/mobile-asistente.png}
 \caption{Asistente conversacional con sugerencias de inicio y campo de consulta; las respuestas
@@ -494,7 +517,7 @@ dos a cuatro columnas seg\'un el ancho de la ventana, con realces \emph{hover} s
 tarjetas; el atajo \texttt{Cmd/Ctrl+K} enfoca el buscador desde cualquier punto, \texttt{Enter}
 a\~nade el producto resaltado a la lista y \texttt{Esc} cierra los di\'alogos abiertos.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.48\textwidth]{diagramas/capturas/web-home.png}
 \hfill
@@ -535,7 +558,7 @@ valor para el comercio ---visibilidad ante consumidores cercanos, gesti\'on aut\
 y promociones, y estimaciones orientativas de retorno--- y resume el proceso de alta en tres
 pasos.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{diagramas/capturas/pyme-landing.png}
 \caption{P\'agina de presentaci\'on del portal Business, con la propuesta de valor para el
@@ -552,7 +575,7 @@ comercio publica precios sin que un administrador haya verificado previamente es
 salvaguarda imprescindible para sostener la confianza del consumidor en la informaci\'on que
 muestra la aplicaci\'on.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.48\textwidth]{diagramas/capturas/pyme-login.png}
 \hfill
@@ -562,7 +585,7 @@ comercio (derecha)}
 \label{fig:manual-pyme-acceso}
 \end{figure}
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{diagramas/capturas/pyme-onboarding.png}
 \caption{\emph{Onboarding} del comercio: alta de los datos legales y comerciales que un
@@ -580,7 +603,7 @@ precio aplicados. El prop\'osito del panel es que un comerciante sin formaci\'on
 pueda responder de un vistazo a las dos preguntas que le importan: qu\'e estoy ofreciendo ahora
 mismo y cu\'anta atenci\'on est\'a recibiendo.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{diagramas/capturas/pyme-dashboard.png}
 \caption{Centro de operaciones del comercio: indicadores de actividad, salud de promociones y
@@ -596,7 +619,7 @@ vigente. Para incorporaciones masivas, la carga por \texttt{CSV}
 sola operaci\'on, con validaci\'on fila a fila e informe de incidencias, lo que rebaja
 considerablemente la barrera de entrada para comercios con decenas de referencias.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.48\textwidth]{diagramas/capturas/pyme-productos.png}
 \hfill
@@ -616,7 +639,7 @@ inmediata en la aplicaci\'on de consumo con la fuente \emph{business}, que el si
 prioridades de BarGAIN sit\'ua por delante de los datos de \emph{scraping} por tratarse de
 informaci\'on de primera mano.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{diagramas/capturas/pyme-precios.png}
 \caption{Gesti\'on de precios: tabla editable con panel lateral de edici\'on de precio base,
@@ -634,7 +657,7 @@ datos p\'ublicos del establecimiento y el umbral de alerta competitiva: si un co
 entorno publica un precio inferior en m\'as del porcentaje configurado, el comerciante recibe un
 aviso autom\'atico.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.48\textwidth]{diagramas/capturas/pyme-promociones.png}
 \hfill
@@ -653,7 +676,7 @@ de producto remitidas por los consumidores, con acciones de aprobaci\'on y recha
 Este punto \'unico de moderaci\'on garantiza que tanto los comercios como el cat\'alogo crecen
 de forma controlada.
 
-\begin{figure}[htbp]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{diagramas/capturas/pyme-admin-aprobacion.png}
 \caption{Panel de administraci\'on: verificaci\'on y aprobaci\'on de perfiles PYME y de

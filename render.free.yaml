@@ -62,7 +62,7 @@ services:
           type: keyvalue
           property: connectionString
       - key: CORS_ALLOWED_ORIGINS
-        value: https://qhx0329.github.io,http://localhost:5173,http://localhost:3000,http://localhost:8081,http://127.0.0.1:8081
+        value: https://bargain-app.onrender.com,https://qhx0329.github.io,http://localhost:5173,http://localhost:3000,http://localhost:8081,http://127.0.0.1:8081
       - key: DJANGO_SUPERUSER_USERNAME
         sync: false
       - key: DJANGO_SUPERUSER_EMAIL

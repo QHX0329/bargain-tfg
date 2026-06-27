@@ -14,7 +14,7 @@ class TestBusinessProfileRegistration:
     """POST /api/v1/business/profiles/ — registro de perfil de negocio."""
 
     def test_business_user_can_register_profile(self, api_client, business_user):
-        """Un usuario business autenticado puede crear un BusinessProfile no verificado."""
+        """Un usuario business autenticado crea un BusinessProfile ya verificado."""
         api_client.force_authenticate(user=business_user)
         payload = {
             "business_name": "Mi Negocio SL",
@@ -26,8 +26,9 @@ class TestBusinessProfileRegistration:
 
         assert response.status_code == 201
         data = response.data
-        # Is verified must start as False
-        assert data["is_verified"] is False
+        # El perfil se crea verificado directamente, sin intervención del admin.
+        assert data["is_verified"] is True
+        assert data["verification_status"] == "verified"
 
     def test_unauthenticated_post_returns_401(self, api_client):
         """Un POST sin autenticación devuelve 401."""

@@ -9,6 +9,7 @@ ViewSets:
 - ProductProposalAdminViewSet: listar/aprobar/rechazar propuestas (solo admins)
 """
 
+import structlog
 from django.contrib.postgres.search import TrigramSimilarity
 from django.db import IntegrityError
 from drf_spectacular.utils import OpenApiParameter, extend_schema
@@ -30,6 +31,8 @@ from apps.products.serializers import (
     ProductProposalSerializer,
 )
 from apps.products.services import approve_proposal
+
+logger = structlog.get_logger(__name__)
 
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
@@ -154,8 +157,34 @@ class ProductProposalView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer: ProductProposalSerializer) -> None:
-        """Guarda la propuesta con el usuario autenticado como proponente."""
-        serializer.save(proposed_by=self.request.user)
+        """Guarda la propuesta con el usuario autenticado como proponente.
+
+        Si el proponente es un comercio (rol ``business``), la propuesta se aprueba
+        automáticamente: se materializa el producto —y su precio, si se aportó una
+        tienda— sin intervención del administrador. Las propuestas de usuarios
+        consumidores (crowdsourcing) permanecen pendientes de revisión.
+        """
+        proposal = serializer.save(proposed_by=self.request.user)
+
+        if getattr(self.request.user, "role", None) != "business":
+            return
+
+        try:
+            approve_proposal(proposal)
+        except IntegrityError as exc:
+            # Si la materialización falla (p. ej. conflicto de datos), la propuesta
+            # queda pendiente para revisión manual en lugar de devolver un 500.
+            logger.warning(
+                "business_proposal_auto_approval_failed",
+                proposal_id=proposal.id,
+                error=str(exc),
+            )
+        else:
+            logger.info(
+                "business_proposal_auto_approved",
+                proposal_id=proposal.id,
+                user_id=self.request.user.id,
+            )
 
     def create(self, request: Request, *args, **kwargs) -> Response:
         """Crea la propuesta y retorna la respuesta en formato estándar."""

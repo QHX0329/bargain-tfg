@@ -93,8 +93,8 @@ const RegisterPage: React.FC = () => {
       }
 
       void message.success(
-        'Registro completado. Un administrador debe validar tu perfil antes de que puedas ' +
-          'gestionar precios y promociones.',
+        'Registro completado. Tu perfil ya está verificado: puedes gestionar precios y ' +
+          'promociones de inmediato.',
       );
       navigate('/dashboard');
     } catch (err: unknown) {

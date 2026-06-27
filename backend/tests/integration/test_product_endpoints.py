@@ -303,7 +303,7 @@ class TestProposals:
     def test_create_proposal_is_not_immediately_visible_in_products(
         self, authenticated_client, api_client
     ):
-        """Una propuesta no aparece en GET /api/v1/products/ hasta ser aprobada."""
+        """Una propuesta de consumidor no aparece en GET /api/v1/products/ hasta aprobarse."""
         payload = {"name": "Producto nuevo propuesto xyz123"}
         authenticated_client.post("/api/v1/products/proposals/", payload)
 
@@ -313,3 +313,50 @@ class TestProposals:
         data = response.json()
         results = data.get("results", data.get("data", {}).get("results", []))
         assert results == []
+
+    def test_business_proposal_is_auto_approved(self, business_client):
+        """Una propuesta creada por un comercio se aprueba automáticamente."""
+        payload = {
+            "name": "Producto comercio autoaprobado",
+            "brand": "Marca PYME",
+            "barcode": "8412345678905",
+        }
+
+        response = business_client.post("/api/v1/products/proposals/", payload)
+        assert response.status_code == status.HTTP_201_CREATED
+        data = response.json()
+        item = data.get("data", data)
+        assert item.get("status") == "approved"
+
+    def test_business_proposal_creates_visible_product(self, business_client, api_client):
+        """La auto-aprobación materializa un Product visible en el catálogo."""
+        payload = {"name": "Galletas comercio abc987", "barcode": "8499999999994"}
+        business_client.post("/api/v1/products/proposals/", payload)
+
+        response = api_client.get("/api/v1/products/", {"q": "abc987"})
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        results = data.get("results", data.get("data", {}).get("results", []))
+        assert len(results) == 1
+        assert results[0]["name"] == "Galletas comercio abc987"
+
+    def test_business_proposal_materializes_price_with_store(
+        self, business_client, business_user
+    ):
+        """Si la propuesta incluye tienda y precio, la aprobación crea el Price."""
+        from apps.prices.models import Price
+        from tests.factories import StoreFactory
+
+        store = StoreFactory()
+        payload = {
+            "name": "Aceite comercio precio",
+            "barcode": "8401111111118",
+            "store": store.id,
+            "price": "3.45",
+        }
+
+        response = business_client.post("/api/v1/products/proposals/", payload)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Price.objects.filter(
+            store=store, source=Price.Source.CROWDSOURCING
+        ).exists()

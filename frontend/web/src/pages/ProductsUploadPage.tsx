@@ -582,7 +582,7 @@ const ProductsUploadPage: React.FC = () => {
         throw new Error('Revisa los campos obligatorios antes de enviar el producto.');
       }
       await submitProposal(payload);
-      void message.success('Producto enviado para revisión correctamente');
+      void message.success('Producto publicado en el catálogo correctamente');
       manualForm.resetFields();
     } catch (err) {
       void message.error(getErrorMessage(err, 'No se pudo enviar el producto. Revisa los datos e inténtalo de nuevo.'));
@@ -771,7 +771,7 @@ const ProductsUploadPage: React.FC = () => {
                   </Form.Item>
 
                   <Button type="primary" htmlType="submit" loading={manualLoading} block>
-                    Enviar producto para revisión
+                    Publicar producto en el catálogo
                   </Button>
                 </Form>
               </Card>
@@ -785,7 +785,7 @@ const ProductsUploadPage: React.FC = () => {
                 <Card className="surface-card">
                   <Title level={4}>1. Selecciona tienda de destino</Title>
                   <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
-                    Todos los productos del archivo se asignarán a esta tienda tras ser aprobados.
+                    Todos los productos del archivo se asignarán a esta tienda y se publicarán de inmediato.
                   </Text>
                   <Select
                     style={{ width: '100%', maxWidth: 400, marginBottom: 24 }}

@@ -230,6 +230,18 @@ def select_semantic_intent(query_text: str, candidate_products: list[object]) ->
             model=model_name,
         )
         return heuristic
+    except Exception as exc:
+        # El paso semantico es una mejora opcional: cualquier fallo no contemplado
+        # (timeout/conexion de httpx, respuesta sin texto, error al construir el
+        # cliente, etc.) debe degradar a la heuristica y NUNCA abortar la
+        # optimizacion completa con un 500.
+        logger.warning(
+            "optimizer_semantic_fallback",
+            reason="unexpected_error",
+            error=str(exc),
+            model=model_name,
+        )
+        return heuristic
 
     preferred_ids = _dedupe_ordered_ints(payload.get("preferred_product_ids", []), allowed_ids)
     alternative_ids = _dedupe_ordered_ints(payload.get("alternative_product_ids", []), allowed_ids)

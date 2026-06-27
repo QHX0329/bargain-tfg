@@ -79,6 +79,33 @@ def test_select_semantic_intent_falls_back_to_heuristics_on_api_error(mock_clien
     assert 1 not in intent.preferred_product_ids
 
 
+@patch("apps.optimizer.services.semantic.genai.Client")
+def test_select_semantic_intent_falls_back_on_unexpected_error(mock_client_class, settings):
+    """Un fallo no-Gemini (timeout/red) NO debe propagarse: degrada a la heuristica.
+
+    Regresion: antes, cualquier excepcion fuera de genai_errors (p. ej. un timeout
+    de httpx) escapaba de select_semantic_intent, subia por resolve_list_items y
+    optimize_shopping_list y abortaba toda la optimizacion con un HTTP 500.
+    """
+    settings.GEMINI_API_KEY = "test-key"
+
+    mock_client = MagicMock()
+    mock_client_class.return_value = mock_client
+    # Excepcion que NO es subclase de google.genai.errors.APIError.
+    mock_client.models.generate_content.side_effect = TimeoutError("network timeout")
+
+    candidates = [
+        _candidate(1, "Pan rallado"),
+        _candidate(2, "Barra de pan"),
+    ]
+
+    # No debe lanzar: cae al fallback heuristico.
+    intent = select_semantic_intent("pan", candidates)
+
+    assert 2 in intent.preferred_product_ids
+    assert 1 not in intent.preferred_product_ids
+
+
 @pytest.mark.django_db
 def test_resolve_list_items_prioritizes_semantic_preferred_product(consumer_user):
     """La resolucion selecciona el producto preferido semanticamente aunque sea mas caro."""

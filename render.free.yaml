@@ -1,17 +1,22 @@
-# render.free.yaml — Despliegue 100% gratuito de BarGAIN en Render.
+# render.free.yaml — Despliegue de bajo coste de BarGAIN en Render.
 #
-# A diferencia de render.yaml (que usa background workers de pago para Celery),
-# este blueprint cabe entero en el free tier de Render:
+# Despliegue de pago básico con Celery separado en su propio background worker:
 #
-#   1. bargain-free-api   Web Service Django (Gunicorn) + Celery worker+beat EMBEBIDOS
-#   2. bargain-free-redis Key Value (Redis) gratuito — broker Celery + cache
-#   3. bargain-free-db    PostgreSQL gratuito (PostGIS, caduca a los 30 días)
+#   1. bargain-free-api    Web Service Django (Gunicorn) — solo HTTP, sin Celery
+#                          → plan starter ($7/mes, 0.5 CPU, 512 MB), sin spin-down
+#   2. bargain-free-worker Background Worker Celery (worker + beat embebidos)
+#                          → plan starter ($7/mes); los workers NO tienen free tier
+#   3. bargain-free-redis  Key Value (Valkey) gratuito — broker Celery + cache (efímero)
+#   4. bargain-free-db     PostgreSQL (PostGIS) — plan basic-256mb ($6/mes + almacenamiento)
 #
-# Limitaciones aceptadas del free tier:
-#   - El web service se duerme tras 15 min sin tráfico; las tareas programadas de
-#     Celery beat solo corren mientras el servicio esté despierto.
-#   - 512 MB RAM: el scraping con Playwright/Chromium puede provocar OOM.
-#   - El Postgres gratuito caduca a los 30 días.
+# Notas:
+#   - Celery worker+beat ya NO van embebidos en el web: corren en bargain-free-worker
+#     para que el scraping (Playwright/Chromium) no compita por la RAM de Gunicorn.
+#   - El web service ya NO se duerme (starter); el worker corre 24/7.
+#   - El Postgres basic-256mb es persistente y ya NO caduca (a diferencia del free,
+#     que se borra a los 30 días).
+#   - bargain-free-redis sigue en free (efímero, 25 MB): vale como broker/cache.
+#   - Coste aproximado: web $7 + worker $7 + db $6 (+almacenamiento) ≈ $20/mes.
 #
 # NOTA: la API REST de Render no aplica blueprints automáticamente; este fichero
 # documenta y reproduce el despliegue que se crea vía API. Para aplicarlo a mano:
@@ -23,18 +28,19 @@ databases:
   - name: bargain-free-db
     databaseName: bargain
     user: bargain
-    plan: free
+    plan: basic-256mb
+    diskSizeGB: 1
     region: frankfurt
 
 services:
-  # ── Web Service: Django + Celery worker+beat embebidos ──────────────────────
+  # ── Web Service: Django API con Gunicorn (sin Celery) ───────────────────────
   - type: web
     name: bargain-free-api
     runtime: docker
     repo: https://github.com/QHX0329/bargain-tfg
     branch: main
     region: frankfurt
-    plan: free
+    plan: starter
     dockerfilePath: ./backend/Dockerfile.render
     dockerContext: .
     dockerCommand: sh /app/scripts/start_render_free.sh
@@ -75,6 +81,38 @@ services:
         sync: false
       - key: SENTRY_DSN
         sync: false
+
+  # ── Background Worker: Celery worker + beat (servicio dedicado) ──────────────
+  # Reutiliza Dockerfile.render (incluye Chromium para los spiders). Los workers
+  # no tienen free tier en Render, por eso usa plan starter.
+  - type: worker
+    name: bargain-free-worker
+    runtime: docker
+    repo: https://github.com/QHX0329/bargain-tfg
+    branch: main
+    region: frankfurt
+    plan: starter
+    dockerfilePath: ./backend/Dockerfile.render
+    dockerContext: .
+    dockerCommand: sh /app/scripts/start_render_worker.sh
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.prod
+      - key: SCRAPING_PROJECT_DIR
+        value: /scraping
+      - key: SECRET_KEY
+        sync: false
+      - key: ALLOWED_HOSTS
+        value: localhost,127.0.0.1
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bargain-free-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: bargain-free-redis
+          type: keyvalue
+          property: connectionString
 
   # ── Key Value (Redis) gratuito: broker Celery + cache ───────────────────────
   - type: keyvalue

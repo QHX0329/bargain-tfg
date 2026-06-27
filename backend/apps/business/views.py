@@ -60,7 +60,13 @@ class BusinessProfileViewSet(viewsets.ModelViewSet):
         return BusinessProfileSerializer
 
     def create(self, request, *args, **kwargs):
-        """Solo usuarios con role='business' pueden crear un perfil."""
+        """Crea el perfil de un usuario con role='business'.
+
+        El perfil se crea ya verificado (``is_verified=True``), sin requerir la
+        aprobación previa de un administrador: el comercio puede gestionar precios
+        y promociones de inmediato. Los administradores conservan la capacidad de
+        revocar la verificación mediante la acción ``reject``.
+        """
         if request.user.role != "business":
             return Response(
                 {
@@ -75,7 +81,8 @@ class BusinessProfileViewSet(viewsets.ModelViewSet):
             )
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(user=request.user)
+        serializer.save(user=request.user, is_verified=True)
+        logger.info("business_profile_auto_verified", user_id=request.user.id)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @extend_schema(

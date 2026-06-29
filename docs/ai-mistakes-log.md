@@ -119,6 +119,8 @@
 
 **REGLA-07 (de ERR-010):** Si se cambia la forma de la respuesta de un endpoint (p. ej. envolver en `{ success, data }`), revisar TODOS los consumidores, incluidos los que no pasan por el interceptor común (como `refreshAxios`). Los endpoints JWT (`token`, `token/refresh`) son especialmente sensibles: con `ROTATE_REFRESH_TOKENS` + `BLACKLIST_AFTER_ROTATION`, no persistir el `refresh` rotado invalida la sesión en el siguiente refresh. Mantener el parseo de tokens tolerante a ambas formas (envelope y plana).
 
+**REGLA-08 (de ERR-011):** (1) Toda llamada a una API externa dentro del ciclo síncrono de una petición (Gemini, ORS, Places...) debe tener un **timeout corto** y degradar a un fallback; nunca debe poder bloquear un worker de Gunicorn (en el free tier hay solo 2 → un endpoint lento provoca 503 por health-check sin worker). Si se llama por cada ítem de una lista, añadir un circuit-breaker por petición. (2) En frontend, los parámetros configurables por el usuario (radio de búsqueda, pesos, paradas) se leen SIEMPRE del perfil; no hardcodear valores como `getNearby(lat, lng, 5)`.
+
 ---
 
 ### [2026-03-17] — ERR-006 — Claude (claude-sonnet-4-6)
@@ -188,6 +190,24 @@
 **Prevención:** REGLA-07.
 
 **Archivos afectados:** `frontend/src/api/client.ts`, `frontend/__tests__/apiClient.test.ts`
+
+---
+
+### [2026-06-29] — ERR-011 — Claude (claude-opus-4-8)
+
+**Contexto:** Tras desplegar el fix de auth, persistían dos problemas verificados en producción con sesión válida (logs de Render `bargain-free-api`): (a) el widget "tiendas en tu radio" buscaba a un radio fijo y no al configurado por el usuario; (b) `POST /api/v1/optimize/` devolvía **503**.
+
+**Error cometido / Causa raíz:**
+- **Radio:** `HomeScreen` llamaba a `storeService.getNearby(lat, lng, 5)` con **5 km fijos**, ignorando `max_search_radius_km` del perfil (50 km). Además el `resolveSearchRadiusKm` inicial dependía de que el perfil ya estuviera cargado (carrera → caía al default de 10 km).
+- **503 del optimizador:** el paso semántico (`apps.optimizer.services.semantic.select_semantic_intent`) llama a Gemini (`gemini-3-flash-preview`) **una vez por ítem** y **sin timeout**. Los logs mostraban `503 UNAVAILABLE ("model experiencing high demand")` de Gemini; el SDK reintentaba/esperaba, bloqueando uno de los **2 workers** de Gunicorn durante decenas de segundos. Con el otro worker ocupado y el health-check sin worker libre, Render marcaba la instancia *unhealthy* y devolvía 503. (ORS_API_KEY está vacío → haversine; el solver sí completaba: `solve_route_success`.)
+
+**Solución aplicada:**
+- `frontend/src/screens/home/HomeScreen.tsx`: `resolveSearchRadiusKm()` ahora es async y se asegura de cargar el perfil (lo cachea) antes de resolver el radio; usa `searchRadiusKm`/`max_search_radius_km` y solo recurre a 10 km si no hay perfil. Las 3 llamadas a `getNearby` lo usan.
+- `backend/apps/optimizer/services/semantic.py`: timeout HTTP corto en el cliente Gemini (`HttpOptions(timeout=4000)`, construcción dentro del `try`) + circuit-breaker **por petición** (`SemanticBudget`): si Gemini falla con un ítem, los demás saltan directos a la heurística. `backend/apps/optimizer/services/matching.py` propaga el `SemanticBudget` a todos los ítems de la lista.
+
+**Prevención:** REGLA-08.
+
+**Archivos afectados:** `frontend/src/screens/home/HomeScreen.tsx`, `backend/apps/optimizer/services/semantic.py`, `backend/apps/optimizer/services/matching.py`
 
 ---
 

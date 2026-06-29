@@ -81,8 +81,20 @@ import type { HomeStackParamList } from "@/navigation/types";
  */
 const DEFAULT_SEARCH_RADIUS_KM = 10;
 
-function resolveSearchRadiusKm(): number {
-  const profile = useProfileStore.getState().profile;
+async function resolveSearchRadiusKm(): Promise<number> {
+  // Asegura que el perfil esté cargado (lo cachea en el store la primera vez)
+  // para usar SIEMPRE el radio configurado por el usuario y no un valor fijo.
+  // Al hacerlo aquí evitamos carreras: aunque el widget de tiendas se dispare
+  // antes de que termine la carga inicial del perfil, el radio será el correcto.
+  let profile = useProfileStore.getState().profile;
+  if (!profile) {
+    try {
+      profile = await authService.getProfile();
+      useProfileStore.getState().setProfile(profile);
+    } catch {
+      // Sin perfil disponible: se usa el radio por defecto.
+    }
+  }
   const radius = profile?.searchRadiusKm ?? profile?.max_search_radius_km;
   return typeof radius === "number" && radius > 0
     ? radius
@@ -380,7 +392,6 @@ export const HomeScreen: React.FC = () => {
     unreadCount,
     setNotifications: setStoreNotifications,
   } = useNotificationStore();
-  const setProfile = useProfileStore((state) => state.setProfile);
 
   const breakpoint = useBreakpoint();
   const searchInputRef = useRef<any>(null);
@@ -462,15 +473,6 @@ export const HomeScreen: React.FC = () => {
       // silent
     }
 
-    // Perfil — necesario para conocer el radio de búsqueda configurado por el
-    // usuario antes de consultar las tiendas cercanas.
-    try {
-      const profile = await authService.getProfile();
-      setProfile(profile);
-    } catch {
-      // silent — se usará el radio por defecto si el perfil no carga
-    }
-
     // Location + nearby stores
     setWidgetLoading((prev) => ({ ...prev, stores: true }));
     try {
@@ -493,7 +495,7 @@ export const HomeScreen: React.FC = () => {
         const stores = await storeService.getNearby(
           lat,
           lng,
-          resolveSearchRadiusKm(),
+          await resolveSearchRadiusKm(),
         );
         setNearbyStores(stores);
       } else {
@@ -504,7 +506,7 @@ export const HomeScreen: React.FC = () => {
     } finally {
       setWidgetLoading((prev) => ({ ...prev, stores: false }));
     }
-  }, [setLists, setStoreNotifications, setProfile]);
+  }, [setLists, setStoreNotifications]);
 
   // Silent refresh on focus — no muestra skeletons al volver a la pantalla
   const silentRefreshAll = useCallback(async () => {
@@ -544,7 +546,7 @@ export const HomeScreen: React.FC = () => {
         const stores = await storeService.getNearby(
           lat,
           lng,
-          resolveSearchRadiusKm(),
+          await resolveSearchRadiusKm(),
         );
         setNearbyStores(stores);
       }
@@ -602,7 +604,7 @@ export const HomeScreen: React.FC = () => {
         const stores = await storeService.getNearby(
           pos.coords.latitude,
           pos.coords.longitude,
-          resolveSearchRadiusKm(),
+          await resolveSearchRadiusKm(),
         );
         setNearbyStores(stores);
         setLocationStatus("granted");

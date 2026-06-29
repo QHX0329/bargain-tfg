@@ -13,7 +13,7 @@ from apps.prices.models import Price
 from apps.products.models import Product
 from apps.shopping_lists.utils import normalize_list_text
 
-from .semantic import SemanticIntent, select_semantic_intent
+from .semantic import SemanticBudget, SemanticIntent, select_semantic_intent
 
 TOP_PRODUCT_CANDIDATES = 20
 TOP_SIMILAR_MATCHES = 3
@@ -189,6 +189,7 @@ def _get_item_candidates(
     item,
     candidate_stores,
     saved_product_id: int | None = None,
+    semantic_budget: SemanticBudget | None = None,
 ) -> list[CandidateMatch]:
     normalized_query = normalize_list_text(item.name)
     if not normalized_query:
@@ -203,7 +204,9 @@ def _get_item_candidates(
     if not candidate_products:
         return []
 
-    semantic_intent = select_semantic_intent(item.name, candidate_products)
+    semantic_intent = select_semantic_intent(
+        item.name, candidate_products, budget=semantic_budget
+    )
 
     if saved_product_id and any(product.id == saved_product_id for product in candidate_products):
         alternative_ids = [
@@ -454,12 +457,14 @@ def resolve_list_items(items, candidate_stores, max_stops: int | None = None) ->
             if pref.product_id
         }
 
+    semantic_budget = SemanticBudget()
     for item in items:
         normalized_query = normalize_list_text(item.name)
         candidates = _get_item_candidates(
             item,
             candidate_stores,
             saved_product_id=preferences.get(normalized_query),
+            semantic_budget=semantic_budget,
         )
         if not candidates:
             unmatched_items.append(item.name)

@@ -1,4 +1,8 @@
-"""Resolucion semantica de items de lista con Gemini para el optimizador."""
+"""Resolucion semantica de items de lista con Gemini para el optimizador.
+
+Incluye timeout corto y circuit-breaker por peticion para que un fallo de
+Gemini nunca ralentice ni tumbe la optimizacion (degrada a heuristica).
+"""
 
 from __future__ import annotations
 
@@ -18,6 +22,28 @@ logger = structlog.get_logger(__name__)
 
 MAX_SEMANTIC_CANDIDATES = 8
 MAX_SEMANTIC_CHOICES = 4
+
+# El paso semantico (Gemini) es una mejora OPCIONAL del matching: nunca debe
+# ralentizar ni tumbar la optimizacion. Por eso:
+#   1. Timeout HTTP corto por llamada -> si Gemini esta lento/saturado, falla
+#      rapido y se degrada a la heuristica (evita bloquear los workers de
+#      Gunicorn durante decenas de segundos, causa del 503 en el free tier).
+#   2. "Circuit breaker" por peticion (SemanticBudget): si Gemini falla con un
+#      item, se omite para el resto de items de la MISMA optimizacion, de modo
+#      que una lista de N items no haga N llamadas lentas que acaban en fallback.
+SEMANTIC_HTTP_TIMEOUT_MS = 4000
+
+
+@dataclass
+class SemanticBudget:
+    """Estado compartido entre los items de una misma optimizacion.
+
+    Cuando una llamada a Gemini falla (timeout, 503, etc.) se marca como agotado
+    para que los items restantes salten directamente a la heuristica en lugar de
+    reintentar un servicio que probablemente sigue caido.
+    """
+
+    disabled: bool = False
 
 # Descriptores que suelen cambiar por completo la intencion del producto.
 TRANSFORMED_QUALIFIERS = (
@@ -183,7 +209,11 @@ def _build_prompt(query_text: str, candidate_products: list[object]) -> str:
     return json.dumps(payload, ensure_ascii=True)
 
 
-def select_semantic_intent(query_text: str, candidate_products: list[object]) -> SemanticIntent:
+def select_semantic_intent(
+    query_text: str,
+    candidate_products: list[object],
+    budget: SemanticBudget | None = None,
+) -> SemanticIntent:
     """Selecciona candidatos de producto usando Gemini con fallback heuristico."""
     if not candidate_products:
         return SemanticIntent()
@@ -195,6 +225,12 @@ def select_semantic_intent(query_text: str, candidate_products: list[object]) ->
     if not api_key:
         return heuristic
 
+    # Circuit breaker por peticion: si Gemini ya fallo con un item de esta misma
+    # optimizacion, no lo reintentamos con los demas; devolvemos la heuristica al
+    # instante para no bloquear el worker con llamadas que acabaran en fallback.
+    if budget is not None and budget.disabled:
+        return heuristic
+
     allowed_ids = {
         int(getattr(product, "id", 0))
         for product in scoped_candidates
@@ -204,8 +240,15 @@ def select_semantic_intent(query_text: str, candidate_products: list[object]) ->
         return heuristic
 
     model_name = _semantic_model()
-    client = genai.Client(api_key=api_key)
     try:
+        # Cliente con timeout HTTP corto: si Gemini esta saturado/lento, la
+        # llamada falla pronto en lugar de bloquear el worker durante decenas de
+        # segundos. La construccion del cliente va dentro del try a proposito
+        # (cualquier error debe degradar a la heuristica, nunca un 500).
+        client = genai.Client(
+            api_key=api_key,
+            http_options=types.HttpOptions(timeout=SEMANTIC_HTTP_TIMEOUT_MS),
+        )
         response = client.models.generate_content(
             model=model_name,
             contents=[
@@ -223,6 +266,8 @@ def select_semantic_intent(query_text: str, candidate_products: list[object]) ->
         )
         payload = _extract_json_payload(response.text)
     except (genai_errors.ClientError, genai_errors.ServerError, genai_errors.APIError) as exc:
+        if budget is not None:
+            budget.disabled = True
         logger.warning(
             "optimizer_semantic_fallback",
             reason="gemini_error",
@@ -235,6 +280,8 @@ def select_semantic_intent(query_text: str, candidate_products: list[object]) ->
         # (timeout/conexion de httpx, respuesta sin texto, error al construir el
         # cliente, etc.) debe degradar a la heuristica y NUNCA abortar la
         # optimizacion completa con un 500.
+        if budget is not None:
+            budget.disabled = True
         logger.warning(
             "optimizer_semantic_fallback",
             reason="unexpected_error",

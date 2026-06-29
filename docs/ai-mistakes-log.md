@@ -121,6 +121,8 @@
 
 **REGLA-08 (de ERR-011):** (1) Toda llamada a una API externa dentro del ciclo síncrono de una petición (Gemini, ORS, Places...) debe tener un **timeout corto** y degradar a un fallback; nunca debe poder bloquear un worker de Gunicorn (en el free tier hay solo 2 → un endpoint lento provoca 503 por health-check sin worker). Si se llama por cada ítem de una lista, añadir un circuit-breaker por petición. (2) En frontend, los parámetros configurables por el usuario (radio de búsqueda, pesos, paradas) se leen SIEMPRE del perfil; no hardcodear valores como `getNearby(lat, lng, 5)`.
 
+**REGLA-09 (de ERR-012):** Nunca usar como valor por defecto de `dict.get(k, default)` (o de un argumento) una expresión que pueda lanzar para usuarios anónimos, como `request.user.<attr>`. Python la evalúa SIEMPRE. En endpoints accesibles sin auth (los que usan el cliente público del frontend), leer primero `query_params`/`data` y solo entonces recurrir a `getattr(request.user, "<attr>", <fallback>)`. Verificar siempre el comportamiento con `AnonymousUser`.
+
 ---
 
 ### [2026-03-17] — ERR-006 — Claude (claude-sonnet-4-6)
@@ -208,6 +210,20 @@
 **Prevención:** REGLA-08.
 
 **Archivos afectados:** `frontend/src/screens/home/HomeScreen.tsx`, `backend/apps/optimizer/services/semantic.py`, `backend/apps/optimizer/services/matching.py`
+
+---
+
+### [2026-06-29] — ERR-012 — Claude (claude-opus-4-8)
+
+**Contexto:** Verificación en producción tras el deploy: el widget "tiendas en tu radio" seguía usando 10 km pese a tener 50 km en el perfil y pese al fix de frontend (ERR-011). Comprobado con datos reales vía el endpoint público: desde el centro de Sevilla `radius_km=10` → 58 tiendas; desde la ubicación real del usuario (Alcolea del Río, ~37 km del clúster) `radius_km=50` y `radius_km=200` → solo 2 (las 2 tiendas de prueba locales). Es decir, el backend ignoraba `radius_km` y aplicaba siempre 10 km.
+
+**Error cometido / Causa raíz:** En `apps/stores/views.py` (`get_queryset`), el radio se leía con `request.query_params.get("radius_km", request.user.max_search_radius_km)`. Python evalúa SIEMPRE el segundo argumento (el valor por defecto), también cuando `radius_km` viene en la query. El widget de tiendas usa el **cliente público (sin token)** → `request.user` es `AnonymousUser`, que no tiene `max_search_radius_km` → `AttributeError` → el `except (ValueError, AttributeError)` forzaba `radius_km = 10.0`, descartando el valor recibido. Resultado: peticiones anónimas SIEMPRE a 10 km, sin importar el parámetro.
+
+**Solución aplicada:** Leer primero el parámetro (`radius_param = request.query_params.get("radius_km")`); si viene, `float()` con su propio try/except; si no, usar `getattr(request.user, "max_search_radius_km", 10.0) or 10.0` (seguro para anónimos). Así se respeta el `radius_km` enviado por el frontend (50 km) y no se rompe con usuarios anónimos. Compatible con `tests/integration/test_store_endpoints.py` (que exige que `radius_km` filtre correctamente).
+
+**Prevención:** REGLA-09.
+
+**Archivos afectados:** `backend/apps/stores/views.py`
 
 ---
 

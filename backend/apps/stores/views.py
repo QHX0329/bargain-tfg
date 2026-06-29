@@ -141,13 +141,24 @@ class StoreViewSet(viewsets.ReadOnlyModelViewSet):
                 code="INVALID_LOCATION",
             ) from exc
 
-        # Radio: usa el parámetro de la request o el predeterminado del usuario
-        try:
-            radius_km = float(
-                request.query_params.get("radius_km", request.user.max_search_radius_km)
-            )
-        except (ValueError, AttributeError):
-            radius_km = 10.0
+        # Radio: usa el parámetro de la request o, si no se indica, el
+        # predeterminado del usuario autenticado (10 km de reserva).
+        #
+        # IMPORTANTE: NO pasar `request.user.max_search_radius_km` como valor por
+        # defecto de `.get()`. Python evalúa ese argumento SIEMPRE, también cuando
+        # `radius_km` SÍ viene en la query. Con usuarios anónimos (el widget de
+        # tiendas usa el cliente público, sin token) `request.user` es
+        # AnonymousUser y no tiene ese atributo → AttributeError → el `except`
+        # forzaba `radius_km = 10.0` IGNORANDO el `radius_km` recibido. Ese era el
+        # motivo de que "siempre buscara a 10 km" aunque el perfil tuviera 50.
+        radius_param = request.query_params.get("radius_km")
+        if radius_param is not None:
+            try:
+                radius_km = float(radius_param)
+            except (TypeError, ValueError):
+                radius_km = 10.0
+        else:
+            radius_km = float(getattr(request.user, "max_search_radius_km", 10.0) or 10.0)
 
         # NOTA: Point() requiere longitud primero, luego latitud (SRID 4326)
         user_location = Point(lng, lat, srid=4326)

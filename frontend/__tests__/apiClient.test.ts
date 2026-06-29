@@ -33,6 +33,7 @@ jest.mock("axios", () => {
 
 import * as secureStorage from "../src/utils/secureStorage";
 import { useAuthStore } from "../src/store/authStore";
+import { extractRefreshedTokens } from "../src/api/client";
 
 // ─── authStore tests ─────────────────────────────────────────────────────────
 
@@ -164,5 +165,47 @@ describe("apiClient interceptors — refresh and retry logic", () => {
       return responseData;
     };
     expect(unwrap(jwtResponse)).toEqual({ access: "tok123", refresh: "ref456" });
+  });
+});
+
+// ─── extractRefreshedTokens (regresión: refresh + envelope del backend) ───────
+
+describe("extractRefreshedTokens", () => {
+  // El backend (CustomTokenRefreshView) envuelve la respuesta del refresh en
+  // { success, data: { access, refresh } } y refreshAxios NO desempaqueta.
+  it("desempaqueta el envelope { success, data: { access, refresh } } del backend", () => {
+    const wrapped = {
+      success: true,
+      data: { access: "new_access", refresh: "rotated_refresh" },
+    };
+    expect(extractRefreshedTokens(wrapped, "old_refresh")).toEqual({
+      access: "new_access",
+      refresh: "rotated_refresh",
+    });
+  });
+
+  it("soporta la forma plana { access, refresh } (sin envelope)", () => {
+    const flat = { access: "new_access", refresh: "rotated_refresh" };
+    expect(extractRefreshedTokens(flat, "old_refresh")).toEqual({
+      access: "new_access",
+      refresh: "rotated_refresh",
+    });
+  });
+
+  // Clave del bug: con rotación de tokens, hay que conservar el refresh rotado.
+  // Si no viene refresh, se mantiene el actual (no se pierde la sesión).
+  it("usa el refresh actual como fallback cuando la respuesta no incluye refresh", () => {
+    const wrapped = { success: true, data: { access: "new_access" } };
+    expect(extractRefreshedTokens(wrapped, "current_refresh")).toEqual({
+      access: "new_access",
+      refresh: "current_refresh",
+    });
+  });
+
+  it("lanza error si la respuesta no trae access token (fuerza logout limpio)", () => {
+    expect(() =>
+      extractRefreshedTokens({ success: true, data: { refresh: "x" } }, "r"),
+    ).toThrow();
+    expect(() => extractRefreshedTokens(null, "r")).toThrow();
   });
 });

@@ -103,23 +103,36 @@ const refreshAxios = axios.create({
 /** Indica si hay una petición de refresh en curso */
 let isRefreshing = false;
 
+/**
+ * Entrada en la cola de peticiones que esperan a que termine un refresh en
+ * curso. Guardamos ambos callbacks para poder reanudar la petición original si
+ * el refresh tiene éxito, o rechazarla de forma explícita si falla (evita
+ * promesas que nunca se resuelven y dejan la UI colgada en estado de carga).
+ */
+interface RefreshQueueEntry {
+  resolve: (token: string) => void;
+  reject: (error: unknown) => void;
+}
+
 /** Callbacks encolados mientras se espera el nuevo access token */
-let refreshQueue: ((token: string) => void)[] = [];
+let refreshQueue: RefreshQueueEntry[] = [];
 
 /**
  * Drena la cola de peticiones que esperaban un nuevo token.
- * Llama a todos los callbacks con el nuevo access token.
+ * Reanuda cada petición original con el nuevo access token.
  */
 function drainRefreshQueue(newToken: string): void {
-  refreshQueue.forEach((resolve) => resolve(newToken));
+  refreshQueue.forEach((entry) => entry.resolve(newToken));
   refreshQueue = [];
 }
 
 /**
- * Limpia la cola y rechaza todos los callbacks pendientes.
- * Se usa cuando el refresh falla definitivamente.
+ * Rechaza todas las peticiones encoladas cuando el refresh falla de forma
+ * definitiva, propagando el error para que el llamante lo gestione en lugar de
+ * quedarse esperando indefinidamente.
  */
-function rejectRefreshQueue(): void {
+function rejectRefreshQueue(error: unknown): void {
+  refreshQueue.forEach((entry) => entry.reject(error));
   refreshQueue = [];
 }
 
@@ -160,6 +173,46 @@ function unwrapSuccessResponse(response: AxiosResponse<any>): any {
 }
 
 /**
+ * Extrae el par de tokens de la respuesta del endpoint de refresh.
+ *
+ * El backend envuelve la respuesta JWT en el envelope estándar
+ * `{ success: true, data: { access, refresh } }` (ver `CustomTokenRefreshView`).
+ * Como el refresh se realiza con una instancia de Axios SIN el interceptor de
+ * unwrap (para evitar recursión), aquí desempaquetamos de forma defensiva,
+ * soportando también la forma plana `{ access, refresh }`.
+ *
+ * Con `ROTATE_REFRESH_TOKENS` + `BLACKLIST_AFTER_ROTATION` activos, el backend
+ * rota el refresh token en cada llamada e invalida el anterior. Por eso es
+ * imprescindible leer y persistir el `refresh` devuelto: si se sigue usando el
+ * antiguo (ya en la blacklist), el siguiente refresh responde 401 y la sesión
+ * se cierra de forma inesperada.
+ */
+export function extractRefreshedTokens(
+  responseBody: unknown,
+  currentRefreshToken: string,
+): { access: string; refresh: string } {
+  const isEnvelope =
+    responseBody !== null &&
+    typeof responseBody === "object" &&
+    "success" in responseBody &&
+    (responseBody as { success?: unknown }).success !== undefined;
+
+  const payload = (
+    isEnvelope ? (responseBody as { data?: unknown }).data : responseBody
+  ) as { access?: string; refresh?: string } | null | undefined;
+
+  const access = payload?.access;
+  if (!access) {
+    throw new Error("Respuesta de refresh sin access token");
+  }
+
+  return {
+    access,
+    refresh: payload?.refresh ?? currentRefreshToken,
+  };
+}
+
+/**
  * Interceptor de response:
  * 1. SUCCESS — desempaqueta { success: true, data: {...} } si existe.
  *    Si la respuesta no tiene el campo `success` (ej: endpoint JWT que devuelve
@@ -186,19 +239,19 @@ apiClient.interceptors.response.use(
     originalConfig._retry = true;
 
     if (isRefreshing) {
-      // Another refresh is already in flight — wait for it
+      // Hay un refresh en curso: esperamos a que termine. Si tiene éxito
+      // reanudamos la petición original; si falla, la rechazamos para no
+      // dejar la promesa pendiente para siempre.
       return new Promise<unknown>((resolve, reject) => {
-        refreshQueue.push((newToken: string) => {
-          if (originalConfig.headers) {
-            originalConfig.headers.Authorization = `Bearer ${newToken}`;
-          }
-          resolve(apiClient(originalConfig));
+        refreshQueue.push({
+          resolve: (newToken: string) => {
+            if (originalConfig.headers) {
+              originalConfig.headers.Authorization = `Bearer ${newToken}`;
+            }
+            resolve(apiClient(originalConfig));
+          },
+          reject,
         });
-        // If the refresh ultimately fails, we need to reject queued calls.
-        // We store a rejection pathway via a closure capturing the original reject.
-        // The rejectRefreshQueue helper empties the queue so the reject above
-        // will never fire — callers should handle the logout side-effect.
-        void reject; // kept to satisfy ESLint
       });
     }
 
@@ -210,14 +263,17 @@ apiClient.interceptors.response.use(
         throw new Error("No refresh token stored");
       }
 
-      // Use the separate axios instance — NOT apiClient — to avoid recursion
-      const refreshResponse = await refreshAxios.post<{
-        access: string;
-        refresh?: string;
-      }>("/auth/token/refresh/", { refresh: storedRefresh });
+      // Use the separate axios instance — NOT apiClient — to avoid recursion.
+      // Al no pasar por el interceptor de unwrap, la respuesta llega con el
+      // envelope { success, data: { access, refresh } }; extractRefreshedTokens
+      // lo desempaqueta de forma defensiva.
+      const refreshResponse = await refreshAxios.post(
+        "/auth/token/refresh/",
+        { refresh: storedRefresh },
+      );
 
-      const newAccessToken = refreshResponse.data.access;
-      const newRefreshToken = refreshResponse.data.refresh ?? storedRefresh;
+      const { access: newAccessToken, refresh: newRefreshToken } =
+        extractRefreshedTokens(refreshResponse.data, storedRefresh);
 
       // Persist new tokens
       await setStoredItem("access_token", newAccessToken);
@@ -235,8 +291,8 @@ apiClient.interceptors.response.use(
       drainRefreshQueue(newAccessToken);
 
       return apiClient(originalConfig);
-    } catch {
-      rejectRefreshQueue();
+    } catch (refreshError) {
+      rejectRefreshQueue(refreshError);
       useAuthStore.getState().logout();
       return Promise.reject(error);
     } finally {

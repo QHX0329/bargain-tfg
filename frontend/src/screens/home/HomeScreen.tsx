@@ -51,6 +51,8 @@ import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { useAuthStore } from "@/store/authStore";
 import { useListStore } from "@/store/listStore";
 import { useNotificationStore } from "@/store/notificationStore";
+import { useProfileStore } from "@/store/profileStore";
+import { authService } from "@/api/authService";
 import { listService } from "@/api/listService";
 import { storeService } from "@/api/storeService";
 import { notificationService } from "@/api/notificationService";
@@ -67,6 +69,25 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { HomeStackParamList } from "@/navigation/types";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Radio de búsqueda (km) para el widget "tiendas en tu radio".
+ *
+ * Usa el radio configurado por el usuario en su perfil
+ * (`searchRadiusKm` / `max_search_radius_km`) en lugar de un valor fijo, para
+ * que el conteo de tiendas coincida con el radio que el usuario ve y espera.
+ * Se lee del store en el momento de la llamada (evita cierres obsoletos) y
+ * recurre a 10 km solo si el perfil aún no se ha cargado.
+ */
+const DEFAULT_SEARCH_RADIUS_KM = 10;
+
+function resolveSearchRadiusKm(): number {
+  const profile = useProfileStore.getState().profile;
+  const radius = profile?.searchRadiusKm ?? profile?.max_search_radius_km;
+  return typeof radius === "number" && radius > 0
+    ? radius
+    : DEFAULT_SEARCH_RADIUS_KM;
+}
 
 const fmt = (n: number | null | undefined): string => {
   if (n == null || isNaN(Number(n))) return "—";
@@ -359,6 +380,7 @@ export const HomeScreen: React.FC = () => {
     unreadCount,
     setNotifications: setStoreNotifications,
   } = useNotificationStore();
+  const setProfile = useProfileStore((state) => state.setProfile);
 
   const breakpoint = useBreakpoint();
   const searchInputRef = useRef<any>(null);
@@ -440,6 +462,15 @@ export const HomeScreen: React.FC = () => {
       // silent
     }
 
+    // Perfil — necesario para conocer el radio de búsqueda configurado por el
+    // usuario antes de consultar las tiendas cercanas.
+    try {
+      const profile = await authService.getProfile();
+      setProfile(profile);
+    } catch {
+      // silent — se usará el radio por defecto si el perfil no carga
+    }
+
     // Location + nearby stores
     setWidgetLoading((prev) => ({ ...prev, stores: true }));
     try {
@@ -459,7 +490,11 @@ export const HomeScreen: React.FC = () => {
           lat = pos.coords.latitude;
           lng = pos.coords.longitude;
         }
-        const stores = await storeService.getNearby(lat, lng, 5);
+        const stores = await storeService.getNearby(
+          lat,
+          lng,
+          resolveSearchRadiusKm(),
+        );
         setNearbyStores(stores);
       } else {
         setLocationStatus("denied");
@@ -469,7 +504,7 @@ export const HomeScreen: React.FC = () => {
     } finally {
       setWidgetLoading((prev) => ({ ...prev, stores: false }));
     }
-  }, [setLists, setStoreNotifications]);
+  }, [setLists, setStoreNotifications, setProfile]);
 
   // Silent refresh on focus — no muestra skeletons al volver a la pantalla
   const silentRefreshAll = useCallback(async () => {
@@ -506,7 +541,11 @@ export const HomeScreen: React.FC = () => {
           lat = pos.coords.latitude;
           lng = pos.coords.longitude;
         }
-        const stores = await storeService.getNearby(lat, lng, 5);
+        const stores = await storeService.getNearby(
+          lat,
+          lng,
+          resolveSearchRadiusKm(),
+        );
         setNearbyStores(stores);
       }
     } catch {
@@ -563,7 +602,7 @@ export const HomeScreen: React.FC = () => {
         const stores = await storeService.getNearby(
           pos.coords.latitude,
           pos.coords.longitude,
-          5,
+          resolveSearchRadiusKm(),
         );
         setNearbyStores(stores);
         setLocationStatus("granted");

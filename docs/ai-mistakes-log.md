@@ -117,6 +117,8 @@
 
 **REGLA-05 (de ERR-008):** Nunca aplicar operaciones destructivas in-place sobre ficheros binarios accedidos a través de un montaje con sincronización diferida. Verificar integridad (p. ej. chunk IEND en PNG, carga estricta sin `LOAD_TRUNCATED_IMAGES`) y operar siempre sobre una copia de trabajo.
 
+**REGLA-07 (de ERR-010):** Si se cambia la forma de la respuesta de un endpoint (p. ej. envolver en `{ success, data }`), revisar TODOS los consumidores, incluidos los que no pasan por el interceptor común (como `refreshAxios`). Los endpoints JWT (`token`, `token/refresh`) son especialmente sensibles: con `ROTATE_REFRESH_TOKENS` + `BLACKLIST_AFTER_ROTATION`, no persistir el `refresh` rotado invalida la sesión en el siguiente refresh. Mantener el parseo de tokens tolerante a ambas formas (envelope y plana).
+
 ---
 
 ### [2026-03-17] — ERR-006 — Claude (claude-sonnet-4-6)
@@ -170,6 +172,22 @@
 **Solución aplicada:** `@throttle_classes([])` en la vista de health (commit `9904740`), límite anónimo de producción ajustado a 300/h con margen para demos, y verificación post-deploy (login + catálogo 200, deploy *live*).
 
 **Prevención:** REGLA-06.
+
+---
+
+### [2026-06-29] — ERR-010 — Claude (claude-opus-4-8)
+
+**Contexto:** Diagnóstico de un fallo reportado en producción: la optimización de rutas «no funciona» en la app desplegada (`https://bargain-app.onrender.com`). Reproducido en Chrome: al pulsar «Optimizar ruta», `POST /api/v1/optimize/` devolvía **401** y la app expulsaba al usuario a `/login`.
+
+**Error cometido:** Al introducir el envelope estándar `{ success, data }` también en los endpoints JWT (`CustomTokenObtainPairView` y `CustomTokenRefreshView` envuelven la respuesta con `success_response(...)`), no se adaptó el flujo de *refresh* del frontend. El interceptor de `client.ts` refresca con una instancia de Axios separada (`refreshAxios`) que NO pasa por el interceptor de *unwrap*, y leía `refreshResponse.data.access` / `.refresh` directamente. Con el envelope, esos campos están en `data.data.*`, por lo que ambos quedaban `undefined`.
+
+**Causa raíz:** Combinado con `ROTATE_REFRESH_TOKENS=True` + `BLACKLIST_AFTER_ROTATION=True` y `ACCESS_TOKEN_LIFETIME=5min`: al expirar el access token (~5 min), el primer refresh devolvía 200 pero el frontend no extraía los tokens → guardaba `access = undefined` y conservaba el refresh **antiguo**, que el backend acababa de rotar y **poner en la blacklist**. El siguiente refresh enviaba ese token ya invalidado → 401 en el endpoint de refresh → `catch` → `logout()` → redirección a `/login`. La optimización era especialmente susceptible porque la pantalla de ruta lanza peticiones concurrentes al enfocar y el usuario suele tardar >5 min ajustando pesos/paradas antes de pulsar el botón.
+
+**Solución aplicada:** Nuevo helper exportado `extractRefreshedTokens()` en `frontend/src/api/client.ts` que desempaqueta de forma defensiva tanto el envelope `{ success, data: { access, refresh } }` como la forma plana `{ access, refresh }`, exige `access` (lanza error → logout limpio) y conserva el `refresh` rotado para persistirlo. Además se corrigió la cola de refresh (`RefreshQueueEntry` con `resolve`+`reject`): antes, si el refresh fallaba, las peticiones encoladas quedaban como promesas que nunca se resolvían (UI colgada en estado de carga); ahora se rechazan explícitamente. Tests de regresión añadidos en `__tests__/apiClient.test.ts`. Requiere redeploy del frontend (Expo web) para surtir efecto en producción.
+
+**Prevención:** REGLA-07.
+
+**Archivos afectados:** `frontend/src/api/client.ts`, `frontend/__tests__/apiClient.test.ts`
 
 ---
 

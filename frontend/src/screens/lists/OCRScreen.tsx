@@ -771,18 +771,31 @@ const itemRowStyles = StyleSheet.create({
     alignItems: "flex-end",
     gap: 4,
     minWidth: 110,
+    maxWidth: 140,
+    flexShrink: 1,
   },
   nameEditRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
     maxWidth: 140,
+    width: "100%",
+    minWidth: 0,
+    overflow: "hidden",
   },
   nameInput: {
     fontFamily: fontFamilies.bodySemiBold,
     fontSize: fontSize.sm,
     color: colors.text,
     flex: 1,
+    // En Expo Web, un <input> dentro de un flex row respeta por defecto un
+    // min-width basado en su contenido (min-width: auto), lo que le impide
+    // encogerse por debajo de esa medida aunque el contenedor tenga
+    // maxWidth. Con nombres de producto largos, el input "empuja" fuera de
+    // la tarjeta en vez de recortarse. minWidth: 0 anula ese mínimo
+    // implícito y deja que el flex real (flex: 1 + maxWidth del padre)
+    // mande. No afecta a iOS/Android (Yoga no tiene ese comportamiento).
+    minWidth: 0,
     padding: 0,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,

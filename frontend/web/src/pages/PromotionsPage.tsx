@@ -23,10 +23,10 @@ import { PlusOutlined, RiseOutlined, PercentageOutlined, EyeOutlined, EditOutlin
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import { apiClient } from '../api/client';
-import { useBusinessStore } from '../store/businessStore';
 import type { Promotion } from '../store/businessStore';
 import {
   collectUnresolvedEntityIds,
+  getEntityId,
   resolveEntityName,
   type EntityLike,
 } from '../utils/entityResolver';
@@ -34,11 +34,6 @@ import { getErrorMessage } from '../utils/errorMessage';
 
 const { Title } = Typography;
 const { TextArea } = Input;
-
-interface ProductOption {
-  id: string;
-  name: string;
-}
 
 interface StoreOption {
   id: string | number;
@@ -50,9 +45,14 @@ interface ProductLookupRecord {
   name: string;
 }
 
+interface BusinessPriceRecord {
+  product: EntityLike;
+}
+
 interface PromotionFormValues {
   product_name: string;
   product_id: string;
+  store: string;
   discount_type: 'flat' | 'percentage';
   discount_value: number;
   start_date: dayjs.Dayjs;
@@ -85,7 +85,6 @@ const resolvePromotionStatus = (promotion: Promotion): PromotionStatus => {
 };
 
 const PromotionsPage: React.FC = () => {
-  const { profile } = useBusinessStore();
   const [promotions, setPromotions] = useState<Promotion[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -94,6 +93,11 @@ const PromotionsPage: React.FC = () => {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [stores, setStores] = useState<StoreOption[]>([]);
   const [productNamesById, setProductNamesById] = useState<Record<string, string>>({});
+  // Productos que el negocio ya vende (tiene un precio propio en /business/prices/).
+  // La promoción solo tiene sentido sobre productos que realmente vendes, así que
+  // el selector de "Nueva promoción" se restringe a esta lista en vez de al
+  // catálogo global de /products/ (que incluye productos de cualquier cadena).
+  const [ownedProducts, setOwnedProducts] = useState<{ id: string; name: string }[]>([]);
   const [form] = Form.useForm<PromotionFormValues>();
 
   const fetchPromotions = async () => {
@@ -128,6 +132,46 @@ const PromotionsPage: React.FC = () => {
     };
 
     void fetchStores();
+  }, []);
+
+  useEffect(() => {
+    const fetchOwnedProducts = async () => {
+      try {
+        const response = await apiClient.get<
+          BusinessPriceRecord[] | { results?: BusinessPriceRecord[] }
+        >('/business/prices/');
+        const data = response.data;
+        const items = Array.isArray(data) ? data : data.results ?? [];
+
+        const ids = Array.from(
+          new Set(items.map((item) => getEntityId(item.product)).filter((id) => id.length > 0)),
+        );
+
+        const lookups = await Promise.allSettled(
+          ids.map(async (productId) => {
+            const res = await apiClient.get<ProductLookupRecord>(`/products/${productId}/`);
+            return res.data;
+          }),
+        );
+
+        const resolvedNames: Record<string, string> = {};
+        const resolvedProducts: { id: string; name: string }[] = [];
+        lookups.forEach((result, index) => {
+          if (result.status === 'fulfilled') {
+            const name = result.value.name;
+            resolvedNames[ids[index]] = name;
+            resolvedProducts.push({ id: ids[index], name });
+          }
+        });
+
+        setProductNamesById((previous) => ({ ...previous, ...resolvedNames }));
+        setOwnedProducts(resolvedProducts.sort((a, b) => a.name.localeCompare(b.name)));
+      } catch {
+        setOwnedProducts([]);
+      }
+    };
+
+    void fetchOwnedProducts();
   }, []);
 
   useEffect(() => {
@@ -179,28 +223,33 @@ const PromotionsPage: React.FC = () => {
     });
   };
 
-  const searchProducts = async (query: string) => {
-    if (query.length < 2) return;
-    try {
-      const res = await apiClient.get<ProductOption[] | { results?: ProductOption[] }>(
-        `/products/?search=${encodeURIComponent(query)}`,
-      );
-      const data = res.data;
-      const items = Array.isArray(data) ? data : (data as { results?: ProductOption[] }).results ?? [];
-      setProductOptions(items.map((p) => ({ value: p.name, label: p.name, id: p.id })));
-    } catch {
-      // Silently ignore
-    }
+  // Filtra en local sobre `ownedProducts` (los productos con precio propio del
+  // negocio), no contra el catálogo global: una promoción solo tiene sentido
+  // sobre algo que el negocio realmente vende en su tienda.
+  const searchProducts = (query: string) => {
+    const normalizedQuery = query.trim().toLowerCase();
+    const filtered =
+      normalizedQuery.length === 0
+        ? ownedProducts
+        : ownedProducts.filter((product) => product.name.toLowerCase().includes(normalizedQuery));
+    setProductOptions(filtered.map((product) => ({ value: product.name, label: product.name, id: product.id })));
   };
 
   const openModal = (promotion?: Promotion) => {
     setEditingPromotion(promotion ?? null);
+    // Muestra el catálogo propio completo nada más abrir el modal, antes de
+    // que el usuario escriba nada en el buscador.
+    setProductOptions(
+      ownedProducts.map((product) => ({ value: product.name, label: product.name, id: product.id })),
+    );
     if (promotion) {
       const productId = typeof promotion.product === 'object' ? String(promotion.product.id) : String(promotion.product);
+      const storeId = typeof promotion.store === 'object' ? String(promotion.store.id) : String(promotion.store);
       setSelectedProductId(productId);
       form.setFieldsValue({
         product_name: resolveProductName(promotion.product),
         product_id: productId,
+        store: storeId,
         discount_type: promotion.discount_type as 'flat' | 'percentage',
         discount_value: promotion.discount_value,
         start_date: dayjs(promotion.start_date),
@@ -212,6 +261,8 @@ const PromotionsPage: React.FC = () => {
     } else {
       form.resetFields();
       setSelectedProductId(null);
+      // Preselecciona la (normalmente única) tienda del negocio.
+      form.setFieldValue('store', stores[0] !== undefined ? String(stores[0].id) : undefined);
     }
     setModalOpen(true);
   };
@@ -224,6 +275,7 @@ const PromotionsPage: React.FC = () => {
   const onFinish = async (values: PromotionFormValues) => {
     const payload = {
       product: selectedProductId,
+      store: values.store,
       discount_type: values.discount_type,
       discount_value: values.discount_value,
       start_date: values.start_date.format('YYYY-MM-DD'),
@@ -497,11 +549,26 @@ const PromotionsPage: React.FC = () => {
                 form.setFieldValue('product_id', option.id);
               }}
               placeholder="Buscar producto..."
+              notFoundContent={
+                ownedProducts.length === 0
+                  ? 'Todavía no tienes productos con precio propio. Añádelos primero en "Subir precios".'
+                  : 'Sin coincidencias'
+              }
             />
           </Form.Item>
 
-          <Form.Item label="Tienda">
-            <Input value={profile?.business_name ?? '—'} disabled />
+          <Form.Item
+            name="store"
+            label="Tienda"
+            rules={[{ required: true, message: 'Selecciona una tienda' }]}
+          >
+            <Select placeholder="Selecciona una tienda" disabled={stores.length <= 1}>
+              {stores.map((store) => (
+                <Select.Option key={store.id} value={String(store.id)}>
+                  {store.name}
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
 
           <Form.Item

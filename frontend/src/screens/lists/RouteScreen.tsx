@@ -779,6 +779,27 @@ export const RouteScreen: React.FC = () => {
         travelMode: "driving",
       });
 
+      if (!mapUrl) {
+        Alert.alert(
+          "Ruta no disponible",
+          "No hay coordenadas válidas para abrir la ruta en Google Maps.",
+        );
+        return;
+      }
+
+      // En Expo Web, `Linking.canOpenURL()` de react-native-web es un stub
+      // que SIEMPRE resuelve `true` sin mirar la URL (ver
+      // node_modules/react-native-web/dist/exports/Linking/index.js). Eso
+      // hacía que el bloque de abajo intentase SIEMPRE primero el esquema
+      // nativo `comgooglemaps://` (pensado solo para iOS/Android), que un
+      // navegador no sabe abrir y falla en silencio — el botón parecía no
+      // hacer nada. En web vamos directos a la URL universal de Google
+      // Maps, que sí abre una pestaña nueva en cualquier navegador.
+      if (Platform.OS === "web") {
+        await Linking.openURL(mapUrl);
+        return;
+      }
+
       const googleAppUrl = buildGoogleMapsAppCircularRouteUrl({
         origin,
         stops: result.route.map((stop) => ({ lat: stop.lat, lng: stop.lng })),
@@ -790,14 +811,6 @@ export const RouteScreen: React.FC = () => {
         stops: result.route.map((stop) => ({ lat: stop.lat, lng: stop.lng })),
         travelMode: "driving",
       });
-
-      if (!mapUrl) {
-        Alert.alert(
-          "Ruta no disponible",
-          "No hay coordenadas válidas para abrir la ruta en Google Maps.",
-        );
-        return;
-      }
 
       if (googleAppUrl && (await Linking.canOpenURL(googleAppUrl))) {
         await Linking.openURL(googleAppUrl);

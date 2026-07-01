@@ -101,10 +101,12 @@ export const authService = {
     data: Partial<UserProfile> | FormData,
   ): Promise<UserProfile> => {
     const isFormData = data instanceof FormData;
+    // No fijar "multipart/form-data" sin boundary (ver ERR-014 en
+    // docs/ai-mistakes-log.md): se anula con `undefined` el default
+    // "application/json" de apiClient para que el runtime genere la
+    // cabecera real (con boundary) a partir del FormData.
     return apiClient.patch<never, UserProfile>("/auth/profile/me/", data, {
-      headers: isFormData
-        ? { "Content-Type": "multipart/form-data" }
-        : undefined,
+      headers: isFormData ? { "Content-Type": undefined } : undefined,
     });
   },
 

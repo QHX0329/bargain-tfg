@@ -219,6 +219,17 @@ CORS_ALLOWED_ORIGINS = [
     if origin.strip()
 ]
 
+# CORS adicional por regex (ADITIVO a CORS_ALLOWED_ORIGINS): django-cors-headers
+# permite un origen si está en CORS_ALLOWED_ORIGINS O si casa con uno de estos
+# patrones. Garantiza que los orígenes propios desplegados (la app y el portal)
+# se permitan SIEMPRE, aunque el env var CORS_ALLOWED_ORIGINS quede mal
+# configurado o no los incluya. Sin esto, un fallo de configuración del entorno
+# bloquea TODA la app por CORS (el navegador rechaza cada llamada a la API).
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://bargain-[a-z0-9-]+\.onrender\.com$",  # bargain-app, etc. en Render
+    r"^https://qhx0329\.github\.io$",  # portal PYME en GitHub Pages
+]
+
 # ── Celery ───────────────────────────────────────────
 
 CELERY_BROKER_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")

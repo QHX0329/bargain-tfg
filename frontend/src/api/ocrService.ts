@@ -28,7 +28,14 @@ export const scanImage = (imageUri: string) => {
     type: "image/jpeg",
     name: "scan.jpg",
   } as any);
+  // No fijar "Content-Type: multipart/form-data" a mano: sin el parámetro
+  // boundary el backend no puede trocear el body (DRF responde "La
+  // información enviada no era un archivo"). `apiClient` fija por defecto
+  // "Content-Type: application/json"; hay que anular ese default con
+  // `undefined` para que sea el runtime (XHR/fetch en web, puente nativo en
+  // iOS/Android) quien genere la cabecera real con su boundary al ver que el
+  // body es un FormData. Ver docs/ai-mistakes-log.md ERR-014.
   return apiClient.post<OCRScanResponse>("/ocr/scan/", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
+    headers: { "Content-Type": undefined },
   });
 };

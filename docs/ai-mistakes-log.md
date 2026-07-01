@@ -123,6 +123,10 @@
 
 **REGLA-09 (de ERR-012):** Nunca usar como valor por defecto de `dict.get(k, default)` (o de un argumento) una expresión que pueda lanzar para usuarios anónimos, como `request.user.<attr>`. Python la evalúa SIEMPRE. En endpoints accesibles sin auth (los que usan el cliente público del frontend), leer primero `query_params`/`data` y solo entonces recurrir a `getattr(request.user, "<attr>", <fallback>)`. Verificar siempre el comportamiento con `AnonymousUser`.
 
+**REGLA-10 (de ERR-013):** (1) Diagnóstico CORS vs caída de instancia: si `fetch(mode:'no-cors')` devuelve opaque pero `fetch(mode:'cors')` falla de forma consistente desde el origen de la app (y las llamadas directas same-origin dan 200), es un problema de **CORS** (falta `Access-Control-Allow-Origin`), no de que el backend esté caído. (2) Los orígenes propios desplegados deben permitirse de forma robusta vía `CORS_ALLOWED_ORIGIN_REGEXES` en código, no solo por env var, para que una mala configuración del entorno no bloquee toda la app. (3) En Render, `Handling signal: term` + `Shutting down: Master` es el apagado normal de la instancia antigua en cada deploy (rolling), no un crash; confírmalo por los PIDs/ID de instancia y por el estado "live" en Events.
+
+**REGLA-11 (de ERR-014):** Al subir un `FormData` con Axios, nunca fijar a mano `"Content-Type": "multipart/form-data"` (sin `boundary` el body queda ilegible en el backend — DRF responde "no era un archivo"). Si la instancia de Axios tiene un `Content-Type` por defecto (p. ej. `application/json`), anularlo solo para esa petición con `headers: { "Content-Type": undefined }` y dejar que el runtime (XHR/fetch en web, puente nativo en RN) genere la cabecera real con boundary a partir del `FormData`.
+
 ---
 
 ### [2026-03-17] — ERR-006 — Claude (claude-sonnet-4-6)
@@ -224,6 +228,39 @@
 **Prevención:** REGLA-09.
 
 **Archivos afectados:** `backend/apps/stores/views.py`
+
+---
+
+### [2026-06-30] — ERR-013 — Claude (claude-opus-4-8)
+
+**Contexto:** Tras desplegar los fixes anteriores, la app desplegada (`bargain-app.onrender.com`) mostraba "0 tiendas", listas vacías y los logs de Render mostraban `Handling signal: term` / `Shutting down: Master`. El usuario interpretó que el deploy fallaba.
+
+**Diagnóstico:**
+- Los mensajes `term`/`Worker exiting`/`Shutting down: Master` son el **apagado normal del contenedor ANTIGUO** cuando un nuevo deploy toma el relevo (rolling deploy). Se confirmó por los PIDs/IDs de instancia: la nueva (`[zsl5q]`, workers 114/115) iba "live" y la vieja (`[g8pw5]`, workers 112/113) recibía SIGTERM ~1 min después. No es un crash. El deploy estaba "live" en Events.
+- El verdadero fallo: la app **no podía hablar con el backend por CORS**. Prueba decisiva desde el origen de la app: `fetch(mode:'no-cors')` devolvía opaque (el servidor responde) pero `fetch(mode:'cors')` fallaba 4/4 veces, mientras llamadas directas same-origin daban 200. Es decir, la respuesta NO incluía `Access-Control-Allow-Origin` para `https://bargain-app.onrender.com`. El navegador bloqueaba TODAS las llamadas a la API (stores, profile, lists, optimize) → la app parecía rota aunque el backend y el fix del radio funcionaban (consulta directa: 65 tiendas a 50 km).
+- Causa: el env var `CORS_ALLOWED_ORIGINS` del servicio dejó de incluir el origen de la app, y el `_default_cors_origins` de `base.py` tampoco lo incluía. Como el env var SOBREESCRIBE al default, cambiar el default no bastaba.
+
+**Solución aplicada:** Añadido `CORS_ALLOWED_ORIGIN_REGEXES` en `base.py` (aditivo a `CORS_ALLOWED_ORIGINS`) que permite siempre `^https://bargain-[a-z0-9-]+\.onrender\.com$` y el portal de GitHub Pages, de modo que un env var mal configurado no vuelva a bloquear toda la app. Alternativa inmediata sin deploy: corregir el env var `CORS_ALLOWED_ORIGINS` en el dashboard para incluir `https://bargain-app.onrender.com`.
+
+**Prevención:** REGLA-10.
+
+**Archivos afectados:** `backend/config/settings/base.py`
+
+---
+
+### [2026-07-01] — ERR-014 — Claude (claude-sonnet-5)
+
+**Contexto:** Nico reportó que subir una foto de una lista de la compra a `POST /api/v1/ocr/scan/` devolvía siempre `INVALID_REQUEST` / "La información enviada no era un archivo. Compruebe el tipo de codificación del formulario.", con cualquier imagen probada (descartando que fuera un problema de la foto en sí).
+
+**Error cometido:** `frontend/src/api/ocrService.ts` (`scanImage`) y `frontend/src/api/authService.ts` (`updateProfile`) fijaban a mano `headers: { "Content-Type": "multipart/form-data" }` en peticiones Axios cuyo body es un `FormData`. Al forzar esa cabecera **sin el parámetro `boundary`**, Axios respeta el valor explícito y no deja que el runtime (XHR en Expo web/react-native-web, o el puente nativo en iOS/Android) calcule y añada el boundary real al serializar el `FormData`. Django recibe un body multipart sin boundary, no puede trocearlo en partes, `request.FILES` llega vacío y el `ImageField`/`FileField` de DRF falla con el mensaje genérico de "no era un archivo".
+
+**Causa raíz:** Se intentó "corregir" a mano el `Content-Type: application/json` que `apiClient` fija por defecto (`frontend/src/api/client.ts`) sin tener en cuenta que Axios ya genera automáticamente la cabecera correcta (con boundary) para cuerpos `FormData`, siempre que no se le fuerce un valor explícito de `Content-Type`. El bug es reproducible en cualquier entorno gobernado por XHR/fetch real (Expo web); en builds nativos puede pasar desapercibido porque el puente de React Native a veces reescribe el boundary igualmente, lo que probablemente explica que llevara tiempo sin detectarse.
+
+**Solución aplicada:** En ambos sitios se sustituyó el valor fijo por `headers: { "Content-Type": undefined }`. Axios (`AxiosHeaders.toJSON()`) filtra las cabeceras con valor `undefined`/`null` antes de enviarlas, así que esto anula el default JSON de la instancia sin forzar ningún valor propio, dejando que el runtime añada la cabecera real con boundary al detectar un body `FormData`.
+
+**Prevención:** REGLA-11.
+
+**Archivos afectados:** `frontend/src/api/ocrService.ts`, `frontend/src/api/authService.ts`
 
 ---
 

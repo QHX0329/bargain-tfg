@@ -27,6 +27,7 @@ import { authService } from "@/api/authService";
 import { BargainButton } from "@/components/ui";
 import { useAuthStore } from "@/store/authStore";
 import { useProfileStore } from "@/store/profileStore";
+import { appendImageToFormData } from "@/utils/formDataImage";
 import type { ProfileStackParamList } from "@/navigation/types";
 
 interface EditProfileScreenProps {
@@ -103,9 +104,19 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
 
     setIsSaving(true);
     try {
+      // "file://"/"content://" cubren iOS/Android. En Expo Web, el selector
+      // de archivos devuelve la imagen recién elegida como "blob:" o
+      // "data:" — sin esos dos prefijos, una imagen nueva en web nunca se
+      // detectaría como local y el avatar no se subiría (solo se
+      // actualizarían nombre/email). Las URLs remotas ("https://...", avatar
+      // ya guardado) no casan con ninguno de los 4 prefijos y siguen yendo
+      // por la rama que no reenvía el avatar.
       const isLocalFile =
         avatarUri != null &&
-        (avatarUri.startsWith("file://") || avatarUri.startsWith("content://"));
+        (avatarUri.startsWith("file://") ||
+          avatarUri.startsWith("content://") ||
+          avatarUri.startsWith("blob:") ||
+          avatarUri.startsWith("data:"));
 
       let updated;
       if (isLocalFile) {
@@ -116,13 +127,13 @@ export const EditProfileScreen: React.FC<EditProfileScreenProps> = ({
         const fileName = avatarUri.split("/").pop() ?? "avatar.jpg";
         const ext = fileName.split(".").pop()?.toLowerCase() ?? "jpg";
         const mimeType = ext === "png" ? "image/png" : "image/jpeg";
-        // React Native / Expo acepta este shape en FormData
-
-        formData.append("avatar", {
-          uri: avatarUri,
-          name: fileName,
-          type: mimeType,
-        } as any);
+        await appendImageToFormData(
+          formData,
+          "avatar",
+          avatarUri,
+          fileName,
+          mimeType,
+        );
         updated = await authService.updateProfile(formData);
       } else {
         updated = await authService.updateProfile({

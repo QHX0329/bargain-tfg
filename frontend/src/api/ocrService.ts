@@ -8,6 +8,7 @@
  */
 
 import { apiClient } from "./client";
+import { appendImageToFormData } from "@/utils/formDataImage";
 
 export interface OCRItem {
   raw_text: string;
@@ -21,13 +22,10 @@ export interface OCRScanResponse {
   items: OCRItem[];
 }
 
-export const scanImage = (imageUri: string) => {
+export const scanImage = async (imageUri: string) => {
   const formData = new FormData();
-  formData.append("image", {
-    uri: imageUri,
-    type: "image/jpeg",
-    name: "scan.jpg",
-  } as any);
+  await appendImageToFormData(formData, "image", imageUri, "scan.jpg", "image/jpeg");
+
   // No fijar "Content-Type: multipart/form-data" a mano: sin el parámetro
   // boundary el backend no puede trocear el body (DRF responde "La
   // información enviada no era un archivo"). `apiClient` fija por defecto
